@@ -1,0 +1,3 @@
+[submodule "hw/opentitan"]
+	path = hw/opentitan
+	url = git@github.com:lowRISC/opentitan.git
