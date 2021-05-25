@@ -83,6 +83,7 @@ SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_ram_1p.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_buf.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_flop.sv
 
+SV_SOURCES += hw/tl_dbg.sv
 SV_SOURCES += hw/xbar.sv
 SV_SOURCES += hw/top.sv
 
@@ -95,3 +96,48 @@ clean: soc.v
 
 soc.v: $(SV_SOURCES)
 	sv2v -I=hw/opentitan/hw/ip/prim/rtl/ -I=hw/opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
+
+# Simulation
+
+ROM_DEPTH := 2048
+ifndef PREFIX
+PREFIX := $(shell if riscv64-unknown-elf-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
+	then echo 'riscv64-unknown-elf-'; \
+	elif riscv64-linux-gnu-objdump -i 2>&1 | grep 'elf64-big' >/dev/null 2>&1; \
+	then echo 'riscv64-linux-gnu-'; \
+	else echo "***" 1>&2; \
+	echo "*** Error: Couldn't find an riscv64 version of GCC/binutils." 1>&2; \
+	echo "*** To turn off this error, run 'make PREFIX= ...'." 1>&2; \
+	echo "***" 1>&2; exit 1; fi)
+endif
+
+CC := $(PREFIX)gcc
+AS := $(PREFIX)as
+LD := $(PREFIX)ld
+OBJCOPY := $(PREFIX)objcopy
+OBJDUMP := $(PREFIX)objdump
+
+CFLAGS := -O2 -march=rv32i -mabi=ilp32 -fdata-sections -ffunction-sections -ffreestanding
+ASFLAGS := -march=rv32im -mabi=ilp32
+OBJDUMPFLAGS := --disassemble-all --source --section-headers --demangle
+LDFLAGS := -melf32lriscv -nostdlib
+BIN2COEFLAGS := --width 32 --depth $(ROM_DEPTH) --fill 0
+
+%.bin: %.elf
+	$(OBJCOPY) $< -O binary $@
+
+%.o: %.s
+	$(AS) $(ASFLAGS) -c $< -o $@
+
+%.lst: %.elf
+	$(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
+
+%.elf: sw/rom.ld %.o
+	@mkdir -p fw
+	$(LD) $(LDFLAGS) -T $^ -o $@
+
+%.mem: %.bin
+	bin2coe $(BIN2COEFLAGS) --mem -i $< -o $@
+
+sim/soc_tb.out: sim/soc_tb.v soc.v
+	iverilog -g2005-sv -v -o $@ $^

@@ -1,6 +1,7 @@
 module top #(
   parameter bit IbexPipeLine = 0,
-  parameter [31:0] BootAddr = 32'b0
+  parameter [31:0] BootAddr = 32'b0,
+  parameter RamInitFile = "sw/test.mem"
 ) (
   // Clock and Reset
   input        clk_i,
@@ -110,6 +111,11 @@ module top #(
   logic [31:0] ram_rdata;
   logic        ram_rvalid;
 
+  tl_dbg adapter_ram_dbg (
+    .tl_h2d(tl_ram_d_h2d),
+    .tl_d2h(tl_ram_d_d2h)
+  );
+
   tlul_adapter_sram #(
     .SramAw(11),
     .SramDw(32),
@@ -119,13 +125,16 @@ module top #(
     .rst_ni   (rst_ni),
     .tl_i     (tl_ram_d_h2d),
     .tl_o     (tl_ram_d_d2h),
+    .en_ifetch_i(tlul_pkg::InstrDis),
 
     .req_o    (ram_req),
+    .req_type_o(),
     .gnt_i    (1'b1), // Always grant as only one requester exists
     .we_o     (ram_we),
     .addr_o   (ram_addr),
     .wdata_o  (ram_wdata),
     .wmask_o  (ram_wmask),
+    .intg_error_o(),
     .rdata_i  (ram_rdata),
     .rvalid_i (ram_rvalid),
     .rerror_i (2'b00)
@@ -134,7 +143,8 @@ module top #(
   prim_ram_1p #(
     .Width(32),
     .Depth(2048), // small test
-    .DataBitsPerMask(8)
+    .DataBitsPerMask(8),
+    .MemInitFile(RamInitFile)
   ) ram (
     .clk_i    (clk_i),
 
@@ -205,8 +215,5 @@ module top #(
     .tl_gpio_i      (tl_gpio_d_h2d),
     .tl_gpio_o      (tl_gpio_d_d2h),
   );
-
-  // make sure scanmode_i is never X (including during reset)
-  `ASSERT_KNOWN(scanmodeKnown, scanmode_i, clk_i, 0)
 
 endmodule
