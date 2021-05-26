@@ -1,7 +1,7 @@
 module top #(
   parameter bit IbexPipeLine = 0,
   parameter [31:0] BootAddr = 32'b0,
-  parameter RamInitFile = "sw/test.mem"
+  parameter RamInitFile = "sw/hello.mem"
 ) (
   // Clock and Reset
   input        clk_i,
@@ -35,6 +35,11 @@ module top #(
 
   tl_h2d_t tl_xbar_h_h2d;
   tl_d2h_t tl_xbar_h_d2h;
+
+  tl_dbg cored_dbg (
+    .tl_h2d(tl_cored_h_h2d),
+    .tl_d2h(tl_cored_h_d2h)
+  );
 
   rv_core_ibex #(
     .PMPEnable                (1),
@@ -110,11 +115,6 @@ module top #(
   logic [31:0] ram_wmask;
   logic [31:0] ram_rdata;
   logic        ram_rvalid;
-
-  tl_dbg adapter_ram_dbg (
-    .tl_h2d(tl_ram_d_h2d),
-    .tl_d2h(tl_ram_d_d2h)
-  );
 
   tlul_adapter_sram #(
     .SramAw(12),

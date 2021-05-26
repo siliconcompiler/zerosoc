@@ -1,3 +1,5 @@
 *.o
-*.mem
 *.elf
+*.bin
+*.mem
+gen/
