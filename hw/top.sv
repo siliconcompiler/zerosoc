@@ -105,7 +105,7 @@ module top #(
   // sram device
   logic        ram_req;
   logic        ram_we;
-  logic [10:0] ram_addr;
+  logic [11:0] ram_addr;
   logic [31:0] ram_wdata;
   logic [31:0] ram_wmask;
   logic [31:0] ram_rdata;
@@ -117,7 +117,7 @@ module top #(
   );
 
   tlul_adapter_sram #(
-    .SramAw(11),
+    .SramAw(12),
     .SramDw(32),
     .Outstanding(2),
     .EnableRspIntgGen(1),
@@ -142,30 +142,26 @@ module top #(
     .rerror_i (2'b00)
   );
 
-  prim_ram_1p #(
+  prim_ram_1p_adv #(
     .Width(32),
-    .Depth(2048), // small test
+    .Depth(4096),
     .DataBitsPerMask(8),
     .MemInitFile(RamInitFile)
   ) ram (
     .clk_i    (clk_i),
+    .rst_ni   (rst_ni),
 
     .req_i    (ram_req),
     .write_i  (ram_we),
     .addr_i   (ram_addr),
     .wdata_i  (ram_wdata),
     .wmask_i  (ram_wmask),
-    .rdata_o  (ram_rdata)
-  );
+    .rdata_o  (ram_rdata),
+    .rvalid_o (ram_rvalid),
+    .rerror_o (), // tied to zero, not important
 
-  // from prim_ram_1p comments: read data is returned 1 cycle after req_i is high
-  always @(posedge clk_i or negedge rst_ni) begin
-    if (!rst_ni) begin
-      ram_rvalid <= 1'b0;
-    end else begin
-      ram_rvalid <= ram_req;
-    end
-  end
+    .cfg_i(8'b0) // currently unused
+  );
 
   gpio gpio (
       .clk_i (clk_i),

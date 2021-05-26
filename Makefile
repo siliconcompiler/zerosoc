@@ -75,6 +75,7 @@ SV_SOURCES += hw/opentitan/hw/ip/prim/rtl/prim_subreg.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim/rtl/prim_subreg_ext.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim/rtl/prim_filter_ctr.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim/rtl/prim_arbiter_ppc.sv
+SV_SOURCES += hw/opentitan/hw/ip/prim/rtl/prim_ram_1p_adv.sv
 SV_SOURCES += hw/prim/prim_flop.sv
 SV_SOURCES += hw/prim/prim_clock_gating.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_flop_2sync.sv
