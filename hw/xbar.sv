@@ -5,12 +5,12 @@ module xbar (
     output tlul_pkg::tl_d2h_t tl_corei_o,
     input tlul_pkg::tl_h2d_t tl_cored_i,
     output tlul_pkg::tl_d2h_t tl_cored_o,
-    input tlul_pkg::tl_h2d_t tl_ram_i,
-    output tlul_pkg::tl_d2h_t tl_ram_o,
-    input tlul_pkg::tl_h2d_t tl_uart_i,
-    output tlul_pkg::tl_d2h_t tl_uart_o,
-    input tlul_pkg::tl_h2d_t tl_gpio_i,
-    output tlul_pkg::tl_d2h_t tl_gpio_o,
+    output tlul_pkg::tl_h2d_t tl_ram_o,
+    input tlul_pkg::tl_d2h_t tl_ram_i,
+    output tlul_pkg::tl_h2d_t tl_uart_o,
+    input tlul_pkg::tl_d2h_t tl_uart_i,
+    output tlul_pkg::tl_h2d_t tl_gpio_o,
+    input tlul_pkg::tl_d2h_t tl_gpio_i,
   );
   import tlul_pkg::*;
   import xbar_pkg::*;
@@ -71,8 +71,8 @@ module xbar (
     .rst_ni       (rst_ni),
     .tl_h_i       (tl_ram_in_arb_h2d),
     .tl_h_o       (tl_ram_in_arb_d2h),
-    .tl_d_i       (tl_ram_o),
-    .tl_d_o       (tl_ram_i)
+    .tl_d_i       (tl_ram_i),
+    .tl_d_o       (tl_ram_o)
   );
 
  endmodule

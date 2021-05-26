@@ -119,13 +119,15 @@ module top #(
   tlul_adapter_sram #(
     .SramAw(11),
     .SramDw(32),
-    .Outstanding(2)
+    .Outstanding(2),
+    .EnableRspIntgGen(1),
+    .EnableDataIntgGen(1)
   ) tl_adapter_ram (
     .clk_i   (clk_i),
     .rst_ni   (rst_ni),
     .tl_i     (tl_ram_d_h2d),
     .tl_o     (tl_ram_d_d2h),
-    .en_ifetch_i(tlul_pkg::InstrDis),
+    .en_ifetch_i(tlul_pkg::InstrEn),  // enable requests with "Instruction" type
 
     .req_o    (ram_req),
     .req_type_o(),
@@ -153,9 +155,17 @@ module top #(
     .addr_i   (ram_addr),
     .wdata_i  (ram_wdata),
     .wmask_i  (ram_wmask),
-    // .rvalid_o (ram_rvalid),
     .rdata_o  (ram_rdata)
   );
+
+  // from prim_ram_1p comments: read data is returned 1 cycle after req_i is high
+  always @(posedge clk_i or negedge rst_ni) begin
+    if (!rst_ni) begin
+      ram_rvalid <= 1'b0;
+    end else begin
+      ram_rvalid <= ram_req;
+    end
+  end
 
   gpio gpio (
       .clk_i (clk_i),
@@ -204,16 +214,20 @@ module top #(
   xbar xbar (
     .clk_i (clk_i),
     .rst_ni (rst_ni),
+
+    // host interfaces
     .tl_corei_i     (tl_corei_h_h2d),
     .tl_corei_o     (tl_corei_h_d2h),
     .tl_cored_i     (tl_cored_h_h2d),
     .tl_cored_o     (tl_cored_h_d2h),
-    .tl_ram_i       (tl_ram_d_h2d),
-    .tl_ram_o       (tl_ram_d_d2h),
-    .tl_uart_i      (tl_uart_d_h2d),
-    .tl_uart_o      (tl_uart_d_d2h),
-    .tl_gpio_i      (tl_gpio_d_h2d),
-    .tl_gpio_o      (tl_gpio_d_d2h),
+
+    // device interfaces
+    .tl_ram_i       (tl_ram_d_d2h),
+    .tl_ram_o       (tl_ram_d_h2d),
+    .tl_uart_i      (tl_uart_d_d2h),
+    .tl_uart_o      (tl_uart_d_h2d),
+    .tl_gpio_i      (tl_gpio_d_d2h),
+    .tl_gpio_o      (tl_gpio_d_h2d),
   );
 
 endmodule
