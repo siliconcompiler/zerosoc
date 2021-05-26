@@ -8,6 +8,9 @@
   `define PRIM_DEFAULT_IMPL prim_pkg::ImplGeneric
 `endif
 
+// TODO: create icebreaker prim library
+// can implement clock gate using SB_GB_IO primitive
+
 // This is to prevent AscentLint warnings in the generated
 // abstract prim wrapper. These warnings occur due to the .*
 // use. TODO: we may want to move these inline waivers
@@ -27,19 +30,21 @@ module prim_clock_gating
 );
   parameter prim_pkg::impl_e Impl = `PRIM_DEFAULT_IMPL;
 
-if (Impl == prim_pkg::ImplXilinx) begin : gen_xilinx
-    prim_xilinx_clock_gating #(
-      .NoFpgaGate(NoFpgaGate)
-    ) u_impl_xilinx (
-      .*
-    );
-end else begin : gen_generic
-    prim_generic_clock_gating #(
-      .NoFpgaGate(NoFpgaGate)
-    ) u_impl_generic (
-      .*
-    );
-end
+  assign clk_o = clk_i;
+
+// if (Impl == prim_pkg::ImplXilinx) begin : gen_xilinx
+//     prim_xilinx_clock_gating #(
+//       .NoFpgaGate(NoFpgaGate)
+//     ) u_impl_xilinx (
+//       .*
+//     );
+// end else begin : gen_generic
+//     prim_generic_clock_gating #(
+//       .NoFpgaGate(NoFpgaGate)
+//     ) u_impl_generic (
+//       .*
+//     );
+// end
 
 endmodule
 //ri lint_check_on OUTPUT_NOT_DRIVEN INPUT_NOT_READ

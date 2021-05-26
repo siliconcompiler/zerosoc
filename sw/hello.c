@@ -13,9 +13,11 @@ int main() {
 
     bool state = false;
     while (true) {
-        res = dif_gpio_write(&gpio, 0, state);
+        for (int i = 0; i < 10000; i++) {
+            // hacky way to get delay - write same value to GPIO in big loop
+            // (empty loop doesn't work with optimization on)
+            res = dif_gpio_write(&gpio, 0, state);
+        }
         state = !state;
-
-        for (int i = 0; i < 5; i++);
     }
 }

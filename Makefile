@@ -39,6 +39,7 @@ SV_SOURCES += hw/opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_multdiv_fast.sv
 SV_SOURCES += hw/opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_prefetch_buffer.sv
 SV_SOURCES += hw/opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_pmp.sv
 SV_SOURCES += hw/opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_register_file_ff.sv
+SV_SOURCES += hw/opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_register_file_fpga.sv
 SV_SOURCES += hw/opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_core.sv
 SV_SOURCES += hw/opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_wb_stage.sv
 
@@ -46,7 +47,8 @@ SV_SOURCES += hw/opentitan/hw/ip/uart/rtl/uart_reg_pkg.sv
 SV_SOURCES += hw/opentitan/hw/ip/uart/rtl/uart_reg_top.sv
 SV_SOURCES += hw/opentitan/hw/ip/uart/rtl/uart_rx.sv
 SV_SOURCES += hw/opentitan/hw/ip/uart/rtl/uart_tx.sv
-SV_SOURCES += hw/opentitan/hw/ip/uart/rtl/uart_core.sv
+# TODO: upstream changes and switch back to OpenTitan UART
+SV_SOURCES += hw/uart_core.sv
 SV_SOURCES += hw/opentitan/hw/ip/uart/rtl/uart.sv
 
 SV_SOURCES += hw/opentitan/hw/ip/gpio/rtl/gpio_reg_pkg.sv
@@ -89,7 +91,10 @@ SV_SOURCES += hw/xbar.sv
 SV_SOURCES += hw/zerosoc.sv
 
 .PHONY: all
-all: zerosoc.v
+all: zerosoc.bit
+
+.PHONY: check
+check: zerosoc.v
 	yosys -p 'read_verilog -sv zerosoc.v; hierarchy -check'
 
 .PHONY: clean
@@ -98,6 +103,12 @@ clean:
 
 zerosoc.v: $(SV_SOURCES)
 	sv2v -I=hw/opentitan/hw/ip/prim/rtl/ -I=hw/opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
+
+build/top_icebreaker/job1/export/outputs/top_icebreaker.bit: hw/top_icebreaker.v zerosoc.v
+	python3 build.py
+
+zerosoc.bit: build/top_icebreaker/job1/export/outputs/top_icebreaker.bit
+	cp $< $@
 
 # Simulation
 

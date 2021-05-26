@@ -1,7 +1,7 @@
 module zerosoc #(
   parameter bit IbexPipeLine = 0,
   parameter [31:0] BootAddr = 32'b0,
-  parameter RamInitFile = "sw/hello.mem"
+  parameter RamInitFile = "random.mem"
 ) (
   // Clock and Reset
   input        clk_i,
@@ -42,15 +42,15 @@ module zerosoc #(
   );
 
   rv_core_ibex #(
-    .PMPEnable                (1),
+    .PMPEnable                (0),
     .PMPGranularity           (0), // 2^(PMPGranularity+2) == 4 byte granularity
     .PMPNumRegions            (16),
-    .MHPMCounterNum           (10),
-    .MHPMCounterWidth         (32),
+    .MHPMCounterNum           (0),
+    .MHPMCounterWidth         (0),
     .RV32E                    (0),
     .RV32M                    (ibex_pkg::RV32MNone),
     .RV32B                    (ibex_pkg::RV32BNone),
-    .RegFile                  (ibex_pkg::RegFileFF),
+    .RegFile                  (ibex_pkg::RegFileFPGA),
     .BranchTargetALU          (0),
     .WritebackStage           (0),
     .ICache                   (0),
@@ -110,16 +110,16 @@ module zerosoc #(
   // sram device
   logic        ram_req;
   logic        ram_we;
-  logic [11:0] ram_addr;
+  logic [10:0] ram_addr;
   logic [31:0] ram_wdata;
   logic [31:0] ram_wmask;
   logic [31:0] ram_rdata;
   logic        ram_rvalid;
 
   tlul_adapter_sram #(
-    .SramAw(12),
+    .SramAw(11),
     .SramDw(32),
-    .Outstanding(2),
+    .Outstanding(1),
     .EnableRspIntgGen(1),
     .EnableDataIntgGen(1)
   ) tl_adapter_ram (
@@ -144,7 +144,7 @@ module zerosoc #(
 
   prim_ram_1p_adv #(
     .Width(32),
-    .Depth(4096),
+    .Depth(2048),
     .DataBitsPerMask(8),
     .MemInitFile(RamInitFile)
   ) ram (

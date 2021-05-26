@@ -1,2 +1,9 @@
 zerosoc.v
 zerosoc.vcd
+
+# SC build dir
+build/
+
+# FPGA build outputs
+*.asc
+*.bit
