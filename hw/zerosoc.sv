@@ -1,4 +1,4 @@
-module top #(
+module zerosoc #(
   parameter bit IbexPipeLine = 0,
   parameter [31:0] BootAddr = 32'b0,
   parameter RamInitFile = "sw/hello.mem"

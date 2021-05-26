@@ -86,19 +86,20 @@ SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_flop.sv
 
 SV_SOURCES += hw/tl_dbg.sv
 SV_SOURCES += hw/xbar.sv
-SV_SOURCES += hw/top.sv
+SV_SOURCES += hw/zerosoc.sv
 
 .PHONY: all
-all: soc.v
-	yosys -p 'read_verilog -sv soc.v; hierarchy -check'
+all: zerosoc.v
+	yosys -p 'read_verilog -sv zerosoc.v; hierarchy -check'
 
 .PHONY: clean
-clean: soc.v
+clean:
+	rm zerosoc.v
 
-soc.v: $(SV_SOURCES)
+zerosoc.v: $(SV_SOURCES)
 	sv2v -I=hw/opentitan/hw/ip/prim/rtl/ -I=hw/opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
 
 # Simulation
 
-sim/soc_tb.out: sim/soc_tb.v soc.v
+sim/zerosoc_tb.out: sim/zerosoc_tb.v zerosoc.v
 	iverilog -g2005-sv -v -o $@ $^
