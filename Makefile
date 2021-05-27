@@ -112,5 +112,5 @@ zerosoc.bit: build/top_icebreaker/job1/export/outputs/top_icebreaker.bit
 
 # Simulation
 
-sim/zerosoc_tb.out: sim/zerosoc_tb.v zerosoc.v
+sim/soc_tb.out: sim/zerosoc_tb.v zerosoc.v
 	iverilog -g2005-sv -v -o $@ $^

@@ -1,4 +1,4 @@
-module soc_tb();
+module zerosoc_tb();
 
 reg clk;
 reg rst;
@@ -6,7 +6,7 @@ reg rst;
 wire uart_tx, uart_tx_en;
 wire [31:0] gpio, gpio_en;
 
-top uut (
+zerosoc uut (
     .clk_i(clk),
     .rst_ni(rst),
     .uart_rx_i(1'b0),
@@ -28,13 +28,13 @@ initial begin
     rst = 1'b0;
     #5;
     rst = 1'b1;
-    #1000;
+    #10000;
     $finish;
 end
 
 initial begin
     // Set variables to be dumped to vcd file here
-    $dumpfile("soc.vcd");
+    $dumpfile("zerosoc.vcd");
     $dumpvars;
 end
 
