@@ -38,7 +38,9 @@ module top_icebreaker (
     assign LED4 = gpio_out[3];
     assign LED5 = gpio_out[4];
 
-    zerosoc soc(
+    zerosoc #(
+        .RamInitFile("random.mem")
+    ) soc(
         .clk_i(clk_6mhz),
         .rst_ni(BTN_N),
 

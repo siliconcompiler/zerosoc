@@ -6,7 +6,9 @@ reg rst;
 wire uart_tx, uart_tx_en;
 wire [31:0] gpio, gpio_en;
 
-zerosoc uut (
+zerosoc #(
+    .RamInitFile("sw/hello.mem")
+) uut (
     .clk_i(clk),
     .rst_ni(rst),
     .uart_rx_i(1'b0),

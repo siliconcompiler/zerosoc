@@ -91,27 +91,34 @@ SV_SOURCES += hw/tl_dbg.sv
 SV_SOURCES += hw/xbar.sv
 SV_SOURCES += hw/zerosoc.sv
 
-.PHONY: all
-all: zerosoc.bit
+FW ?= hello
 
-.PHONY: check
-check: zerosoc.v
-	yosys -p 'read_verilog -sv zerosoc.v; hierarchy -check'
+.PHONY: all
+all: zerosoc_$(FW).bit
 
 .PHONY: clean
 clean:
 	rm zerosoc.v
 
-zerosoc.v: $(SV_SOURCES)
+top_icebreaker_converted.v: hw/top_icebreaker.v $(SV_SOURCES)
 	sv2v -I=hw/opentitan/hw/ip/prim/rtl/ -I=hw/opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
 
-build/top_icebreaker/job1/export/outputs/top_icebreaker.bit: hw/top_icebreaker.v zerosoc.v
+zerosoc_tb_converted.v: sim/zerosoc_tb.v $(SV_SOURCES)
+	sv2v -I=hw/opentitan/hw/ip/prim/rtl/ -I=hw/opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
+
+build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc: top_icebreaker_converted.v
 	python3 build.py
 
-zerosoc.bit: build/top_icebreaker/job1/export/outputs/top_icebreaker.bit
-	cp $< $@
+zerosoc_%.asc: build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc sw/%.mem
+	icebram -v random.mem sw/$*.mem < $< > $@
+
+zerosoc_%.bit: zerosoc_%.asc
+	icepack $< $@
+
+sw/%.mem: sw/%.c
+	make -C sw/ $*.mem
 
 # Simulation
 
-sim/soc_tb.out: sim/zerosoc_tb.v zerosoc.v
-	iverilog -g2005-sv -v -o $@ $^
+sim/soc_tb.out: zerosoc_tb_converted.v sw/hello.mem
+	iverilog -g2005-sv -v -o $@ $<
