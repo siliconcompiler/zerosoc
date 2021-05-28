@@ -2,7 +2,7 @@ ROM_DEPTH := 2048
 
 PREFIX := riscv32-unknown-elf-
 
-PERIPHERALS := gpio
+PERIPHERALS := gpio uart
 
 REGS_HDRS := $(patsubst %,gen/%_regs.h, $(PERIPHERALS))
 

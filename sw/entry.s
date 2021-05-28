@@ -8,6 +8,13 @@ _exception_handler:
 _entry:
     # TODO: should do more reset (set up exception-handling stuff, clear all regs)
 
+    # Set up the global pointer. This requires that we disable linker relaxations
+    # (or it will be relaxed to `mv gp, gp`).
+    .option push
+    .option norelax
+    la  gp, __global_pointer$
+    .option pop
+
     # set stack pointer
     la sp, _stack_end
 
