@@ -30,6 +30,8 @@ OBJDUMPFLAGS := --disassemble-all --source --section-headers --demangle
 LDFLAGS := -melf32lriscv -nostdlib
 BIN2COEFLAGS := --width 32 --depth $(ROM_DEPTH) --fill 0
 
+all: hello.mem
+
 gen/%_regs.h:
 	@mkdir -p gen/
 	../hw/opentitan/util/regtool.py -D -o $@ ../hw/opentitan/hw/ip/$*/data/$*.hjson

@@ -1,7 +1,8 @@
 module zerosoc #(
   parameter bit IbexPipeLine = 0,
   parameter [31:0] BootAddr = 32'b0,
-  parameter RamInitFile = "random.mem"
+  // TODO: need to hard code file until https://github.com/zachjs/sv2v/issues/147 is resolved
+  parameter RamInitFile = "sw/hello.mem"
 ) (
   // Clock and Reset
   input        clk_i,
