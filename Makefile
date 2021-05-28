@@ -85,6 +85,7 @@ SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_clock_gating.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_ram_1p.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_buf.sv
 SV_SOURCES += hw/opentitan/hw/ip/prim_generic/rtl/prim_generic_flop.sv
+SV_SOURCES += hw/SB_HFOSC.v
 
 SV_SOURCES += hw/tl_dbg.sv
 SV_SOURCES += hw/xbar.sv

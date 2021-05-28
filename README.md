@@ -36,18 +36,13 @@ generate a flattened Verilog translation of the SoC SystemVerilog, and then run
 that through SiliconCompiler. See the Makefile for how I'm doing the translation
 with sv2v, and see build.py for how this gets run through SC using its Python API.
 
-The default target will also copy the final result, `zerosoc.bit`, out of
-the SC build directory and into the top level. Building the FPGA bitstream
-requires the most prerequisites: you'll need
-[sv2v](https://github.com/zachjs/sv2v), as well
+The default target will also copy the final result, `zerosoc.bit`, out of the SC
+build directory and into the top level. Building the FPGA bitstream requires the
+most prerequisites: you'll need [sv2v](https://github.com/zachjs/sv2v),
+[SiliconCompiler](https://github.com/siliconcompiler/siliconcompiler/), as well
 as Yosys, NextPNR-ice40, and the Icestorm tools (instructions for
 building/installing these can be found
 [here](http://www.clifford.at/icestorm/)).
-
-You'll also need SiliconCompiler, and the flow currently *does not* work with
-versions newer than 8316eedf. This is because I just fixed a bug that
-this design relies on, since there's an error in the import step that I haven't
-yet been able to fix or work around...
 
 ## Memory map
 
