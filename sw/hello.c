@@ -5,6 +5,24 @@
 
 #include "devices.h"
 
+#define LOOPS_PER_MSEC (6 * 125) // 6 MHz *  1/1000 sec/ms * 8 cycles/loop
+
+static void sleep_ms(unsigned long msec) {
+  unsigned long usec_cycles = LOOPS_PER_MSEC * msec;
+
+  int out; /* only to notify compiler of modifications to |loops| */
+  asm volatile(
+      "1: nop             \n" // 1 cycle
+      "   nop             \n" // 1 cycle
+      "   nop             \n" // 1 cycle
+      "   nop             \n" // 1 cycle
+      "   addi %1, %1, -1 \n" // 1 cycle
+      "   bnez %1, 1b     \n" // 3 cycles
+      : "=&r" (out)
+      : "0" (usec_cycles)
+  );
+}
+
 void gpio_init (dif_gpio_t *gpio) {
     dif_gpio_params_t params = { mmio_region_from_addr(GPIO_BASE_ADDR) };
     dif_gpio_result_t res = dif_gpio_init(params, gpio);
@@ -16,7 +34,7 @@ void uart_init (dif_uart_t *uart) {
 
     dif_uart_config_t config;
     config.baudrate = 9600;
-    config.clk_freq_hz = 6100000;
+    config.clk_freq_hz = 6000000;
     config.parity_enable = kDifUartToggleDisabled;
     config.parity = kDifUartParityEven;
 
@@ -50,22 +68,19 @@ static size_t uart_read(dif_uart_t *uart, char *buf, size_t max_len) {
 // Simple program to toggle GPIO pin 0 in a loop
 
 int main() {
-    dif_gpio_t gpio;
-    gpio_init(&gpio);
+  dif_gpio_t gpio;
+  gpio_init(&gpio);
 
-    dif_uart_t uart;
-    uart_init(&uart);
+  dif_uart_t uart;
+  uart_init(&uart);
 
-    size_t written = uart_write(&uart, "Hello world!\r\n", 14);
+  size_t written = uart_write(&uart, "Hello world!\r\n", 14);
 
-    bool state = false;
-    while (true) {
-      char buf[100];
-      size_t bytes_read = uart_read(&uart, buf, 100);
-      uart_write(&uart, "You said: ", 10);
-      uart_write(&uart, buf, bytes_read);
-      uart_write(&uart, "\r\n", 2);
-      dif_gpio_write(&gpio, 0, state);
-      state = !state;
+  bool state = false;
+  while (true)
+  {
+    dif_gpio_write(&gpio, 0, state);
+    state = !state;
+    sleep_ms(1000);
     }
 }
