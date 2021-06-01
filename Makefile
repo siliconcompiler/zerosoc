@@ -100,13 +100,10 @@ all: zerosoc_$(FW).bit
 clean:
 	rm zerosoc.v
 
-top_icebreaker_converted.v: hw/top_icebreaker.v $(SV_SOURCES)
+zerosoc.v: $(SV_SOURCES)
 	sv2v -I=hw/opentitan/hw/ip/prim/rtl/ -I=hw/opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
 
-zerosoc_tb_converted.v: sim/zerosoc_tb.v $(SV_SOURCES)
-	sv2v -I=hw/opentitan/hw/ip/prim/rtl/ -I=hw/opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
-
-build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc: top_icebreaker_converted.v
+build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc: hw/top_icebreaker.v zerosoc.v
 	python3 build.py
 
 zerosoc_%.asc: build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc sw/%.mem
@@ -120,5 +117,5 @@ sw/%.mem: sw/%.c
 
 # Simulation
 
-sim/soc_tb.out: zerosoc_tb_converted.v sw/hello.mem
-	iverilog -g2005-sv -v -o $@ $<
+sim/soc_tb.out: sim/zerosoc_tb.v zerosoc.v sw/hello.mem
+	iverilog -g2005-sv -v -o $@ $< zerosoc.v
