@@ -41,7 +41,7 @@ gen/%_regs.h:
 	$(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
 
 .SECONDARY:
-%.elf: ram.ld %.o $(DIF_OBJS) entry.o
+%.elf: ram.ld %.o $(DIF_OBJS) entry.o lib/peripherals.o
 	@mkdir -p fw
 	$(CC) $(LDFLAGS) -T $^ -o $@
 

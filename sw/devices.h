@@ -1,9 +1,0 @@
-#ifndef DEVICES_H
-
-#define DEVICES_H
-
-#define RAM_BASE_ADDR  0x00000000
-#define UART_BASE_ADDR 0x40000000
-#define GPIO_BASE_ADDR 0x40010000
-
-#endif
