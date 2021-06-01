@@ -32,6 +32,21 @@ static size_t uart_write(dif_uart_t *uart, const char *buf, size_t len) {
   return len;
 }
 
+/*
+ * Read bytes over UART until we hit a newline or read max length bytes
+ */
+static size_t uart_read(dif_uart_t *uart, char *buf, size_t max_len) {
+  size_t i;
+  for (i = 0; i < max_len; i++) {
+    dif_uart_byte_receive_polled(uart, (uint8_t*) &buf[i]);
+    if (buf[i] == '\r' || buf[i] == '\n') {
+      // return i instead of i+1 to trim newline
+      return i;
+    }
+  }
+  return i;
+}
+
 // Simple program to toggle GPIO pin 0 in a loop
 
 int main() {
@@ -41,16 +56,16 @@ int main() {
     dif_uart_t uart;
     uart_init(&uart);
 
-    size_t written = uart_write(&uart, "Hello world!\r\n", 13);
+    size_t written = uart_write(&uart, "Hello world!\r\n", 14);
 
     bool state = false;
     while (true) {
-        uart_write(&uart, state ? "on!\r\n" : "off\r\n", 5);
-        for (int i = 0; i < 10000; i++) {
-            // hacky way to get delay - write same value to GPIO in big loop
-            // (empty loop doesn't work with optimization on)
-            dif_gpio_write(&gpio, 0, state);
-        }
-        state = !state;
+      char buf[100];
+      size_t bytes_read = uart_read(&uart, buf, 100);
+      uart_write(&uart, "You said: ", 10);
+      uart_write(&uart, buf, bytes_read);
+      uart_write(&uart, "\r\n", 2);
+      dif_gpio_write(&gpio, 0, state);
+      state = !state;
     }
 }
