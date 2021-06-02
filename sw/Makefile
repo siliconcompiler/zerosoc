@@ -6,7 +6,7 @@ PERIPHERALS := gpio uart
 
 REGS_HDRS := $(patsubst %,gen/%_regs.h, $(PERIPHERALS))
 
-DIF_SRCS := $(patsubst %,../hw/opentitan/sw/device/lib/dif/dif_%.c, $(PERIPHERALS))
+DIF_SRCS := $(patsubst %,../opentitan/sw/device/lib/dif/dif_%.c, $(PERIPHERALS))
 DIF_HEADERS := $(DIF_SRCS:.c=.h)
 DIF_OBJS := $(DIF_SRCS:.c=.o)
 
@@ -16,7 +16,7 @@ LD := $(PREFIX)ld
 OBJCOPY := $(PREFIX)objcopy
 OBJDUMP := $(PREFIX)objdump
 
-CFLAGS := -O2 -march=rv32i -mabi=ilp32 -fdata-sections -ffunction-sections -ffreestanding -I../hw/opentitan/ -Igen/
+CFLAGS := -O2 -march=rv32i -mabi=ilp32 -fdata-sections -ffunction-sections -ffreestanding -I../opentitan/ -Igen/
 ASFLAGS := -march=rv32i -mabi=ilp32
 OBJDUMPFLAGS := --disassemble-all --source --section-headers --demangle
 LDFLAGS := -Wl,-melf32lriscv -nostdlib
@@ -28,11 +28,11 @@ lib/zerosoc.o: lib/zerosoc.h
 
 gen/%_regs.h:
 	@mkdir -p gen/
-	../hw/opentitan/util/regtool.py -D -o $@ ../hw/opentitan/hw/ip/$*/data/$*.hjson
+	../opentitan/util/regtool.py -D -o $@ ../opentitan/hw/ip/$*/data/$*.hjson
 
 # Pattern variables don't work here for some reason
-../hw/opentitan/sw/device/lib/dif/dif_gpio.o: gen/gpio_regs.h
-../hw/opentitan/sw/device/lib/dif/dif_uart.o: gen/uart_regs.h
+../opentitan/sw/device/lib/dif/dif_gpio.o: gen/gpio_regs.h
+../opentitan/sw/device/lib/dif/dif_uart.o: gen/uart_regs.h
 
 %.bin: %.elf
 	$(OBJCOPY) $< -O binary $@
