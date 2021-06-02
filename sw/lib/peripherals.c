@@ -21,9 +21,40 @@ void sleep_ms(unsigned long msec) {
   );
 }
 
+uint64_t mcycle_read(void) {
+  uint32_t cycle_low = 0;
+  uint32_t cycle_high = 0;
+  uint32_t cycle_high_2 = 0;
+  asm volatile(
+      "read%=:"
+      "  csrr %0, mcycleh;"     // Read `mcycleh`.
+      "  csrr %1, mcycle;"      // Read `mcycle`.
+      "  csrr %2, mcycleh;"     // Read `mcycleh` again.
+      "  bne  %0, %2, read%=;"  // Try again if `mcycle` overflowed before
+                                // reading `mcycleh`.
+      : "+r"(cycle_high), "=r"(cycle_low), "+r"(cycle_high_2)
+      :);
+  return (uint64_t)cycle_high << 32 | cycle_low;
+}
+
+uint64_t millis() {
+    uint64_t cycles = mcycle_read();
+    return cycles / 6000;
+}
+
 void gpio_init (dif_gpio_t *gpio) {
     dif_gpio_params_t params = { mmio_region_from_addr(GPIO_BASE_ADDR) };
     dif_gpio_result_t res = dif_gpio_init(params, gpio);
+}
+
+bool gpio_read(dif_gpio_t *gpio, int pin) {
+    bool state;
+    dif_gpio_read(gpio, pin, &state);
+    return state;
+}
+
+void gpio_write(dif_gpio_t *gpio, int pin, bool state) {
+    dif_gpio_write(gpio, pin, state);
 }
 
 void uart_init (dif_uart_t *uart) {
@@ -58,4 +89,11 @@ size_t uart_read(dif_uart_t *uart, char *buf, size_t max_len) {
     }
   }
   return i;
+}
+
+bool uart_available(dif_uart_t *uart) {
+    size_t bytes;
+    dif_uart_rx_bytes_available(uart, &bytes);
+
+    return bytes > 0;
 }

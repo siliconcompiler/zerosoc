@@ -21,7 +21,7 @@ _ram_size = 8k;
 /**
  * Fixed-size stack at end of RAM
  */
-_stack_size = 512;
+_stack_size = 200;
 _stack_end = _ram_size;
 _stack_start = _stack_end - _stack_size;
 
