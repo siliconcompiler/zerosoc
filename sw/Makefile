@@ -24,9 +24,15 @@ BIN2COEFLAGS := --width 32 --depth $(ROM_DEPTH) --fill 0
 
 all: hello.mem
 
+lib/zerosoc.o: lib/zerosoc.h
+
 gen/%_regs.h:
 	@mkdir -p gen/
 	../hw/opentitan/util/regtool.py -D -o $@ ../hw/opentitan/hw/ip/$*/data/$*.hjson
+
+# Pattern variables don't work here for some reason
+../hw/opentitan/sw/device/lib/dif/dif_gpio.o: gen/gpio_regs.h
+../hw/opentitan/sw/device/lib/dif/dif_uart.o: gen/uart_regs.h
 
 %.bin: %.elf
 	$(OBJCOPY) $< -O binary $@
@@ -41,7 +47,7 @@ gen/%_regs.h:
 	$(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
 
 .SECONDARY:
-%.elf: ram.ld %.o $(DIF_OBJS) entry.o lib/zerosoc.o
+%.elf: ram.ld %.o entry.o lib/zerosoc.o $(DIF_OBJS)
 	$(CC) $(LDFLAGS) -T $^ -o $@
 
 %.mem: %.bin
@@ -49,4 +55,4 @@ gen/%_regs.h:
 
 .PHONY: clean
 clean:
-	rm -f *.o *.elf *.bin *.mem lib/*.o
+	rm -f *.o *.elf *.bin *.mem lib/*.o gen/*.h $(DIF_OBJS)
