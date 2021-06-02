@@ -104,7 +104,7 @@ zerosoc.v: $(SV_SOURCES)
 	sv2v -I=opentitan/hw/ip/prim/rtl/ -I=opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
 
 build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc: hw/top_icebreaker.v zerosoc.v
-	python3 build.py
+	python3 build.py --fpga
 
 zerosoc_%.asc: build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc sw/%.mem
 	icebram -v random.mem sw/$*.mem < $< > $@
