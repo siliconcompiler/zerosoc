@@ -41,8 +41,7 @@ gen/%_regs.h:
 	$(OBJDUMP) $(OBJDUMPFLAGS) $< > $@
 
 .SECONDARY:
-%.elf: ram.ld %.o $(DIF_OBJS) entry.o lib/peripherals.o
-	@mkdir -p fw
+%.elf: ram.ld %.o $(DIF_OBJS) entry.o lib/zerosoc.o
 	$(CC) $(LDFLAGS) -T $^ -o $@
 
 %.mem: %.bin
@@ -50,4 +49,4 @@ gen/%_regs.h:
 
 .PHONY: clean
 clean:
-	rm -f *.o *.elf *.bin *.mem
+	rm -f *.o *.elf *.bin *.mem lib/*.o
