@@ -4,6 +4,9 @@
 
 // This file is auto-generated.
 
+`ifndef PRIM_DEFAULT_IMPL
+  `define PRIM_DEFAULT_IMPL prim_pkg::ImplGeneric
+`endif
 
 // This is to prevent AscentLint warnings in the generated
 // abstract prim wrapper. These warnings occur due to the .*
@@ -32,8 +35,18 @@ import prim_ram_1p_pkg::*;
   output logic [Width-1:0] rdata_o, // Read data. Data is returned one cycle after req_i is high.
   input ram_1p_cfg_t       cfg_i
 );
+  parameter prim_pkg::impl_e Impl = `PRIM_DEFAULT_IMPL;
 
-  if (1) begin : gen_generic
+  if (Impl == prim_pkg::ImplFreePdk45) begin : gen_freepdk45
+    prim_freepdk45_ram_1p #(
+      .DataBitsPerMask(DataBitsPerMask),
+      .Depth(Depth),
+      .MemInitFile(MemInitFile),
+      .Width(Width)
+    ) u_impl_freepdk45 (
+      .*
+    );
+  end else begin : gen_generic
     prim_generic_ram_1p #(
       .DataBitsPerMask(DataBitsPerMask),
       .Depth(Depth),

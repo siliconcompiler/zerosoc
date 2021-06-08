@@ -1,4 +1,5 @@
-zerosoc.v
+zerosoc_asic.v
+zerosoc_fpga.v
 zerosoc.vcd
 
 # SC build dir

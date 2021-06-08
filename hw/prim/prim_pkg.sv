@@ -11,6 +11,7 @@ package prim_pkg;
   // Implementation target specialization
   typedef enum integer {
     ImplGeneric,
-    ImplXilinx
+    ImplXilinx,
+    ImplFreePdk45
   } impl_e;
 endpackage : prim_pkg
