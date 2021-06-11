@@ -4,6 +4,17 @@ ZeroSoC is a basic RISC-V SoC meant to demonstrate the capabilities of
 SiliconCompiler. ZeroSoC currently consists of an Ibex core, the OpenTitan's
 UART and GPIO peripherals, and 8 KB of RAM.
 
+## Getting Started
+
+Clone the repository and all its submodules.
+
+```
+$ git clone --recursive git@github.com:siliconcompiler/zerosoc.git
+$ pip install -r python-requirements.sv
+```
+
+An installation of [`sv2v`](https://github.com/zachjs/sv2v) is needed as well.
+
 ## Build flow
 
 There are currently two targets supported by this repository: either the
@@ -16,7 +27,12 @@ Both targets require building the demo firmware `sw/hello.c`. To do so, cd into
 firmware requires installing the [RISC-V
 toolchain](https://github.com/riscv/riscv-gnu-toolchain). I configured my
 toolchain using `--with-arch=rv32i --with-abi=ilp32`, and ran the build for
-Newlib.
+Newlib. A prebuilt multilib toolchain can be downloaded from Embecosm:
+
+```
+$ wget https://buildbot.embecosm.com/job/riscv32-gcc-centos7/67/artifact/riscv32-embecosm-gcc-centos7-20210530.tar.gz
+$ tar xvf riscv32-embecosm-gcc-centos7-20210530.tar.gz --strip-components=1 -C ~/.local/
+```
 
 In addition, generating the `*.mem` file requires the Python utility
 [bin2coe](https://github.com/anishathalye/bin2coe). I plan to change the
