@@ -10,7 +10,7 @@ module xbar (
     output tlul_pkg::tl_h2d_t tl_uart_o,
     input tlul_pkg::tl_d2h_t tl_uart_i,
     output tlul_pkg::tl_h2d_t tl_gpio_o,
-    input tlul_pkg::tl_d2h_t tl_gpio_i,
+    input tlul_pkg::tl_d2h_t tl_gpio_i
   );
   import tlul_pkg::*;
   import xbar_pkg::*;

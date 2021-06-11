@@ -14,7 +14,7 @@ module zerosoc #(
 
   input  [31:0] gpio_i,
   output [31:0] gpio_o,
-  output [31:0] gpio_en_o,
+  output [31:0] gpio_en_o
 );
 
   import tlul_pkg::*;
@@ -180,7 +180,7 @@ module zerosoc #(
 
       // Inter-module signals
       .tl_i(tl_gpio_d_h2d),
-      .tl_o(tl_gpio_d_d2h),
+      .tl_o(tl_gpio_d_d2h)
   );
 
   uart uart (
@@ -224,7 +224,7 @@ module zerosoc #(
     .tl_uart_i      (tl_uart_d_d2h),
     .tl_uart_o      (tl_uart_d_h2d),
     .tl_gpio_i      (tl_gpio_d_d2h),
-    .tl_gpio_o      (tl_gpio_d_h2d),
+    .tl_gpio_o      (tl_gpio_d_h2d)
   );
 
 endmodule
