@@ -96,7 +96,7 @@ SV_SOURCES += hw/zerosoc.sv
 FW ?= hello
 
 .PHONY: all
-all: zerosoc_$(FW).bit
+all: zerosoc.gds
 
 .PHONY: clean
 clean:
@@ -113,6 +113,9 @@ build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc: hw/top_icebreaker.v ze
 
 build/zerosoc/job1/export/outputs/zerosoc.gds: zerosoc_asic.v
 	python3 build.py
+
+zerosoc.gds: build/zerosoc/job1/export/outputs/zerosoc.gds
+	cp $< $@
 
 zerosoc_%.asc: build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc sw/%.mem
 	icebram -v random.mem sw/$*.mem < $< > $@

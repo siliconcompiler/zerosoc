@@ -47,11 +47,6 @@ def main():
     chip.set_jobid()
     chip.target()
 
-    # TODO: I think 'stop' might not work before target, so can't include it in
-    # configure_asic() function
-    if not options.fpga:
-        chip.set('stop', 'syn')
-
     chip.run()
 
 

@@ -8,3 +8,6 @@ build/
 # FPGA build outputs
 *.asc
 *.bit
+
+# ASIC build outputs
+zerosoc.gds
