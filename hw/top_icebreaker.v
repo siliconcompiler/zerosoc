@@ -38,8 +38,10 @@ module top_icebreaker (
     assign LED4 = gpio_out[3];
     assign LED5 = gpio_out[4];
 
+`define MAKE_MEM_PATH(filename) `"`MEM_ROOT/filename`"
+
     zerosoc #(
-        .RamInitFile("random.mem")
+        .RamInitFile(`MAKE_MEM_PATH(random.mem))
     ) soc(
         .clk_i(clk_6mhz),
         .rst_ni(BTN_N),
