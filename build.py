@@ -8,8 +8,13 @@ def configure_general(chip):
 def configure_asic(chip):
     chip.add('design', 'zerosoc')
     chip.add('source', 'zerosoc_asic.v')
-    #chip.add('source', 'hw/top_asic.v')
-    #chip.add('source', 'hw/pad.v')
+    chip.add('source', 'hw/top_asic.v')
+
+    chip.add('source', 'oh/padring/hdl/oh_padring.v')
+    chip.add('source', 'oh/padring/hdl/oh_pads_corner.v')
+    chip.add('source', 'oh/padring/hdl/oh_pads_domain.v')
+    chip.add('source', 'oh/padring/hdl/oh_pads_gpio.v')
+
     chip.set('target', 'freepdk45')
     #chip.set('asic', 'floorplan', 'asic/floorplan.py')
     chip.set('constraint', 'asic/constraints.sdc')
