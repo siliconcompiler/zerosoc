@@ -11,3 +11,6 @@ build/
 
 # ASIC build outputs
 zerosoc.gds
+
+# Python build cache
+__pycache__/

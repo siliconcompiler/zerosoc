@@ -4,7 +4,7 @@ import os
 
 from sources import add_sources
 
-def configure_general(chip):
+def configure_general(chip, validate):
     # Prevent us from erroring out on lint warnings during import
     chip.set('relax', 'true')
 
@@ -15,6 +15,9 @@ def configure_general(chip):
 
     add_sources(chip)
 
+    if not validate:
+        chip.set('start', 'import')
+
 def configure_asic(chip):
     chip.add('design', 'top_asic')
 
@@ -22,23 +25,47 @@ def configure_asic(chip):
     chip.add('source', 'oh/padring/hdl/oh_padring.v')
     chip.add('source', 'oh/padring/hdl/oh_pads_corner.v')
     chip.add('source', 'oh/padring/hdl/oh_pads_domain.v')
-    chip.add('source', 'oh/padring/hdl/oh_pads_gpio.v')
+
+    chip.add('source', 'asic/asic_iobuf.v')
+    chip.add('source', 'asic/asic_iocut.v')
+    chip.add('source', 'asic/asic_iopoc.v')
+    chip.add('source', 'asic/asic_iovdd.v')
+    chip.add('source', 'asic/asic_iovddio.v')
+    chip.add('source', 'asic/asic_iovss.v')
+    chip.add('source', 'asic/asic_iovssio.v')
+
+    chip.add('source', 'asic/bb_iocell.v')
+
+    # need to include IOPAD blackbox since we don't have a lib file for iocells.lef
+    chip.add('source', 'asic/iopad.v')
 
     chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplFreePdk45"')
 
     chip.set('target', 'freepdk45_asic-sv2v')
-    #chip.set('asic', 'floorplan', 'asic/floorplan.py')
     chip.set('constraint', 'asic/constraints.sdc')
 
-    # TODO: floorplan library will handle this, but hard-code tinyRocket size
-    # for now
-    chip.set('asic', 'diesize', '0 0 924.92 799.4')
-    chip.set('asic', 'coresize', '10.07 9.8 914.85 789.6')
+    chip.set('asic', 'floorplan', 'asic/floorplan.py')
 
     macro = 'sram_32x2048_1rw'
     chip.add('asic', 'macrolib', macro)
     chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', f'hw/prim/freepdk45/{macro}.lib')
     chip.add('macro', macro, 'lef', f'hw/prim/freepdk45/{macro}.lef')
+    chip.set('macro', macro, 'cells', 'ram', 'sram_32x2048_1rw')
+
+    macro = 'io'
+    chip.add('asic', 'macrolib', macro)
+    chip.set('macro', macro, 'lef', f'asic/iocells.lef')
+    chip.set('macro', macro, 'cells', 'gpio', 'IOPAD')
+    chip.set('macro', macro, 'cells', 'vdd', 'PWRPAD')
+    chip.set('macro', macro, 'cells', 'vddio', 'PWRPAD')
+    chip.set('macro', macro, 'cells', 'vss', 'PWRPAD')
+    chip.set('macro', macro, 'cells', 'corner', 'CORNER')
+    chip.set('macro', macro, 'cells', 'fill1',  'FILLER01')
+    chip.set('macro', macro, 'cells', 'fill2',  'FILLER02')
+    chip.set('macro', macro, 'cells', 'fill5',  'FILLER05')
+    chip.set('macro', macro, 'cells', 'fill10', 'FILLER10')
+    chip.set('macro', macro, 'cells', 'fill25', 'FILLER25')
+    chip.set('macro', macro, 'cells', 'fill50', 'FILLER50')
 
 def configure_fpga(chip):
     chip.add('design', 'top_icebreaker')
@@ -50,10 +77,11 @@ def configure_fpga(chip):
 def main():
     parser = argparse.ArgumentParser(description='Build ZeroSoC')
     parser.add_argument('--fpga', action='store_true', default=False, help='Build for ice40 FPGA (build ASIC by default)')
+    parser.add_argument('--validate', action='store_true', default=False, help='Validate source using Surelog')
     options = parser.parse_args()
 
     chip = sc.Chip()
-    configure_general(chip)
+    configure_general(chip, options.validate)
 
     if options.fpga:
         configure_fpga(chip)

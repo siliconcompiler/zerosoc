@@ -30,33 +30,33 @@ MACRO IOPAD
     PIN EN
         DIRECTION INPUT ;
         PORT
-        LAYER MET1 ;
+        LAYER metal1 ;
             RECT  4.000 149.540 5.800 150.000 ;
         END
     END EN
     PIN A
         DIRECTION INPUT ;
         PORT
-        LAYER MET1 ;
+        LAYER metal1 ;
             RECT  1.000 149.540 2.800 150.000 ;
         END
     END A
     PIN Y
         DIRECTION OUTPUT ;
         PORT
-        LAYER MET1 ;
+        LAYER metal1 ;
             RECT  28.000 149.540 29.800 150.000 ;
         END
     END Y
     PIN PAD
         DIRECTION INOUT ;
         PORT
-        LAYER MET1 ;
+        LAYER metal1 ;
             RECT  15.500 39.120 68.500 105.120 ;
         END
     END PAD
     OBS 
-        LAYER MET1 ; 
+        LAYER metal1 ; 
         RECT 15.5 0 20.5 39.120 ; 
     END
 END IOPAD
@@ -72,7 +72,7 @@ MACRO PWRPAD
         DIRECTION INPUT ;
         USE POWER ;
         PORT
-        LAYER MET1 ;
+        LAYER metal1 ;
             RECT  10.000 140.000 74.800 150.000 ;
         END
     END Y
@@ -80,12 +80,12 @@ MACRO PWRPAD
         DIRECTION INPUT ;
         USE POWER ;
         PORT
-        LAYER MET1 ;
+        LAYER metal1 ;
             RECT  15.500 39.120 68.500 105.120 ;
         END
     END PAD
     OBS 
-        LAYER MET1 ; 
+        LAYER metal1 ; 
         RECT 15.5 0 20.5 39.120 ; 
     END    
 END PWRPAD
@@ -98,7 +98,7 @@ MACRO  CORNER
     SYMMETRY R90 ;
     SITE io_site ;
     OBS 
-        LAYER MET1 ; 
+        LAYER metal1 ; 
         RECT 0.0 0 40.0 40.0 ;
     END    
 END CORNER
