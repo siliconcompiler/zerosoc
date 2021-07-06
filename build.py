@@ -18,7 +18,7 @@ def configure_general(chip, validate):
     if not validate:
         chip.set('start', 'import')
 
-def configure_asic(chip):
+def configure_asic(chip, target='FreePdk45'):
     chip.add('design', 'top_asic')
 
     chip.add('source', 'hw/top_asic.v')
@@ -39,17 +39,17 @@ def configure_asic(chip):
     # need to include IOPAD blackbox since we don't have a lib file for iocells.lef
     chip.add('source', 'asic/iopad.v')
 
-    chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplFreePdk45"')
+    chip.add('define', f'PRIM_DEFAULT_IMPL="prim_pkg::Impl{target}"')
 
-    chip.set('target', 'freepdk45_asic-sv2v')
+    chip.set('target', f'{target.lower()}_asic-sv2v')
     chip.set('constraint', 'asic/constraints.sdc')
 
     chip.set('asic', 'floorplan', 'asic/floorplan.py')
 
     macro = 'sram_32x2048_1rw'
     chip.add('asic', 'macrolib', macro)
-    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', f'hw/prim/freepdk45/{macro}.lib')
-    chip.add('macro', macro, 'lef', f'hw/prim/freepdk45/{macro}.lef')
+    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', f'hw/prim/{target.lower()}/{macro}.lib')
+    chip.add('macro', macro, 'lef', f'hw/prim/{target.lower()}/{macro}.lef')
     chip.set('macro', macro, 'cells', 'ram', 'sram_32x2048_1rw')
 
     macro = 'io'
