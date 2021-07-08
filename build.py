@@ -61,6 +61,7 @@ def configure_asic(chip, target='FreePdk45'):
     chip.set('macro', macro, 'cells', 'vdd', 'PWRPAD')
     chip.set('macro', macro, 'cells', 'vddio', 'PWRPAD')
     chip.set('macro', macro, 'cells', 'vss', 'PWRPAD')
+    chip.set('macro', macro, 'cells', 'vssio', 'PWRPAD')
     chip.set('macro', macro, 'cells', 'corner', 'CORNER')
     chip.set('macro', macro, 'cells', 'fill1',  'FILLER01')
     chip.set('macro', macro, 'cells', 'fill2',  'FILLER02')
