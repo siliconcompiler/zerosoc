@@ -4,7 +4,7 @@ import os
 
 from sources import add_sources
 
-def configure_general(chip, validate):
+def configure_general(chip, start, stop):
     # Prevent us from erroring out on lint warnings during import
     chip.set('relax', 'true')
 
@@ -15,8 +15,8 @@ def configure_general(chip, validate):
 
     add_sources(chip)
 
-    if not validate:
-        chip.set('start', 'import')
+    chip.set('start', start)
+    chip.set('stop', stop)
 
 def configure_asic(chip, target='FreePdk45'):
     chip.add('design', 'top_asic')
@@ -45,6 +45,8 @@ def configure_asic(chip, target='FreePdk45'):
     chip.set('constraint', 'asic/constraints.sdc')
 
     chip.set('asic', 'floorplan', 'asic/floorplan.py')
+    # chip.set('asic', 'diesize', '0 0 2580.2 2542.4')
+    # chip.set('asic', 'coresize', '150.1 151.2 2430.1 2391.2')
 
     macro = 'sram_32x2048_1rw'
     chip.add('asic', 'macrolib', macro)
@@ -77,11 +79,12 @@ def configure_fpga(chip):
 def main():
     parser = argparse.ArgumentParser(description='Build ZeroSoC')
     parser.add_argument('--fpga', action='store_true', default=False, help='Build for ice40 FPGA (build ASIC by default)')
-    parser.add_argument('--validate', action='store_true', default=False, help='Validate source using Surelog')
+    parser.add_argument('-a', '--start', default='import', help='Start step')
+    parser.add_argument('-z', '--stop', default='export', help='Stop step')
     options = parser.parse_args()
 
     chip = sc.Chip()
-    configure_general(chip, options.validate)
+    configure_general(chip, options.start, options.stop)
 
     if options.fpga:
         configure_fpga(chip)

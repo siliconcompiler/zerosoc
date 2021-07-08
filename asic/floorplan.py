@@ -11,8 +11,12 @@ def setup_floorplan(fp, chip):
     core_w = 12000 * std_cell_w
     core_h = 1600 * std_cell_h
 
-    fp.create_die_area(core_w + 2 * io_cell_h, core_h + 2 * io_cell_h,
-        core_area=(io_cell_h, io_cell_h, core_w + io_cell_h, core_h + io_cell_h))
+    # add one of each in case we round down
+    margin_x = snap(io_cell_h, std_cell_w) + std_cell_w
+    margin_y = snap(io_cell_h, std_cell_h) + std_cell_h
+
+    fp.create_die_area(core_w + 2 * margin_x, core_h + 2 * margin_y,
+        core_area=(margin_x, margin_y, core_w + margin_x, core_h + margin_y))
 
     # Define pads
     gpio_w = [(f'padring.we_pads\\[0\\].i0.padio\\[{i}\\].i0.iopad', 'gpio') for i in range(9)]
