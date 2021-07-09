@@ -95,6 +95,10 @@ def main():
     chip.set_jobid()
     chip.target()
 
+    # TODO: hack - CTS currently doesn't work
+    if not options.fpga:
+        chip.cfg['steplist']['value'].remove('cts')
+
     chip.run()
 
     chip.summary()
