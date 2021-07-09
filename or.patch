@@ -1,0 +1,16 @@
+diff --git a/src/TritonRoute/src/pa/FlexPA_prep.cpp b/src/TritonRoute/src/pa/FlexPA_prep.cpp
+index d17807c51..d0f295ac1 100644
+--- a/src/TritonRoute/src/pa/FlexPA_prep.cpp
++++ b/src/TritonRoute/src/pa/FlexPA_prep.cpp
+@@ -988,6 +988,11 @@ void FlexPA::prepPoint_pin_checkPoints(
+   for (int i = 0; i < (int) layerPolysets.size(); i++) {
+     layerPolysets[i].get_polygons(layerPolys[i]);
+   }
++  if (aps.size() > 30) {
++    cout << "too many aps (" << aps.size() << ")" << endl;
++    cout << "stripping..." <<endl;
++    aps.resize(30);
++  }
+   for (auto& ap : aps) {
+     auto layerNum = ap->getLayerNum();
+     frPoint pt;
