@@ -96,26 +96,15 @@ SV_SOURCES += hw/zerosoc.sv
 FW ?= hello
 
 .PHONY: all
-all: zerosoc.gds
+all: zerosoc_hello.bit
 
 .PHONY: clean
 clean:
-	rm -f zerosoc_asic.v zerosoc_fpga.v *.asc *.bit zerosoc.vcd
+	rm -f zerosoc.v *.asc *.bit zerosoc.vcd
+	make -C sw/ clean
 
-zerosoc_asic.v: $(SV_SOURCES)
-	sv2v -I=opentitan/hw/ip/prim/rtl/ -I=opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS -DPRIM_DEFAULT_IMPL="prim_pkg::ImplFreePdk45" $^ > $@
-
-zerosoc_fpga.v: $(SV_SOURCES)
+zerosoc.v: $(SV_SOURCES)
 	sv2v -I=opentitan/hw/ip/prim/rtl/ -I=opentitan/hw/dv/sv/dv_utils/ -DSYNTHESIS $^ > $@
-
-build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc: hw/top_icebreaker.v zerosoc_fpga.v
-	python3 build.py --fpga
-
-build/zerosoc/job1/export/outputs/zerosoc.gds: zerosoc_asic.v
-	python3 build.py
-
-zerosoc.gds: build/zerosoc/job1/export/outputs/zerosoc.gds
-	cp $< $@
 
 zerosoc_%.asc: build/top_icebreaker/job1/apr/outputs/top_icebreaker.asc sw/%.mem
 	icebram -v random.mem sw/$*.mem < $< > $@
@@ -128,5 +117,5 @@ sw/%.mem: sw/%.c
 
 # Simulation
 
-sim/soc_tb.out: sim/zerosoc_tb.v zerosoc_fpga.v sw/hello.mem
-	iverilog -g2005-sv -v -o $@ $< zerosoc_fpga.v
+sim/soc_tb.out: sim/zerosoc_tb.v zerosoc.v sw/hello.mem
+	iverilog -g2005-sv -v -o $@ $< zerosoc_sim.v
