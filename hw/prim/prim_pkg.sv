@@ -12,6 +12,7 @@ package prim_pkg;
   typedef enum integer {
     ImplGeneric,
     ImplXilinx,
-    ImplFreePdk45
+    ImplFreePdk45,
+    ImplSky130
   } impl_e;
 endpackage : prim_pkg

@@ -68,8 +68,6 @@ def add_sources(chip):
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_subreg_arb.sv')
 
     chip.add('source', 'hw/prim/prim_ram_1p.sv')
-    chip.add('source', 'hw/prim/freepdk45/prim_freepdk45_ram_1p.v')
-    chip.add('source', 'hw/prim/freepdk45/sram_32x2048_1rw.bb.v')
     chip.add('source', 'hw/prim/prim_flop_2sync.sv')
     chip.add('source', 'hw/prim/prim_buf.sv')
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_fifo_sync.sv')
