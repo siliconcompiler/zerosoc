@@ -41,7 +41,8 @@ module top_icebreaker (
 `define MAKE_MEM_PATH(filename) `"`MEM_ROOT/filename`"
 
     zerosoc #(
-        .RamInitFile(`MAKE_MEM_PATH(random.mem))
+        .RamInitFile(`MAKE_MEM_PATH(random.mem)),
+        .RamDepth(2048)
     ) soc(
         .clk_i(clk_6mhz),
         .rst_ni(BTN_N),

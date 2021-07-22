@@ -27,7 +27,9 @@ module top_asic (
     wire [31:0] gpio_en_o;
 
     // Instantiate SoC
-    zerosoc soc (
+    zerosoc soc #(
+        .RamDepth(2048)
+    ) (
         .clk_i(clk),
         .rst_ni(rst),
 

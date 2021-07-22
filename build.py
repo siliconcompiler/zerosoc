@@ -75,8 +75,6 @@ def configure_asic_sky130(chip):
     chip.set('target', f'skywater130_asic-sv2v')
     chip.add('define', f'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
 
-    # chip.set('asic', 'diesize', '0 0 2580.2 2542.4')
-    # chip.set('asic', 'coresize', '150.1 151.2 2430.1 2391.2')
     chip.set('asic', 'floorplan', 'asic/sky130/floorplan.py')
 
     macro = 'ram'

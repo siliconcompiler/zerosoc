@@ -2,7 +2,8 @@ module zerosoc #(
   parameter bit IbexPipeLine = 0,
   parameter [31:0] BootAddr = 32'b0,
   // TODO: need to hard code file until https://github.com/zachjs/sv2v/issues/147 is resolved
-  parameter RamInitFile = "sw/hello.mem"
+  parameter RamInitFile = "sw/hello.mem",
+  parameter RamDepth = 512
 ) (
   // Clock and Reset
   input        clk_i,
@@ -118,7 +119,7 @@ module zerosoc #(
   logic        ram_rvalid;
 
   tlul_adapter_sram #(
-    .SramAw(11),
+    .SramAw($clog2(RamDepth)),
     .SramDw(32),
     .Outstanding(1),
     .EnableRspIntgGen(1),
@@ -145,7 +146,7 @@ module zerosoc #(
 
   prim_ram_1p_adv #(
     .Width(32),
-    .Depth(2048),
+    .Depth(RamDepth),
     .DataBitsPerMask(8),
     .MemInitFile(RamInitFile)
   ) ram (
