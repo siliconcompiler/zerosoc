@@ -14,7 +14,7 @@ def setup_floorplan(fp, chip):
     pow_cell_h = fp.available_cells['vdd'].height
     corner_w = fp.available_cells['corner'].width
     corner_h = fp.available_cells['corner'].height
-    max_io_cell_h = max(gpio_cell_h, pow_cell_h)
+    max_io_cell_h = max(gpio_cell_h, pow_cell_h, corner_w, corner_h)
 
     # Initialize die, based on die size for TinyRocket OpenROAD example
     # NOTE: cleaner spec could be as core w/h + coremargin
@@ -50,41 +50,66 @@ def setup_floorplan(fp, chip):
     pins_s = gpio_pins_s[:5] + power_pins[3] + gpio_pins_s[5:9]
 
     # Place pads and pins w/ equal spacing
-    # Pins need to be placed directly under pad metal area
+    # TODO: place pins directly under pad metal area
     die_w, die_h = fp.die_area
 
+    # west
     pads_width = sum(fp.available_cells[cell].width for _, cell in pads_w)
-
-    # Assuming all pads have same width
-    pad_w = pads_width // len(pads_w)
-
     spacing = (die_h - corner_w - corner_h - pads_width) / (len(pads_w) + 1)
-    fp.place_macros(pads_w, (0, corner_h + spacing), spacing, 'v', 'W')
-    # fp.place_pins(pins_w, corner_h + spacing + pad_w/2, spacing + pad_w, 'w', 10, 100, 'm3')
 
+    y = corner_h + spacing
+    for pad_name, pad_type in pads_w:
+        width = fp.available_cells[pad_type].width
+        height = fp.available_cells[pad_type].height
+
+        fp.place_macros((pad_name, pad_type), 0, y, 0, 0, 'W')
+
+        y += width + spacing
+
+    # north
     pads_width = sum(fp.available_cells[cell].width for _, cell in pads_n)
     spacing = (die_w - corner_w - corner_h - pads_width) / (len(pads_n) + 1)
-    fp.place_macros(pads_n[:5], (corner_h + spacing, die_h - gpio_cell_h), spacing, 'h', 'N')
-    fp.place_macros(pads_n[5:9], (corner_h + 6 * spacing + 5 * gpio_cell_w, die_h - pow_cell_h), spacing, 'h', 'N')
-    fp.place_macros(pads_n[9:], (corner_h + 6 * spacing + 5 * gpio_cell_w, die_h - gpio_cell_h), spacing, 'h', 'N')
-    # fp.place_pins(pins_n, io_cell_h + spacing + pad_w/2, spacing + pad_w, 'n', 10, 100, 'm3')
 
+    x = corner_h + spacing
+    for pad_name, pad_type in pads_n:
+        width = fp.available_cells[pad_type].width
+        height = fp.available_cells[pad_type].height
+
+        fp.place_macros((pad_name, pad_type), x, die_h - height, 0, 0, 'N')
+
+        x += width + spacing
+
+    # east
     pads_width = sum(fp.available_cells[cell].width for _, cell in pads_e)
-    spacing = (die_h - io_cell_h * 2 - pads_width) / (len(pads_e) + 1)
-    fp.place_macros(pads_e, (die_w - io_cell_h, io_cell_h + spacing), spacing, 'v', 'E')
-    # fp.place_pins(pins_e, io_cell_h + spacing + pad_w/2, spacing + pad_w, 'e', 10, 100, 'm3')
+    spacing = (die_h - corner_w - corner_h - pads_width) / (len(pads_e) + 1)
+    y = corner_w + spacing
+    for pad_name, pad_type in pads_e:
+        width = fp.available_cells[pad_type].width
+        height = fp.available_cells[pad_type].height
 
+        fp.place_macros((pad_name, pad_type), die_w - height, y, 0, 0, 'E')
+
+        y += width + spacing
+
+    # south
     pads_width = sum(fp.available_cells[cell].width for _, cell in pads_s)
     spacing = (die_w - io_cell_h * 2 - pads_width) / (len(pads_s) + 1)
-    fp.place_macros(pads_s, (io_cell_h + spacing, 0), spacing, 'h', 'S')
-    # fp.place_pins(pins_s, io_cell_h + spacing + pad_w/2, spacing + pad_w, 's', 10, 100, 'm3')
+
+    x = corner_w + spacing
+    for pad_name, pad_type in pads_s:
+        width = fp.available_cells[pad_type].width
+        height = fp.available_cells[pad_type].height
+
+        fp.place_macros((pad_name, pad_type), x, 0, 0, 0, 'S')
+
+        x += width + spacing
 
     # Place corners
     # NOTE: scalar placement functions could be nice
-    fp.place_macros([('corner_sw', 'corner')], (0, 0), 0, 'h', 'S')
-    fp.place_macros([('corner_nw', 'corner')], (0, die_h - io_cell_h), 0, 'h', 'W')
-    fp.place_macros([('corner_se', 'corner')], (die_w - io_cell_h, 0), 0, 'h', 'E')
-    fp.place_macros([('corner_ne', 'corner')], (die_w - io_cell_h, die_h - io_cell_h), 0, 'h', 'N')
+    fp.place_macros([('corner_sw', 'corner')], 0, 0, 0, 0, 'S')
+    fp.place_macros([('corner_nw', 'corner')], 0, die_h - corner_w, 0, 0, 'W')
+    fp.place_macros([('corner_se', 'corner')], die_w - corner_h, 0, 0, 0, 'E')
+    fp.place_macros([('corner_ne', 'corner')], die_w - corner_w, die_h - corner_h, 0, 0, 'N')
 
 #     # Place RAM macros
 #     ram_x = snap(0.2 * die_w, std_cell_w)
