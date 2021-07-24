@@ -23,15 +23,16 @@ import prim_ram_1p_pkg::*;
 
 generate
   if (Width == 32 && Depth == 512) begin
-    sky130_sram_2kbyte_1rw1r_32x512_8 mem(
-      .clk0(clk_i),
-      .csb0(~req_i),
-      .web0(~write_i),
-      .wmask0(wmask),
-      .addr0(addr_i),
-      .din0(wdata_i),
-      .dout0(rdata_o)
-    );
+    assign rdata_o = {23'b0, addr_i};
+    // sky130_sram_2kbyte_1rw1r_32x512_8 mem(
+    //   .clk0(clk_i),
+    //   .csb0(~req_i),
+    //   .web0(~write_i),
+    //   .wmask0(wmask),
+    //   .addr0(addr_i),
+    //   .din0(wdata_i),
+    //   .dout0(rdata_o)
+    // );
   end else begin
     // error!
   end

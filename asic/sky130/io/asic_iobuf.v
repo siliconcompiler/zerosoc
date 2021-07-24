@@ -36,31 +36,31 @@ module asic_iobuf #(
 sky130_ef_io__gpiov2_pad_wrapped gpio ( 
     .OUT(dout),
     .OE_N(oen),
-    .HLD_H_N(1'b1), // if 0, hold outputs at current state 
-    .ENABLE_H(1'b1), // if 0, hold outputs at hi-z (used on power-up) 
-    .ENABLE_INP_H(1'b0), // val doesn't matter when enable_h = 1
-    .ENABLE_VDDA_H(1'b1),
-    .ENABLE_VSWITCH_H(1'b1),
-    .ENABLE_VDDIO(1'b1),
+    .HLD_H_N(), // if 0, hold outputs at current state
+    .ENABLE_H(), // if 0, hold outputs at hi-z (used on power-up)
+    .ENABLE_INP_H(), // val doesn't matter when enable_h = 1
+    .ENABLE_VDDA_H(),
+    .ENABLE_VSWITCH_H(),
+    .ENABLE_VDDIO(),
     .INP_DIS(~ie), // disable input when ie low
-    .IB_MODE_SEL(1'b0), // use vddio based threshold
-    .VTRIP_SEL(1'b0), // use cmos threshold
-    .SLOW(1'b0),
-    .HLD_OVR(1'b0), // don't care when hld_h_n = 1
-    .ANALOG_EN(1'b0), // disable analog functionality
-    .ANALOG_SEL(1'b0), // don't care
-    .ANALOG_POL(1'b0), // don't care
-    .DM(3'b110), // strong pull-up, strong pull-down
-    .VDDIO(vddio),
-    .VDDIO_Q(vdd), // level-shift reference for high-voltage output
-    .VDDA(vddio), // tied off to vddio b/c analog functionality not used
-    .VCCD(vdd), // core supply as level-shift reference
-    .VSWITCH(vddio), // not sure what this is for, but seems like vdda = vddio
-    .VCCHIB(vdd),
-    .VSSA(vssio),
-    .VSSD(vss),
-    .VSSIO_Q(vss),
-    .VSSIO(vssio),
+    .IB_MODE_SEL(), // use vddio based threshold
+    .VTRIP_SEL(), // use cmos threshold
+    .SLOW(),
+    .HLD_OVR(), // don't care when hld_h_n = 1
+    .ANALOG_EN(), // disable analog functionality
+    .ANALOG_SEL(), // don't care
+    .ANALOG_POL(), // don't care
+    .DM(), // strong pull-up, strong pull-down
+    .VDDIO(),
+    .VDDIO_Q(), // level-shift reference for high-voltage output
+    .VDDA(), // tied off to vddio b/c analog functionality not used
+    .VCCD(), // core supply as level-shift reference
+    .VSWITCH(), // not sure what this is for, but seems like vdda = vddio
+    .VCCHIB(),
+    .VSSA(),
+    .VSSD(),
+    .VSSIO_Q(),
+    .VSSIO(),
     .PAD(pad),
     
     // Direction connection from pad to core (unused)

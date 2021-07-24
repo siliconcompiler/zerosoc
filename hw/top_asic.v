@@ -1,4 +1,5 @@
 module top_asic (
+    /*
     inout vdd,
     inout vss,
 
@@ -17,28 +18,29 @@ module top_asic (
     inout we_vddio,
     inout we_vssio,
     inout [8:0] we_pad
+    */
 );
 
-    wire uart_tx_o;
+    wire uart_tx;
     wire uart_tx_en_o;
 
     wire [31:0] gpio_in;
-    wire [31:0] gpio_o;
+    wire [31:0] gpio_out;
     wire [31:0] gpio_en_o;
 
     // Instantiate SoC
-    zerosoc soc #(
-        .RamDepth(2048)
-    ) (
+    zerosoc #(
+        .RamDepth(`RAM_DEPTH)
+    ) soc (
         .clk_i(clk),
         .rst_ni(rst),
 
         .uart_rx_i(uart_rx),
-        .uart_tx_o(uart_tx_o),
+        .uart_tx_o(uart_tx),
         .uart_tx_en_o(uart_tx_en_o),
 
         .gpio_i(gpio_in),
-        .gpio_o(gpio_o),
+        .gpio_o(gpio_out),
         .gpio_en_o(gpio_en_o)
     );
 
@@ -65,6 +67,28 @@ module top_asic (
     wire [71:0] ea_cfg;
     wire [8:0]  ea_ie;
     wire [8:0]  ea_oen;
+
+    // Padring I/O
+    // HACK: we can't expose these as module I/O, since that screws up OpenROAD
+    // PnR. Instead, just make them wires and mark them as keep.
+    (* keep *) wire vdd;
+    (* keep *) wire vss;
+
+    (* keep *) wire no_vddio;
+    (* keep *) wire no_vssio;
+    (* keep *) wire [8:0] no_pad;
+
+    (* keep *) wire so_vddio;
+    (* keep *) wire so_vssio;
+    (* keep *) wire [8:0] so_pad;
+
+    (* keep *) wire ea_vddio;
+    (* keep *) wire ea_vssio;
+    (* keep *) wire [8:0] ea_pad;
+
+    (* keep *) wire we_vddio;
+    (* keep *) wire we_vssio;
+    (* keep *) wire [8:0] we_pad;
 
     oh_padring #(
         .TYPE("SOFT"),
@@ -131,6 +155,34 @@ module top_asic (
         .ea_cfg, // config
         .ea_ie, // input enable
         .ea_oen // output enable (bar)
+    );
+
+    oh_pads_corner corner_sw (
+        .vdd(vdd),
+        .vss(vss),
+        .vddio(vddio),
+        .vssio(vssio)
+    );
+
+    oh_pads_corner corner_nw (
+        .vdd(vdd),
+        .vss(vss),
+        .vddio(vddio),
+        .vssio(vssio)
+    );
+
+    oh_pads_corner corner_ne (
+        .vdd(vdd),
+        .vss(vss),
+        .vddio(vddio),
+        .vssio(vssio)
+    );
+
+    oh_pads_corner corner_se (
+        .vdd(vdd),
+        .vss(vss),
+        .vddio(vddio),
+        .vssio(vssio)
     );
 
     // WEST

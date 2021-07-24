@@ -22,8 +22,9 @@ def configure_general(chip, start, stop):
 def configure_asic_freepdk45(chip):
     chip.add('design', 'top_asic')
 
-    chip.set('target', f'freepdk45_asic-sv2v')
-    chip.add('define', f'PRIM_DEFAULT_IMPL="prim_pkg::ImplFreePdk45"')
+    chip.set('target', 'freepdk45_asic-sv2v')
+    chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplFreePdk45"')
+    chip.add('define', 'RAM_DEPTH=2048')
 
     chip.add('source', 'hw/top_asic.v')
     chip.add('source', 'oh/padring/hdl/oh_padring.v')
@@ -70,10 +71,26 @@ def configure_asic_freepdk45(chip):
     chip.set('macro', macro, 'cells', 'fill50', 'FILLER50')
 
 def configure_asic_sky130(chip):
-    chip.add('design', 'zerosoc')
+    chip.add('design', 'top_asic')
 
-    chip.set('target', f'skywater130_asic-sv2v')
-    chip.add('define', f'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
+    chip.set('target', 'skywater130_asic-sv2v')
+    chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
+    chip.add('define', 'RAM_DEPTH=512')
+
+    chip.add('source', 'hw/top_asic.v')
+    chip.add('source', 'oh/padring/hdl/oh_padring.v')
+    chip.add('source', 'oh/padring/hdl/oh_pads_domain.v')
+
+    chip.add('source', 'asic/sky130/io/asic_iobuf.v')
+    chip.add('source', 'asic/sky130/io/asic_iocut.v')
+    chip.add('source', 'asic/sky130/io/asic_iopoc.v')
+    chip.add('source', 'asic/sky130/io/asic_iovdd.v')
+    chip.add('source', 'asic/sky130/io/asic_iovddio.v')
+    chip.add('source', 'asic/sky130/io/asic_iovss.v')
+    chip.add('source', 'asic/sky130/io/asic_iovssio.v')
+    chip.add('source', 'asic/sky130/io/oh_pads_corner.v')
+
+    chip.add('source', 'asic/bb_iocell.v')
 
     chip.set('asic', 'floorplan', 'asic/sky130/floorplan.py')
 
@@ -86,20 +103,21 @@ def configure_asic_sky130(chip):
     chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
     chip.add('source', 'asic/sky130/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
 
-    # macro = 'io'
-    # chip.add('asic', 'macrolib', macro)
-    # # chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    # chip.set('macro', macro, 'lef', f'asic/sky130/io/sky130_ef_io.lef')
-    # chip.set('macro', macro, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad_wrapped')
-    # chip.set('macro', macro, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
-    # chip.set('macro', macro, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
-    # chip.set('macro', macro, 'cells', 'vss', 'sky130_ef_io__vssd_hvc_pad')
-    # chip.set('macro', macro, 'cells', 'vssio', 'sky130_ef_io__vssio_hvc_pad')
-    # chip.set('macro', macro, 'cells', 'corner', 'sky130_ef_io__corner_pad')
-    # chip.set('macro', macro, 'cells', 'fill1',  'sky130_ef_io__com_bus_slice_1um')
-    # chip.set('macro', macro, 'cells', 'fill5',  'sky130_ef_io__com_bus_slice_5um')
-    # chip.set('macro', macro, 'cells', 'fill10', 'sky130_ef_io__com_bus_slice_10um')
-    # chip.set('macro', macro, 'cells', 'fill20', 'sky130_ef_io__com_bus_slice_20um')
+    macro = 'io'
+    chip.add('asic', 'macrolib', macro)
+    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
+    chip.set('macro', macro, 'lef', f'asic/sky130/io/sky130_ef_io.lef')
+    chip.set('macro', macro, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad_wrapped')
+    chip.set('macro', macro, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
+    chip.set('macro', macro, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
+    chip.set('macro', macro, 'cells', 'vss', 'sky130_ef_io__vssd_hvc_pad')
+    chip.set('macro', macro, 'cells', 'vssio', 'sky130_ef_io__vssio_hvc_pad')
+    chip.set('macro', macro, 'cells', 'corner', 'sky130_ef_io__corner_pad')
+    chip.set('macro', macro, 'cells', 'fill1',  'sky130_ef_io__com_bus_slice_1um')
+    chip.set('macro', macro, 'cells', 'fill5',  'sky130_ef_io__com_bus_slice_5um')
+    chip.set('macro', macro, 'cells', 'fill10', 'sky130_ef_io__com_bus_slice_10um')
+    chip.set('macro', macro, 'cells', 'fill20', 'sky130_ef_io__com_bus_slice_20um')
+    chip.add('source', 'asic/sky130/io/sky130_io.blackbox.v')
 
 def configure_asic(chip, target):
     chip.set('constraint', 'asic/constraints.sdc')
