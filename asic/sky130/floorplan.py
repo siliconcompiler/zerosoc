@@ -67,7 +67,7 @@ def setup_floorplan(fp, chip):
         height = fp.available_cells[pad_type].height
 
         fp.place_macros([(pad_name, pad_type)], 0, y, 0, 0, 'W')
-        # fp.place_pin([pin_name], 0, y, 0, 0, 10, 10, 'm5', 'N')
+        fp.place_pins([pin_name], pin_depth_offset, y + width/2, 0, 0, 10, 10, 'm5')
 
         y += width + spacing
 
@@ -81,7 +81,7 @@ def setup_floorplan(fp, chip):
         height = fp.available_cells[pad_type].height
 
         fp.place_macros([(pad_name, pad_type)], x, die_h - height, 0, 0, 'N')
-        # fp.place_pin([pin_name], x + width/2, die_h - pin_depth_offset, 0, 0, pin_size, pin_size, 'm5', 'N')
+        fp.place_pins([pin_name], x + width/2, die_h - pin_depth_offset, 0, 0, pin_size, pin_size, 'm5')
 
         x += width + spacing
 
@@ -94,6 +94,7 @@ def setup_floorplan(fp, chip):
         height = fp.available_cells[pad_type].height
 
         fp.place_macros([(pad_name, pad_type)], die_w - height, y, 0, 0, 'E')
+        fp.place_pins([pin_name], die_w - pin_depth_offset, y + width/2, 0, 0, pin_size, pin_size, 'm5')
 
         y += width + spacing
 
@@ -107,7 +108,7 @@ def setup_floorplan(fp, chip):
         height = fp.available_cells[pad_type].height
 
         fp.place_macros([(pad_name, pad_type)], x, 0, 0, 0, 'S')
-        # fp.place_pin([pin_name], x + width/2, pin_depth_offset, 0, 0, pin_size, pin_size, 'm5', 'N')
+        fp.place_pins([pin_name], x + width/2, pin_depth_offset, 0, 0, pin_size, pin_size, 'm5')
 
         x += width + spacing
 

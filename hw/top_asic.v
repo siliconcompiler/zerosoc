@@ -1,5 +1,4 @@
 module top_asic (
-    /*
     inout vdd,
     inout vss,
 
@@ -18,7 +17,6 @@ module top_asic (
     inout we_vddio,
     inout we_vssio,
     inout [8:0] we_pad
-    */
 );
 
     wire uart_tx;
@@ -68,6 +66,7 @@ module top_asic (
     wire [8:0]  ea_ie;
     wire [8:0]  ea_oen;
 
+/*
     // Padring I/O
     // HACK: we can't expose these as module I/O, since that screws up OpenROAD
     // PnR. Instead, just make them wires and mark them as keep.
@@ -89,6 +88,7 @@ module top_asic (
     (* keep *) wire we_vddio;
     (* keep *) wire we_vssio;
     (* keep *) wire [8:0] we_pad;
+    */
 
     oh_padring #(
         .TYPE("SOFT"),
