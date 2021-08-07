@@ -9,16 +9,16 @@ def configure(name):
 
     chip.set('design', name)
 
-    chip.target('skywater130')
+    chip.target('skywater130_asicflow')
 
     macro = 'ram'
     chip.add('asic', 'macrolib', macro)
-    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    chip.add('macro', macro, 'lef', 'asic/sky130/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
-    chip.add('macro', macro, 'gds', 'asic/sky130/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
+    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
+    chip.add('macro', macro, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
+    chip.add('macro', macro, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
     chip.set('macro', macro, 'cells', 'ram', 'sky130_sram_2kbyte_1rw1r_32x512_8')
     chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
-    chip.add('source', 'asic/sky130/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
+    chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
 
     macro = 'io'
     chip.add('asic', 'macrolib', macro)

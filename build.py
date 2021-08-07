@@ -14,14 +14,14 @@ def configure_general(chip, start, stop):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     chip.add('define', f'MEM_ROOT={cur_dir}')
 
-    add_sources(chip)
-
     chip.set('start', start)
     chip.set('stop', stop)
 
-def configure_asic(chip):
+def configure_asic_core(chip):
     chip.add('design', 'asic_core')
     chip.target('skywater130_svasicflow')
+
+    add_sources(chip)
 
     # TODO: can use this logic once flowgraph schema is used properly
     # # Modify flow for SV synthesis: 
@@ -50,10 +50,40 @@ def configure_asic(chip):
     chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
     chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
 
+def configure_asic_top(chip):
+    chip.add('design', 'asic_top')
+    chip.target('skywater130_physasicflow')
+
+    chip.add('source', 'hw/asic_top.v')
+    chip.add('source', 'hw/asic_core.bb.v')
+    chip.add('source', 'oh/padring/hdl/oh_padring.v')
+    chip.add('source', 'oh/padring/hdl/oh_pads_domain.v')
+
+    chip.add('source', 'asic/sky130/io/asic_iobuf.v')
+    chip.add('source', 'asic/sky130/io/asic_iocut.v')
+    chip.add('source', 'asic/sky130/io/asic_iopoc.v')
+    chip.add('source', 'asic/sky130/io/asic_iovdd.v')
+    chip.add('source', 'asic/sky130/io/asic_iovddio.v')
+    chip.add('source', 'asic/sky130/io/asic_iovss.v')
+    chip.add('source', 'asic/sky130/io/asic_iovssio.v')
+    chip.add('source', 'asic/sky130/io/oh_pads_corner.v')
+
+    chip.add('source', 'asic/bb_iocell.v')
+
+    chip.set('asic', 'floorplan', 'asic/sky130/floorplan/padring.py')
+
+    macro = 'core'
+    chip.add('asic', 'macrolib', macro)
+    chip.set('macro', macro, 'lef', 'asic_core.lef')
+    chip.set('macro', macro, 'gds', 'asic_core.gds')
+    chip.set('macro', macro, 'cells', 'asic_core', 'asic_core')
+
     macro = 'io'
     chip.add('asic', 'macrolib', macro)
     chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    chip.set('macro', macro, 'lef', f'asic/sky130/io/sky130_ef_io.lef')
+    chip.set('macro', macro, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
+    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
+    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
     chip.set('macro', macro, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad_wrapped')
     chip.set('macro', macro, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
     chip.set('macro', macro, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
@@ -70,12 +100,14 @@ def configure_fpga(chip):
     chip.add('design', 'top_icebreaker')
     chip.target('target', 'ice40_fpgaflow')
 
+    add_sources(chip)
+
     chip.add('source', 'hw/top_icebreaker.v')
     chip.set('constraint', 'fpga/icebreaker.pcf')
 
 def main():
     parser = argparse.ArgumentParser(description='Build ZeroSoC')
-    parser.add_argument('--fpga', action='store_true', default=False, help='Build for ice40 FPGA (build ASIC by default)')
+    parser.add_argument('-t', '--target', default='core', help="Whether to build 'core', 'top', or 'fpga'")
     parser.add_argument('-a', '--start', default='import', help='Start step')
     parser.add_argument('-z', '--stop', default='export', help='Stop step')
     options = parser.parse_args()
@@ -83,10 +115,12 @@ def main():
     chip = sc.Chip()
     configure_general(chip, options.start, options.stop)
 
-    if options.fpga:
+    if options.target == 'fpga':
         configure_fpga(chip)
-    else:
-        configure_asic(chip)
+    elif options.target == 'core':
+        configure_asic_core(chip)
+    elif options.target == 'top':
+        configure_asic_top(chip)
 
     chip.set_jobid()
 
