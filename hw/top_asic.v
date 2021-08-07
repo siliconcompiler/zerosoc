@@ -19,76 +19,33 @@ module top_asic (
     inout [8:0] we_pad
 );
 
-    wire uart_tx;
-    wire uart_tx_en_o;
-
-    wire [31:0] gpio_in;
-    wire [31:0] gpio_out;
-    wire [31:0] gpio_en_o;
-
-    // Instantiate SoC
-    zerosoc #(
-        .RamDepth(`RAM_DEPTH)
-    ) soc (
-        .clk_i(clk),
-        .rst_ni(rst),
-
-        .uart_rx_i(uart_rx),
-        .uart_tx_o(uart_tx),
-        .uart_tx_en_o(uart_tx_en_o),
-
-        .gpio_i(gpio_in),
-        .gpio_o(gpio_out),
-        .gpio_en_o(gpio_en_o)
-    );
-
     wire [8:0]  we_din;
     wire [8:0]  we_dout;
     wire [71:0] we_cfg;
     wire [8:0]  we_ie;
     wire [8:0]  we_oen;
+    wire [143:0] we_tech_cfg;
 
     wire [8:0]  no_din;
     wire [8:0]  no_dout;
     wire [71:0] no_cfg;
     wire [8:0]  no_ie;
     wire [8:0]  no_oen;
+    wire [143:0] no_tech_cfg;
 
     wire [8:0]  so_din;
     wire [8:0]  so_dout;
     wire [71:0] so_cfg;
     wire [8:0]  so_ie;
     wire [8:0]  so_oen;
+    wire [143:0] so_tech_cfg;
 
     wire [8:0]  ea_din;
     wire [8:0]  ea_dout;
     wire [71:0] ea_cfg;
     wire [8:0]  ea_ie;
     wire [8:0]  ea_oen;
-
-/*
-    // Padring I/O
-    // HACK: we can't expose these as module I/O, since that screws up OpenROAD
-    // PnR. Instead, just make them wires and mark them as keep.
-    (* keep *) wire vdd;
-    (* keep *) wire vss;
-
-    (* keep *) wire no_vddio;
-    (* keep *) wire no_vssio;
-    (* keep *) wire [8:0] no_pad;
-
-    (* keep *) wire so_vddio;
-    (* keep *) wire so_vssio;
-    (* keep *) wire [8:0] so_pad;
-
-    (* keep *) wire ea_vddio;
-    (* keep *) wire ea_vssio;
-    (* keep *) wire [8:0] ea_pad;
-
-    (* keep *) wire we_vddio;
-    (* keep *) wire we_vssio;
-    (* keep *) wire [8:0] we_pad;
-    */
+    wire [143:0] ea_tech_cfg;
 
     oh_padring #(
         .TYPE("SOFT"),
@@ -115,7 +72,8 @@ module top_asic (
         .WE_VDDIO(1),
         .WE_VSSIO(1),
         .WE_VDD(1),
-        .WE_VSS(1)
+        .WE_VSS(1),
+        .TECH_CFG_WIDTH(16)
     ) padring (
         .vss,
         .vdd,
@@ -128,6 +86,7 @@ module top_asic (
         .we_cfg,
         .we_ie,
         .we_oen,
+        .we_tech_cfg,
 
         .no_vddio,
         .no_vssio,
@@ -137,6 +96,7 @@ module top_asic (
         .no_cfg, // config
         .no_ie, // input enable
         .no_oen, // output enable (bar)
+        .no_tech_cfg,
 
         .so_vddio,
         .so_vssio,
@@ -146,6 +106,7 @@ module top_asic (
         .so_cfg, // config
         .so_ie, // input enable
         .so_oen, // output enable (bar)
+        .so_tech_cfg,
 
         .ea_vddio,
         .ea_vssio,
@@ -155,6 +116,7 @@ module top_asic (
         .ea_cfg, // config
         .ea_ie, // input enable
         .ea_oen // output enable (bar)
+        .ea_tech_cfg
     );
 
     oh_pads_corner corner_sw (
@@ -185,37 +147,9 @@ module top_asic (
         .vssio(vssio)
     );
 
-    // WEST
-    assign gpio_in[4:0] = we_din[4:0];
-    assign clk = we_din[5];
-    assign rst = we_din[6];
-    assign uart_rx = we_din[7];
-    // we_din[8] unused - uart_tx is an output
-
-    assign we_dout = {uart_tx, 3'b000, gpio_out[4:0]};
-    assign we_oen = {~uart_tx_en_o, 3'b111, ~gpio_en_o[4:0]};
-    assign we_ie = we_oen;
     assign we_cfg = 72'b0;
-
-    // NORTH
-    assign gpio_in[13:5] = no_din;
-    assign no_dout = gpio_out[13:5];
-    assign no_oen = ~gpio_en_o[13:5];
-    assign no_ie = no_oen;
     assign no_cfg = 72'b0;
-
-    // EAST
-    assign gpio_in[22:14] = ea_din;
-    assign ea_dout = gpio_out[22:14];
-    assign ea_oen = ~gpio_en_o[22:14];
-    assign ea_ie = ea_oen;
     assign ea_cfg = 72'b0;
-
-    // SOUTH
-    assign gpio_in[31:23] = so_din;
-    assign so_dout = gpio_out[31:23];
-    assign so_oen = ~gpio_en_o[31:23];
-    assign so_ie = so_oen;
     assign so_cfg = 72'b0;
 
 endmodule

@@ -2,5 +2,6 @@
 	path = opentitan
 	url = git@github.com:lowRISC/opentitan.git
 [submodule "oh"]
-	path = oh
-	url = git@github.com:aolofsson/oh.git
+    path = oh
+	url = https://github.com/nmoroze/oh.git
+	branch = master

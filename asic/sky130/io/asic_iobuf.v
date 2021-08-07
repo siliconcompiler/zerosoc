@@ -1,12 +1,14 @@
 module asic_iobuf #(
     parameter DIR = "NO",
-    parameter TYPE = "SOFT"
+    parameter TYPE = "SOFT",
+    parameter TECH_CFG_WIDTH = 16
 ) (
     output din,
     input dout,
     input ie,
     input oen,
     input [7:0] cfg,
+    input [TECH_CFG_WIDTH-1:0] tech_cfg,
 
     inout poc,
     inout vdd,
@@ -30,27 +32,31 @@ module asic_iobuf #(
 // TODO: should do something with poc signal? maybe this has to do with
 // power-on ramp pins such as enable_h
 
-// TODO: might need to use "tielo"/"tiehi" signals for each of these instead of
+// TODO: might need to use "tielo"/"tiehi" signals for some of these instead of
 // 0/1 constants -- see https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts/blob/master/flow/designs/sky130hd/coyote_tc/ios.v
 
 sky130_ef_io__gpiov2_pad_wrapped gpio ( 
+    .IN(din),
     .OUT(dout),
     .OE_N(oen),
-    .HLD_H_N(), // if 0, hold outputs at current state
-    .ENABLE_H(), // if 0, hold outputs at hi-z (used on power-up)
-    .ENABLE_INP_H(), // val doesn't matter when enable_h = 1
-    .ENABLE_VDDA_H(),
-    .ENABLE_VSWITCH_H(),
-    .ENABLE_VDDIO(),
-    .INP_DIS(~ie), // disable input when ie low
-    .IB_MODE_SEL(), // use vddio based threshold
-    .VTRIP_SEL(), // use cmos threshold
-    .SLOW(),
-    .HLD_OVR(), // don't care when hld_h_n = 1
-    .ANALOG_EN(), // disable analog functionality
-    .ANALOG_SEL(), // don't care
-    .ANALOG_POL(), // don't care
-    .DM(), // strong pull-up, strong pull-down
+    .INP_DIS(ie), // disable input when ie low
+    .PAD(pad),
+
+    .HLD_H_N(tech_cfg[0]), // if 0, hold outputs at current state
+    .ENABLE_H(tech_cfg[1]), // if 0, hold outputs at hi-z (used on power-up)
+    .ENABLE_INP_H(tech_cfg[2]), // val doesn't matter when enable_h = 1
+    .ENABLE_VDDA_H(tech_cfg[3]),
+    .ENABLE_VSWITCH_H(tech_cfg[4]),
+    .ENABLE_VDDIO(tech_cfg[5]),
+    .IB_MODE_SEL(tech_cfg[6]), // use vddio based threshold
+    .VTRIP_SEL(tech_cfg[7]), // use cmos threshold
+    .SLOW(tech_cfg[8]),
+    .HLD_OVR(tech_cfg[9]), // don't care when hld_h_n = 1
+    .ANALOG_EN(tech_cfg[10]), // disable analog functionality
+    .ANALOG_SEL(tech_cfg[11]), // don't care
+    .ANALOG_POL(tech_cfg[12]), // don't care
+    .DM(tech_cfg[15:13]), // strong pull-up, strong pull-down
+
     .VDDIO(),
     .VDDIO_Q(), // level-shift reference for high-voltage output
     .VDDA(), // tied off to vddio b/c analog functionality not used
@@ -61,8 +67,7 @@ sky130_ef_io__gpiov2_pad_wrapped gpio (
     .VSSD(),
     .VSSIO_Q(),
     .VSSIO(),
-    .PAD(pad),
-    
+   
     // Direction connection from pad to core (unused)
     .PAD_A_NOESD_H(),
     .PAD_A_ESD_0_H(),
@@ -72,7 +77,6 @@ sky130_ef_io__gpiov2_pad_wrapped gpio (
     .AMUXBUS_A(),
     .AMUXBUS_B(),
 
-    .IN(din),
     // not sure what this output does, so leave disconnected
     .IN_H(),
 
