@@ -21,9 +21,20 @@ def configure_general(chip, start, stop):
 
 def configure_asic(chip):
     chip.add('design', 'asic_core')
+    chip.target('skywater130_svasicflow')
+
+    # TODO: can use this logic once flowgraph schema is used properly
+    # # Modify flow for SV synthesis: 
+    # # - Use morty for import (since Verilator is not SV-friendly)
+    # # - Insert sv2v convert step in between import and syn stages
+    # chip.cfg['flowgraph']['value']
+    # chip.set('flowgraph', 'import', 'output', 'convert')
+    # chip.set('flowgraph', 'import', 'tool', 'morty')
+    # chip.set('flowgraph', 'convert', 'output', 'syn')
+    # chip.set('flowgraph', 'convert', 'tool', 'sv2v')
+
     chip.set('constraint', 'asic/constraints.sdc')
 
-    chip.set('target', 'skywater130_svasicflow')
     chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
     chip.add('define', 'RAM_DEPTH=512')
 
@@ -57,9 +68,9 @@ def configure_asic(chip):
 
 def configure_fpga(chip):
     chip.add('design', 'top_icebreaker')
+    chip.target('target', 'ice40_fpgaflow')
 
     chip.add('source', 'hw/top_icebreaker.v')
-    chip.set('target', 'ice40_nextpnr')
     chip.set('constraint', 'fpga/icebreaker.pcf')
 
 def main():
@@ -78,7 +89,6 @@ def main():
         configure_asic(chip)
 
     chip.set_jobid()
-    chip.target()
 
     chip.run()
     chip.summary()
