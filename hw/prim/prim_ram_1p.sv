@@ -37,16 +37,7 @@ import prim_ram_1p_pkg::*;
 );
   parameter prim_pkg::impl_e Impl = `PRIM_DEFAULT_IMPL;
 
-  if (Impl == prim_pkg::ImplFreePdk45) begin : gen_freepdk45
-    prim_freepdk45_ram_1p #(
-      .DataBitsPerMask(DataBitsPerMask),
-      .Depth(Depth),
-      .MemInitFile(MemInitFile),
-      .Width(Width)
-    ) u_impl_freepdk45 (
-      .*
-    );
-  end else if (Impl == prim_pkg::ImplSky130) begin : gen_sky130
+  if (Impl == prim_pkg::ImplSky130) begin : gen_sky130
     prim_sky130_ram_1p #(
       .DataBitsPerMask(DataBitsPerMask),
       .Depth(Depth),
