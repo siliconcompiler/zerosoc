@@ -54,6 +54,9 @@ def configure_asic_top(chip):
     chip.add('design', 'asic_top')
     chip.target('skywater130_physasicflow')
 
+    # TODO: pass in constraints file named asic_top.sdc to get rid of error in
+    # KLayout export
+
     chip.add('source', 'hw/asic_top.v')
     chip.add('source', 'hw/asic_core.bb.v')
     chip.add('source', 'oh/padring/hdl/oh_padring.v')
@@ -70,7 +73,8 @@ def configure_asic_top(chip):
 
     chip.add('source', 'asic/bb_iocell.v')
 
-    chip.set('asic', 'floorplan', 'asic/sky130/floorplan/padring.py')
+    # chip.set('asic', 'floorplan', '')
+    chip.set('asic', 'def', 'asic_top.def')
 
     macro = 'core'
     chip.add('asic', 'macrolib', macro)
