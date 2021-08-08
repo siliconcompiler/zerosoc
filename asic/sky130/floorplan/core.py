@@ -5,6 +5,7 @@ import sys
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
 from common import *
+from siliconcompiler.floorplan import Floorplan
 
 def setup_floorplan(fp, chip):
     # TODO: this should be automatically set to a valid value
@@ -87,3 +88,9 @@ def setup_floorplan(fp, chip):
             fp.place_pins([name], x + gpio_w - offset - pin_width, 0, 0, 0, pin_width, pin_depth, 'm2')
    
     return fp
+
+def generate_floorplan(chip):
+    fp = Floorplan(chip)
+    fp = setup_floorplan(fp, chip)
+    fp.write_def('asic_core.def')
+    fp.write_lef('asic_core.lef')

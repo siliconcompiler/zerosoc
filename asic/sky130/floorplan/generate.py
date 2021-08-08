@@ -4,7 +4,7 @@ from siliconcompiler.floorplan import Floorplan
 import padring
 import core
 
-def configure(name): 
+def generate_floorplans(chip): 
     chip = Chip()
 
     chip.set('design', name)

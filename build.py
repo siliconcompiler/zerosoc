@@ -2,10 +2,15 @@ import argparse
 import siliconcompiler as sc
 import os
 import importlib
+import shutil
 
 from sources import add_sources
 
-def configure_general(chip, start, stop):
+from asic.sky130.floorplan import core, padring
+
+def init_chip(start, stop):
+    chip = sc.Chip() 
+
     # Prevent us from erroring out on lint warnings during import
     chip.set('relax', 'true')
 
@@ -16,6 +21,8 @@ def configure_general(chip, start, stop):
 
     chip.set('start', start)
     chip.set('stop', stop)
+
+    return chip
 
 def configure_asic_core(chip):
     chip.add('design', 'asic_core')
@@ -33,13 +40,33 @@ def configure_asic_core(chip):
     # chip.set('flowgraph', 'convert', 'output', 'syn')
     # chip.set('flowgraph', 'convert', 'tool', 'sv2v')
 
-    chip.set('constraint', 'asic/constraints.sdc')
+    chip.set('constraint', 'asic/asic_core.sdc')
 
     chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
     chip.add('define', 'RAM_DEPTH=512')
 
     chip.add('source', 'hw/asic_core.v')
-    chip.set('asic', 'floorplan', 'asic/sky130/floorplan/core.py')
+    chip.set('asic', 'def', 'asic_core.def')
+    
+    # Need to configure IO macro libs so that floorplan generation can determine
+    # cell dimensions
+    macro = 'io'
+    chip.add('asic', 'macrolib', macro)
+    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
+    chip.set('macro', macro, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
+    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
+    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
+    chip.set('macro', macro, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad_wrapped')
+    chip.set('macro', macro, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
+    chip.set('macro', macro, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
+    chip.set('macro', macro, 'cells', 'vss', 'sky130_ef_io__vssd_hvc_pad')
+    chip.set('macro', macro, 'cells', 'vssio', 'sky130_ef_io__vssio_hvc_pad')
+    chip.set('macro', macro, 'cells', 'corner', 'sky130_ef_io__corner_pad')
+    chip.set('macro', macro, 'cells', 'fill1',  'sky130_ef_io__com_bus_slice_1um')
+    chip.set('macro', macro, 'cells', 'fill5',  'sky130_ef_io__com_bus_slice_5um')
+    chip.set('macro', macro, 'cells', 'fill10', 'sky130_ef_io__com_bus_slice_10um')
+    chip.set('macro', macro, 'cells', 'fill20', 'sky130_ef_io__com_bus_slice_20um')
+    chip.add('source', 'asic/sky130/io/sky130_io.blackbox.v')
 
     macro = 'ram'
     chip.add('asic', 'macrolib', macro)
@@ -54,8 +81,9 @@ def configure_asic_top(chip):
     chip.add('design', 'asic_top')
     chip.target('skywater130_physasicflow')
 
-    # TODO: pass in constraints file named asic_top.sdc to get rid of error in
-    # KLayout export
+    # Hack: pass in empty constraint file to get rid of KLayout post-process
+    # error (must have same name as design)
+    chip.set('constraint', 'asic/asic_top.sdc')
 
     chip.add('source', 'hw/asic_top.v')
     chip.add('source', 'hw/asic_core.bb.v')
@@ -73,7 +101,6 @@ def configure_asic_top(chip):
 
     chip.add('source', 'asic/bb_iocell.v')
 
-    # chip.set('asic', 'floorplan', '')
     chip.set('asic', 'def', 'asic_top.def')
 
     macro = 'core'
@@ -86,8 +113,10 @@ def configure_asic_top(chip):
     chip.add('asic', 'macrolib', macro)
     chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
     chip.set('macro', macro, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
-    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
     chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
+    # Need both of these GDS files to get corner cell to look correct
+    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
+    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
     chip.set('macro', macro, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad_wrapped')
     chip.set('macro', macro, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
     chip.set('macro', macro, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
@@ -109,27 +138,60 @@ def configure_fpga(chip):
     chip.add('source', 'hw/top_icebreaker.v')
     chip.set('constraint', 'fpga/icebreaker.pcf')
 
-def main():
-    parser = argparse.ArgumentParser(description='Build ZeroSoC')
-    parser.add_argument('-t', '--target', default='core', help="Whether to build 'core', 'top', or 'fpga'")
-    parser.add_argument('-a', '--start', default='import', help='Start step')
-    parser.add_argument('-z', '--stop', default='export', help='Stop step')
-    options = parser.parse_args()
+def build_fpga(start='import', stop='bitstream'):
+    chip = init_chip(start, stop)
+    configure_fpga(chip)
+    run_build(chip)
 
-    chip = sc.Chip()
-    configure_general(chip, options.start, options.stop)
+def build_core(start='import', stop='export'):
+    chip = init_chip(start, stop)
+    configure_asic_core(chip)
+    core.generate_floorplan(chip)
+    run_build(chip)
+    
+    # copy out GDS for top-level integration
+    if stop == 'export':
+        jobdir = (chip.get('dir')[-1] +
+                "/" + design + "/" +
+                chip.get('jobname')[-1] +
+                chip.get('jobid')[-1])
+        design = chip.get('design')[-1]
+        shutil.copy(f'{jobdir}/export/outputs/{design}.gds', f'{design}.gds')
 
-    if options.target == 'fpga':
-        configure_fpga(chip)
-    elif options.target == 'core':
-        configure_asic_core(chip)
-    elif options.target == 'top':
-        configure_asic_top(chip)
+def build_top(start='import', stop='export'):
+    # check for necessary files generated by previous steps
+    if not (os.path.isfile('asic_core.gds') and os.path.isfile('asic_core.lef')):
+        raise Exception("Error building asic_top: can't find asic_core outputs. "
+                        "Please re-run build.py without --top-only")
 
+    chip = init_chip(start, stop)
+    configure_asic_top(chip)
+    padring.generate_floorplan(chip)
+    run_build(chip)
+
+def run_build(chip):
     chip.set_jobid()
-
     chip.run()
     chip.summary()
+
+def main():
+    parser = argparse.ArgumentParser(description='Build ZeroSoC')
+    parser.add_argument('--fpga', action='store_true', default=False, help='Build for ice40 FPGA (build ASIC by default)')
+    parser.add_argument('--core-only', action='store_true', default=False, help='Only build ASIC core GDS.')
+    parser.add_argument('--top-only', action='store_true', default=False, help='Only integrate ASIC core into padring. Assumes ASIC core already built.')
+    parser.add_argument('-a', '--start', default='import', help='Start step (for single-part builds)')
+    parser.add_argument('-z', '--stop', default='export', help='Stop step (for single-part builds)')
+    options = parser.parse_args()
+
+    if options.fpga:
+        build_fpga(options.start, options.stop)
+    elif options.core_only:
+        build_core(options.start, options.stop)
+    elif options.top_only:
+        build_top(options.start, options.stop)
+    else:
+        build_core()
+        build_top()
 
 if __name__ == '__main__':
     main()

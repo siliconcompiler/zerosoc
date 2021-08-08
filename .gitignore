@@ -9,7 +9,10 @@ build/
 *.bit
 
 # ASIC build outputs
-zerosoc.gds
+asic_core.gds
+asic_core.def
+asic_core.lef
+asic_top.def
 
 # Python build cache
 __pycache__/
