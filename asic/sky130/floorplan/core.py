@@ -49,7 +49,7 @@ def setup_floorplan(fp, chip):
         ('tech_cfg', 1, 16, 35.065), # enable_h
         ('tech_cfg', 2, 16, 38.285), # enable_inp_h
         ('tech_cfg', 3, 16, 13.445), # enable_vdda_h
-        ('tech_cfg', 4, 16, 16.310), # enable_vswitch_h
+        ('tech_cfg', 4, 16, 16.665), # enable_vswitch_h
         ('tech_cfg', 5, 16, 69.105), # enable_vddio
         ('tech_cfg', 6, 16, 7.465), # ib_mode_sel
         ('tech_cfg', 7, 16, 10.685), # vtrip_sel
