@@ -63,30 +63,34 @@ def setup_floorplan(fp, chip):
         ('tech_cfg', 15, 16, 25.865), # dm[2]
     ]
 
-    for i, y in enumerate(we_pads):
+    for pad_type, i, y in we_pads:
         y -= gpio_h
-        for pin, bit, width, offset in pins:
-            name = f'we_{pin}[{i * width + bit}]'
-            fp.place_pins([name], 0, y + offset, 0, 0, pin_depth, pin_width, 'm2')
+        if pad_type == 'gpio':
+            for pin, bit, width, offset in pins:
+                name = f'we_{pin}[{i * width + bit}]'
+                fp.place_pins([name], 0, y + offset, 0, 0, pin_depth, pin_width, 'm2')
 
-    for i, x in enumerate(no_pads):
+    for pad_type, i, x in no_pads:
         x -= gpio_h
-        for pin, bit, width, offset in pins:
-            name = f'no_{pin}[{i * width + bit}]'
-            fp.place_pins([name], x + offset, die_h - pin_depth, 0, 0, pin_width, pin_depth, 'm2')
+        if pad_type == 'gpio':
+            for pin, bit, width, offset in pins:
+                name = f'no_{pin}[{i * width + bit}]'
+                fp.place_pins([name], x + offset, die_h - pin_depth, 0, 0, pin_width, pin_depth, 'm2')
 
-    for i, y in enumerate(ea_pads):
+    for pad_type, i, y in ea_pads:
         y -= gpio_h 
-        for pin, bit, width, offset in pins:
-            name = f'ea_{pin}[{i * width + bit}]'
-            fp.place_pins([name], die_w - pin_depth, y + gpio_w - offset - pin_width, 0, 0, pin_depth, pin_width, 'm2')
+        if pad_type == 'gpio':
+            for pin, bit, width, offset in pins:
+                name = f'ea_{pin}[{i * width + bit}]'
+                fp.place_pins([name], die_w - pin_depth, y + gpio_w - offset - pin_width, 0, 0, pin_depth, pin_width, 'm2')
 
-    for i, x in enumerate(so_pads):
+    for pad_type, i, x in so_pads:
         x -= gpio_h
-        for pin, bit, width, offset in pins:
-            name = f'so_{pin}[{i * width + bit}]'
-            fp.place_pins([name], x + gpio_w - offset - pin_width, 0, 0, 0, pin_width, pin_depth, 'm2')
-   
+        if pad_type == 'gpio':
+            for pin, bit, width, offset in pins:
+                name = f'so_{pin}[{i * width + bit}]'
+                fp.place_pins([name], x + gpio_w - offset - pin_width, 0, 0, 0, pin_width, pin_depth, 'm2')
+
     return fp
 
 def generate_floorplan(chip):

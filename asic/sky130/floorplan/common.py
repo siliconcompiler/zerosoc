@@ -21,40 +21,48 @@ def floorplan_dims(fp):
     core_w = die_w - 2 * gpio_h
     core_h = die_h - 2 * gpio_h
 
-    n = 9
-    spacing = (die_h - corner_h - corner_w - n * gpio_w) // (n + 1)
+    we_pad_types = [('gpio', i) for i in range(5)] + [('vdd', 0), ('vss', 0), ('vddio', 0), ('vssio', 0)] + [('gpio', i) for i in range(5, 9)]
+    n = len(we_pad_types)
+    pads_width = sum(fp.available_cells[pad_type].width for pad_type, _ in we_pad_types)
+    spacing = (die_h - corner_h - corner_w - pads_width) // (n + 1)
 
     y = corner_h + spacing
     we_pads = []
-    for _ in range(n):
-        we_pads.append(y)
+    for pad_type, i in we_pad_types:
+        we_pads.append((pad_type, i, y))
         y += gpio_w + spacing
 
-    n = 9
-    spacing = (die_w - corner_h - corner_w - n * gpio_w) // (n + 1)
+    no_pad_types = [('gpio', i) for i in range(9, 14)] + [('vdd', 1), ('vss', 1), ('vddio', 1), ('vssio', 1)] + [('gpio', i) for i in range(14, 18)]
+    n = len(no_pad_types)
+    pads_width = sum(fp.available_cells[pad_type].width for pad_type, _ in no_pad_types)
+    spacing = (die_w - corner_h - corner_w - pads_width) // (n + 1)
 
     x = corner_h + spacing
     no_pads = []
-    for _ in range(n):
-        no_pads.append(x)
+    for pad_type, i in no_pad_types:
+        no_pads.append((pad_type, i, x))
         x += gpio_w + spacing
 
-    n = 9
-    spacing = (die_h - corner_h - corner_w - n * gpio_w) // (n + 1)
+    ea_pad_types = [('gpio', i) for i in range(18, 23)] + [('vdd', 2), ('vss', 2), ('vddio', 2), ('vssio', 2)] + [('gpio', i) for i in range(23, 27)]
+    n = len(ea_pad_types)
+    pads_width = sum(fp.available_cells[pad_type].width for pad_type, _ in ea_pad_types)
+    spacing = (die_h - corner_h - corner_w - pads_width) // (n + 1)
 
     y = corner_w + spacing
     ea_pads = []
-    for _ in range(n):
-        ea_pads.append(y)
+    for pad_type, i in ea_pad_types:
+        ea_pads.append((pad_type, i, y))
         y += gpio_w + spacing
 
-    n = 9
-    spacing = (die_w - corner_h - corner_w - n * gpio_w) // (n + 1)
+    so_pad_types = [('gpio', i) for i in range(27, 32)] + [('vdd', 3), ('vss', 3), ('vddio', 3), ('vssio', 3)] + [('gpio', i) for i in range(32, 36)]
+    n = len(so_pad_types)
+    pads_width = sum(fp.available_cells[pad_type].width for pad_type, _ in so_pad_types)
+    spacing = (die_w - corner_h - corner_w - pads_width) // (n + 1)
 
     x = corner_w + spacing
     so_pads = []
-    for _ in range(n):
-        so_pads.append(x)
+    for pad_type, i in so_pad_types:
+        so_pads.append((pad_type, i, x))
         x += gpio_w + spacing
 
     return die_w, die_h, core_w, core_h, place_w, place_h, we_pads, no_pads, ea_pads, so_pads

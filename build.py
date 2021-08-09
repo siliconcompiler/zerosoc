@@ -171,6 +171,15 @@ def build_top(start='import', stop='export'):
     padring.generate_floorplan(chip)
     run_build(chip)
 
+def build_floorplans():
+    chip = init_chip('import', 'export')
+    configure_asic_core(chip, 1)
+    core.generate_floorplan(chip)
+
+    chip = init_chip('import', 'export')
+    configure_asic_top(chip)
+    padring.generate_floorplan(chip)
+
 def run_build(chip):
     chip.set_jobid()
     chip.run()
@@ -181,6 +190,7 @@ def main():
     parser.add_argument('--fpga', action='store_true', default=False, help='Build for ice40 FPGA (build ASIC by default)')
     parser.add_argument('--core-only', action='store_true', default=False, help='Only build ASIC core GDS.')
     parser.add_argument('--top-only', action='store_true', default=False, help='Only integrate ASIC core into padring. Assumes ASIC core already built.')
+    parser.add_argument('--floorplan-only', action='store_true', default=False, help='Generate floorplans only.')
     parser.add_argument('-a', '--start', default='import', help='Start step (for single-part builds)')
     parser.add_argument('-z', '--stop', default='export', help='Stop step (for single-part builds)')
     parser.add_argument('-n', '--threads', type=int, default=4, help='Number of threads to use (where applicable)')
@@ -188,6 +198,8 @@ def main():
 
     if options.fpga:
         build_fpga(options.start, options.stop)
+    elif options.floorplan_only:
+        build_floorplans()
     elif options.core_only:
         build_core(options.threads, options.start, options.stop)
     elif options.top_only:
