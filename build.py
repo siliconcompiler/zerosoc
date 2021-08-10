@@ -24,13 +24,11 @@ def init_chip(start, stop):
 
     return chip
 
-def configure_asic_core(chip, threads):
+def configure_asic_core(chip):
     chip.add('design', 'asic_core')
     chip.target('skywater130_svasicflow')
 
     add_sources(chip)
-
-    chip.set('eda', 'openroad', 'route', 'threads', str(threads))
 
     # TODO: can use this logic once flowgraph schema is used properly
     # # Modify flow for SV synthesis: 
@@ -145,9 +143,9 @@ def build_fpga(start='import', stop='bitstream'):
     configure_fpga(chip)
     run_build(chip)
 
-def build_core(threads, start='import', stop='export'):
+def build_core(start='import', stop='export'):
     chip = init_chip(start, stop)
-    configure_asic_core(chip, threads)
+    configure_asic_core(chip)
     core.generate_floorplan(chip)
     run_build(chip)
     
@@ -173,7 +171,7 @@ def build_top(start='import', stop='export'):
 
 def build_floorplans():
     chip = init_chip('import', 'export')
-    configure_asic_core(chip, 1)
+    configure_asic_core(chip)
     core.generate_floorplan(chip)
 
     chip = init_chip('import', 'export')
@@ -193,7 +191,6 @@ def main():
     parser.add_argument('--floorplan-only', action='store_true', default=False, help='Generate floorplans only.')
     parser.add_argument('-a', '--start', default='import', help='Start step (for single-part builds)')
     parser.add_argument('-z', '--stop', default='export', help='Stop step (for single-part builds)')
-    parser.add_argument('-n', '--threads', type=int, default=4, help='Number of threads to use (where applicable)')
     options = parser.parse_args()
 
     if options.fpga:
@@ -201,11 +198,11 @@ def main():
     elif options.floorplan_only:
         build_floorplans()
     elif options.core_only:
-        build_core(options.threads, options.start, options.stop)
+        build_core(options.start, options.stop)
     elif options.top_only:
         build_top(options.start, options.stop)
     else:
-        build_core(options.threads)
+        build_core()
         build_top()
 
 if __name__ == '__main__':
