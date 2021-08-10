@@ -151,11 +151,11 @@ def build_core(start='import', stop='export'):
     
     # copy out GDS for top-level integration
     if stop == 'export':
-        design = chip.get('design')[-1]
-        jobdir = (chip.get('dir')[-1] +
+        design = chip.get('design')
+        jobdir = (chip.get('build_dir') +
                 "/" + design + "/" +
-                chip.get('jobname')[-1] +
-                chip.get('jobid')[-1])
+                chip.get('jobname') +
+                str(chip.get('jobid')))
         shutil.copy(f'{jobdir}/export/outputs/{design}.gds', f'{design}.gds')
 
 def build_top(start='import', stop='export'):
