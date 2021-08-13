@@ -1,4 +1,7 @@
 module asic_core (
+    inout vdd,
+    inout vss,
+
     input [8:0]  we_din,
     output [8:0]  we_dout,
     output [8:0]  we_ie,
