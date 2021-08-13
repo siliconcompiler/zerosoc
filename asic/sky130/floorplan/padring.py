@@ -23,10 +23,10 @@ def setup_floorplan(fp, chip):
 
     # Place corners
     # NOTE: scalar placement functions could be nice
-    fp.place_macros([('corner_sw', 'corner')], 0, 0, 0, 0, 'S')
-    fp.place_macros([('corner_nw', 'corner')], 0, die_h - corner_w, 0, 0, 'W')
-    fp.place_macros([('corner_se', 'corner')], die_w - corner_h, 0, 0, 0, 'E')
-    fp.place_macros([('corner_ne', 'corner')], die_w - corner_w, die_h - corner_h, 0, 0, 'N')
+    fp.place_macros([('corner_sw.i0', 'corner')], 0, 0, 0, 0, 'S')
+    fp.place_macros([('corner_nw.i0', 'corner')], 0, die_h - corner_w, 0, 0, 'W')
+    fp.place_macros([('corner_se.i0', 'corner')], die_w - corner_h, 0, 0, 0, 'E')
+    fp.place_macros([('corner_ne.i0', 'corner')], die_w - corner_w, die_h - corner_h, 0, 0, 'N')
 
     # Place I/O pads
     for pad_type, i, y in we_pads:

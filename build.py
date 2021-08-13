@@ -89,17 +89,14 @@ def configure_asic_top(chip):
     chip.add('source', 'hw/asic_core.bb.v')
     chip.add('source', 'oh/padring/hdl/oh_padring.v')
     chip.add('source', 'oh/padring/hdl/oh_pads_domain.v')
+    chip.add('source', 'oh/padring/hdl/oh_pads_corner.v')
 
     chip.add('source', 'asic/sky130/io/asic_iobuf.v')
-    chip.add('source', 'asic/sky130/io/asic_iocut.v')
-    chip.add('source', 'asic/sky130/io/asic_iopoc.v')
     chip.add('source', 'asic/sky130/io/asic_iovdd.v')
     chip.add('source', 'asic/sky130/io/asic_iovddio.v')
     chip.add('source', 'asic/sky130/io/asic_iovss.v')
     chip.add('source', 'asic/sky130/io/asic_iovssio.v')
-    chip.add('source', 'asic/sky130/io/oh_pads_corner.v')
-
-    chip.add('source', 'asic/bb_iocell.v')
+    chip.add('source', 'asic/sky130/io/asic_iocorner.v')
 
     chip.set('asic', 'def', 'asic_top.def')
 

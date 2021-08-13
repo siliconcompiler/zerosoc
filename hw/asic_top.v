@@ -102,6 +102,8 @@ module asic_top (
         .WE_VSSIO(1),
         .WE_VDD(1),
         .WE_VSS(1),
+        .ENABLE_POC(0),
+        .ENABLE_CUT(0),
         .TECH_CFG_WIDTH(16)
     ) padring (
         .vss,
