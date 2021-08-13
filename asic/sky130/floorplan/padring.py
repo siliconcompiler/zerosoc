@@ -13,13 +13,14 @@ def setup_floorplan(fp, chip):
 
     gpio_w = fp.available_cells['gpio'].width
     gpio_h = fp.available_cells['gpio'].height
+    pow_h = fp.available_cells['vdd'].height + 2.035
     corner_w = fp.available_cells['corner'].width
     corner_h = fp.available_cells['corner'].height
     fill_cell_h = fp.available_cells['fill1'].height
 
     # Initialize die
     fp.create_die_area(die_w, die_h, generate_rows=False, generate_tracks=False)
-    
+
     # Place corners
     # NOTE: scalar placement functions could be nice
     fp.place_macros([('corner_sw', 'corner')], 0, 0, 0, 0, 'S')
@@ -54,18 +55,18 @@ def setup_floorplan(fp, chip):
         else:
             name = f'{pad_type}{i}'
         fp.place_macros([(name, pad_type)], x, 0, 0, 0, 'S')
-    
+
     # Fill I/O region
     fp.fill_io_region([(0, 0), (fill_cell_h, die_h)], ['fill1', 'fill5', 'fill10', 'fill20'], 'W')
     fp.fill_io_region([(0, die_h - fill_cell_h), (die_w, die_h)], ['fill1', 'fill5', 'fill10', 'fill20'], 'N')
     fp.fill_io_region([(die_w - fill_cell_h, 0), (die_w, die_h)], ['fill1', 'fill5', 'fill10', 'fill20'], 'E')
     fp.fill_io_region([(0, 0), (die_w, fill_cell_h)], ['fill1', 'fill5', 'fill10', 'fill20'], 'S')
-    
-    fp.place_macros([('core', 'asic_core')], gpio_h, gpio_h, 0, 0, 'N')
+
+    fp.place_macros([('core', 'asic_core')], pow_h, pow_h, 0, 0, 'N')
 
     return fp
 
 def generate_floorplan(chip):
-    fp = Floorplan(chip)   
+    fp = Floorplan(chip)
     fp = setup_floorplan(fp, chip)
     fp.write_def('asic_top.def')

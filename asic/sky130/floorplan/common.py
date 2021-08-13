@@ -3,6 +3,7 @@ import math
 def floorplan_dims(fp):
     gpio_w = fp.available_cells['gpio'].width
     gpio_h = fp.available_cells['gpio'].height
+    pow_h = fp.available_cells['vdd'].height + 2.035
     corner_w = fp.available_cells['corner'].width
     corner_h = fp.available_cells['corner'].height
 
@@ -12,14 +13,14 @@ def floorplan_dims(fp):
 
     core_w = place_w + 2 * margin_min
     core_h = place_h + 2 * margin_min
-    
-    die_w = math.ceil(core_w + 2 * gpio_h) 
-    die_h = math.ceil(core_h + 2 * gpio_h)
+
+    die_w = math.ceil(core_w + 2 * pow_h)
+    die_h = math.ceil(core_h + 2 * pow_h)
 
     # We recalculate core_w based on ceil'd die dimensions, essentially
     # "stretching" the core margin to ensure the die dimensions are integers
-    core_w = die_w - 2 * gpio_h
-    core_h = die_h - 2 * gpio_h
+    core_w = die_w - 2 * pow_h
+    core_h = die_h - 2 * pow_h
 
     we_pad_types = [('gpio', i) for i in range(5)] + [('vdd', 0), ('vss', 0), ('vddio', 0), ('vssio', 0)] + [('gpio', i) for i in range(5, 9)]
     n = len(we_pad_types)
