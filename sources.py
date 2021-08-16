@@ -43,6 +43,7 @@ def add_sources(chip):
     chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_prefetch_buffer.sv')
     chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_pmp.sv')
     chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_register_file_ff.sv')
+    chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_register_file_latch.sv')
     chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_register_file_fpga.sv')
     chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_core.sv')
     chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_wb_stage.sv')

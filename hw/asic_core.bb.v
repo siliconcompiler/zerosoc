@@ -1,5 +1,8 @@
 (* blackbox *)
 module asic_core (
+    input vdd,
+    input vss,
+
     input [8:0]  we_din,
     output [8:0]  we_dout,
     output [8:0]  we_ie,

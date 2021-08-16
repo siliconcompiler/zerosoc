@@ -33,7 +33,7 @@ def floorplan_dims(fp):
         we_pads.append((pad_type, i, y))
         y += gpio_w + spacing
 
-    no_pad_types = [('gpio', i) for i in range(5)] + [('vdd', 1), ('vss', 1), ('vddio', 1), ('vssio', 1)] + [('gpio', i) for i in range(5, 9)]
+    no_pad_types = [('gpio', i) for i in range(9)] + [('vdd', 1), ('vss', 1), ('vddio', 1), ('vssio', 1)]
     n = len(no_pad_types)
     pads_width = sum(fp.available_cells[pad_type].width for pad_type, _ in no_pad_types)
     spacing = (die_w - corner_h - corner_w - pads_width) // (n + 1)
@@ -44,7 +44,7 @@ def floorplan_dims(fp):
         no_pads.append((pad_type, i, x))
         x += gpio_w + spacing
 
-    ea_pad_types = [('gpio', i) for i in range(5)] + [('vdd', 2), ('vss', 2), ('vddio', 2), ('vssio', 2)] + [('gpio', i) for i in range(5, 9)]
+    ea_pad_types = [('gpio', i) for i in range(9)] + [('vdd', 2), ('vss', 2), ('vddio', 2), ('vssio', 2)]
     n = len(ea_pad_types)
     pads_width = sum(fp.available_cells[pad_type].width for pad_type, _ in ea_pad_types)
     spacing = (die_h - corner_h - corner_w - pads_width) // (n + 1)

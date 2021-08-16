@@ -42,7 +42,8 @@ module top_icebreaker (
 
     zerosoc #(
         .RamInitFile(`MAKE_MEM_PATH(random.mem)),
-        .RamDepth(2048)
+        .RamDepth(2048),
+        .ASIC(0)
     ) soc(
         .clk_i(clk_6mhz),
         .rst_ni(BTN_N),

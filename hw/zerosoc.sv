@@ -3,7 +3,8 @@ module zerosoc #(
   parameter [31:0] BootAddr = 32'b0,
   // TODO: need to hard code file until https://github.com/zachjs/sv2v/issues/147 is resolved
   parameter RamInitFile = "sw/hello.mem",
-  parameter RamDepth = 512
+  parameter RamDepth = 512,
+  parameter ASIC = 1
 ) (
   // Clock and Reset
   input        clk_i,
@@ -52,7 +53,7 @@ module zerosoc #(
     .RV32E                    (0),
     .RV32M                    (ibex_pkg::RV32MNone),
     .RV32B                    (ibex_pkg::RV32BNone),
-    .RegFile                  (ibex_pkg::RegFileFPGA),
+    .RegFile                  (ASIC ? ibex_pkg::RegFileLatch : ibex_pkg::RegFileFPGA),
     .BranchTargetALU          (0),
     .WritebackStage           (0),
     .ICache                   (0),

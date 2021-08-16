@@ -36,7 +36,8 @@ module asic_core (
 
     // Instantiate SoC
     zerosoc #(
-        .RamDepth(`RAM_DEPTH)
+        .RamDepth(`RAM_DEPTH),
+        .ASIC(1)
     ) soc (
         .clk_i(clk),
         .rst_ni(rst),
