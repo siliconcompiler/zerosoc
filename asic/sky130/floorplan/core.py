@@ -17,8 +17,7 @@ def setup_floorplan(fp, chip):
     fp.configure_net('vss', 'vss', 'ground')
 
     gpio_w = fp.available_cells['gpio'].width
-    gpio_h = fp.available_cells['gpio'].height
-    pow_h = fp.available_cells['vdd'].height + 2.035
+    gpio_h = fp.available_cells['gpio'].height + 2.035
     ram_w = fp.available_cells['ram'].width
     ram_h = fp.available_cells['ram'].height
 
@@ -100,101 +99,116 @@ def setup_floorplan(fp, chip):
     fp.place_macros([('soc.ram.u_mem.gen_sky130.u_impl_sky130.genblk1.mem', 'ram')], ram_x, ram_y, 0, 0, 'N')
 
     # Place pins
-    oe_offset = 4.245
-    out_offset = 19.885
-    in_offset = 75.08
-    pin_width = 0.28
     pin_depth = 1
 
     pins = [
-        ('din', 0, 1, 75.085), # in
-        ('dout', 0, 1, 19.885), # out
-        ('ie', 0, 1, 41.505), # inp_dis
-        ('oen', 0, 1, 4.245), # oe_n
-        ('tech_cfg', 0, 16, 31.845), # hld_h_n
-        ('tech_cfg', 1, 16, 35.065), # enable_h
-        ('tech_cfg', 2, 16, 38.285), # enable_inp_h
-        ('tech_cfg', 3, 16, 13.445), # enable_vdda_h
-        ('tech_cfg', 4, 16, 16.665), # enable_vswitch_h
-        ('tech_cfg', 5, 16, 69.105), # enable_vddio
-        ('tech_cfg', 6, 16, 7.465), # ib_mode_sel
-        ('tech_cfg', 7, 16, 10.685), # vtrip_sel
-        ('tech_cfg', 8, 16, 65.885), # slow
-        ('tech_cfg', 9, 16, 22.645), # hld_ovr
-        ('tech_cfg', 10, 16, 50.705), # analog_en
-        ('tech_cfg', 11, 16, 29.085), # analog_sel
-        ('tech_cfg', 12, 16, 44.265), # analog_pol
-        ('tech_cfg', 13, 16, 47.485), # dm[0]
-        ('tech_cfg', 14, 16, 56.685), # dm[1]
-        ('tech_cfg', 15, 16, 25.865), # dm[2]
+        ('din', 0, 1, 79.240, 79.570, 'm3'), # in
+        ('dout', 0, 1, 22.355, 22.615, 'm2'), # out
+        ('ie', 0, 1, 45.245, 45.505, 'm2'), # inp_dis
+        ('oen', 0, 1, 3.375, 3.605, 'm2'), # oe_n
+        ('tech_cfg', 0, 16, 31.815, 32.075, 'm2'), # hld_h_n
+        ('tech_cfg', 1, 16, 35.460, 35.720, 'm2'), # enable_h
+        ('tech_cfg', 2, 16, 38.390, 38.650, 'm2'), # enable_inp_h
+        ('tech_cfg', 3, 16, 12.755, 13.015, 'm2'), # enable_vdda_h
+        ('tech_cfg', 4, 16, 16.310, 16.570, 'm2'), # enable_vswitch_h
+        ('tech_cfg', 5, 16, 78.580, 78.910, 'm3'), # enable_vddio
+        ('tech_cfg', 6, 16, 5.420, 5.650, 'm2'), # ib_mode_sel
+        ('tech_cfg', 7, 16, 6.130, 6.390, 'm2'), # vtrip_sel
+        ('tech_cfg', 8, 16, 77.610, 77.870, 'm2'), # slow
+        ('tech_cfg', 9, 16, 26.600, 26.860, 'm2'), # hld_ovr
+        ('tech_cfg', 10, 16, 62.430, 62.690, 'm1'), # analog_en
+        ('tech_cfg', 11, 16, 30.750, 31.010, 'm2'), # analog_sel
+        ('tech_cfg', 12, 16, 45.865, 46.195, 'm3'), # analog_pol
+        ('tech_cfg', 13, 16, 49.855, 50.115, 'm2'), # dm[0]
+        ('tech_cfg', 14, 16, 66.835, 67.095, 'm2'), # dm[1]
+        ('tech_cfg', 15, 16, 28.490, 28.750, 'm2'), # dm[2]
     ]
 
-    gpio_offset = 10
     for pad_type, i, y in we_pads:
-        y -= pow_h
+        y -= gpio_h
         if pad_type == 'gpio':
-            for pin, bit, width, offset in pins:
+            for pin, bit, width, offset_l, offset_h, layer in pins:
                 name = f'we_{pin}[{i * width + bit}]'
-                fp.place_pins([name], gpio_offset, y + offset, 0, 0, pin_depth, pin_width, 'm2')
+                pin_width = offset_h - offset_l
+                fp.place_pins([name], 0, y + offset_l, 0, 0, pin_depth, pin_width, layer)
         elif pad_type == 'vdd':
-            fp.place_wires(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'stripe')
-            fp.place_wires(['vdd'], 0, y + 50.39, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'stripe')
+            fp.place_wires(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vdd'], 0, y + 50.39, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_pins(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
+            fp.place_pins(['vdd'], 0, y + 50.39, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
             fp.place_vias(['vdd'], vdd_ring_left_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'], vdd_ring_left_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
         elif pad_type == 'vss':
-            fp.place_wires(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'stripe')
-            fp.place_wires(['vss'], 0, y + 50.39, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'stripe')
+            fp.place_wires(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vss'], 0, y + 50.39, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_pins(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
+            fp.place_pins(['vss'], 0, y + 50.39, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
             fp.place_vias(['vss'], vss_ring_left_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], vss_ring_left_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
 
     pow_strap_depth = margin_h + hwidth
     for pad_type, i, x in no_pads:
-        x -= pow_h
+        x -= gpio_h
         if pad_type == 'gpio':
-            for pin, bit, width, offset in pins:
+            for pin, bit, width, offset_l, offset_h, layer in pins:
                 name = f'no_{pin}[{i * width + bit}]'
-                fp.place_pins([name], x + offset, die_h - pin_depth - gpio_offset, 0, 0, pin_width, pin_depth, 'm2')
+                pin_width = offset_h - offset_l
+                fp.place_pins([name], x + offset_l, die_h - pin_depth, 0, 0, pin_width, pin_depth, layer)
         elif pad_type == 'vdd':
-            fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'stripe')
-            fp.place_wires(['vdd'], x + 50.39, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'stripe')
+            fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'followpin')
+            fp.place_wires(['vdd'], x + 50.39, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'followpin')
+            fp.place_pins(['vdd'], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3')
+            fp.place_pins(['vdd'], x + 50.39, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3')
             fp.place_vias(['vdd'], x + 0.495 + 23.9/2, vdd_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'], x + 50.39 + 23.9/2, vdd_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
         elif pad_type == 'vss':
-            fp.place_wires(['vss'], x + 0.495, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3', 'stripe')
-            fp.place_wires(['vss'], x + 50.39, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3', 'stripe')
+            fp.place_wires(['vss'], x + 0.495, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3', 'followpin')
+            fp.place_wires(['vss'], x + 50.39, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3', 'followpin')
+            fp.place_pins(['vss'], x + 0.495, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3')
+            fp.place_pins(['vss'], x + 50.39, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3')
             fp.place_vias(['vss'], x + 0.495 + 23.9/2, vss_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], x + 50.39 + 23.9/2, vss_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
 
     for pad_type, i, y in ea_pads:
-        y -= pow_h
+        y -= gpio_h
         if pad_type == 'gpio':
-            for pin, bit, width, offset in pins:
+            for pin, bit, width, offset_l, offset_h, layer in pins:
                 name = f'ea_{pin}[{i * width + bit}]'
-                fp.place_pins([name], die_w - pin_depth - gpio_offset, y + gpio_w - offset - pin_width, 0, 0, pin_depth, pin_width, 'm2')
+                pin_width = offset_h - offset_l
+                fp.place_pins([name], die_w - pin_depth, y + gpio_w - offset_l - pin_width, 0, 0, pin_depth, pin_width, layer)
         elif pad_type == 'vdd':
+            fp.place_wires(['vdd'], vdd_ring_right_x, y + 0.495, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vdd'], vdd_ring_right_x, y + 50.39, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
             fp.place_pins(['vdd'], vdd_ring_right_x, y + 0.495, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3')
             fp.place_pins(['vdd'], vdd_ring_right_x, y + 50.39, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3')
             fp.place_vias(['vdd'], vdd_ring_right_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'], vdd_ring_right_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
         elif pad_type == 'vss':
-            fp.place_pins(['vss'], vss_ring_right_x, y + 0.495, 0, 0, die_w - vss_ring_right_x, 23.9, 'm3')
-            fp.place_pins(['vss'], vss_ring_right_x, y + 50.39, 0, 0, die_w - vss_ring_right_x, 23.9, 'm3')
+            fp.place_wires(['vss'], vss_ring_right_x, y + 0.495, 0, 0, die_w - vss_ring_right_x, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vss'], vss_ring_right_x, y + 50.39, 0, 0, die_w - vss_ring_right_x, 23.9, 'm3', 'followpin')
+            fp.place_pins(['vss'], vdd_ring_right_x, y + 0.495, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3')
+            fp.place_pins(['vss'], vdd_ring_right_x, y + 50.39, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3')
             fp.place_vias(['vss'], vss_ring_right_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], vss_ring_right_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
 
     pow_strap_depth = margin_h + hwidth
     for pad_type, i, x in so_pads:
-        x -= pow_h
+        x -= gpio_h
         if pad_type == 'gpio':
-            for pin, bit, width, offset in pins:
+            for pin, bit, width, offset_l, offset_h, layer in pins:
                 name = f'so_{pin}[{i * width + bit}]'
-                fp.place_pins([name], x + gpio_w - offset - pin_width, gpio_offset, 0, 0, pin_width, pin_depth, 'm2')
+                pin_width = offset_h - offset_l
+                fp.place_pins([name], x + gpio_w - offset_l - pin_width, 0, 0, 0, pin_width, pin_depth, layer)
         elif pad_type == 'vdd':
+            fp.place_wires(['vdd'], x + 0.495, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
+            fp.place_wires(['vdd'], x + 50.39, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
             fp.place_pins(['vdd'], x + 0.495, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3')
             fp.place_pins(['vdd'], x + 50.39, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3')
             fp.place_vias(['vdd'], x + 0.495 + 23.9/2, vdd_ring_bottom_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'], x + 50.39 + 23.9/2, vdd_ring_bottom_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
         elif pad_type == 'vss':
+            fp.place_wires(['vss'], x + 0.495, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
+            fp.place_wires(['vss'], x + 50.39, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
             fp.place_pins(['vss'], x + 0.495, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3')
             fp.place_pins(['vss'], x + 50.39, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3')
             fp.place_vias(['vss'], x + 0.495 + 23.9/2, vss_ring_bottom_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
@@ -299,7 +313,7 @@ def setup_floorplan(fp, chip):
         if x < ram_x - ram_core_space:
             fp.place_vias(['vdd'] * npwr, x, y, 0, 2 * fp.std_cell_height, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'] * npwr, x, y, 0, 2 * fp.std_cell_height, 'm2', 'via2_1600x480')
-            fp.place_vias(['vdd'] * npwr, x, y, 0, 2 * fp.std_cell_height, 'm1', 'via1_1600x480')
+            fp.place_vias(['vdd'] * npwr, x, y, 0, 2 * fp.std_cell_height, 'm1', 'via_1600x480')
         elif x > ram_x and x < ram_x + ram_w:
             fp.place_vias(['vdd'] * 2, x, ram_y + 5.63, 0, 405.28, 'm3', 'via3_1600x480')
 
@@ -312,7 +326,7 @@ def setup_floorplan(fp, chip):
         if x < ram_x - ram_core_space:
             fp.place_vias(['vss'] * ngnd, x, y, 0, 2 * fp.std_cell_height, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'] * ngnd, x, y, 0, 2 * fp.std_cell_height, 'm2', 'via2_1600x480')
-            fp.place_vias(['vss'] * ngnd, x, y, 0, 2 * fp.std_cell_height, 'm1', 'via1_1600x480')
+            fp.place_vias(['vss'] * ngnd, x, y, 0, 2 * fp.std_cell_height, 'm1', 'via_1600x480')
         elif x > ram_x and x < ram_x + ram_w:
             fp.place_vias(['vss'] * 2, x, ram_y + 2.23, 0, 412.08, 'm3', 'via3_1600x480')
 

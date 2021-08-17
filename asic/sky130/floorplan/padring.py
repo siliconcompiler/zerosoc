@@ -12,8 +12,7 @@ def setup_floorplan(fp, chip):
     die_w, die_h, core_w, core_h, _, _, we_pads, no_pads, ea_pads, so_pads = floorplan_dims(fp)
 
     gpio_w = fp.available_cells['gpio'].width
-    gpio_h = fp.available_cells['gpio'].height
-    pow_h = fp.available_cells['vdd'].height + 2.035
+    gpio_h = fp.available_cells['gpio'].height + 2.035
     corner_w = fp.available_cells['corner'].width
     corner_h = fp.available_cells['corner'].height
     fill_cell_h = fp.available_cells['fill1'].height
@@ -62,7 +61,7 @@ def setup_floorplan(fp, chip):
     fp.fill_io_region([(die_w - fill_cell_h, 0), (die_w, die_h)], ['fill1', 'fill5', 'fill10', 'fill20'], 'E')
     fp.fill_io_region([(0, 0), (die_w, fill_cell_h)], ['fill1', 'fill5', 'fill10', 'fill20'], 'S')
 
-    fp.place_macros([('core', 'asic_core')], pow_h, pow_h, 0, 0, 'N')
+    fp.place_macros([('core', 'asic_core')], gpio_h, gpio_h, 0, 0, 'N')
 
     return fp
 
