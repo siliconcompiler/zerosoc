@@ -124,6 +124,15 @@ def configure_asic_top(chip):
     chip.set('macro', macro, 'cells', 'fill20', 'sky130_ef_io__com_bus_slice_20um')
     chip.add('source', 'asic/sky130/io/sky130_io.blackbox.v')
 
+    macro = 'ram'
+    chip.add('asic', 'macrolib', macro)
+    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
+    chip.add('macro', macro, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
+    chip.add('macro', macro, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
+    chip.set('macro', macro, 'cells', 'ram', 'sky130_sram_2kbyte_1rw1r_32x512_8')
+    chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
+    chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
+
 def configure_fpga(chip):
     chip.add('design', 'top_icebreaker')
     chip.target('target', 'ice40_fpgaflow')
