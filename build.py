@@ -175,7 +175,7 @@ def build_core(start='import', stop='lvs'):
     run_build(chip)
 
     # copy out GDS for top-level integration
-    if stop == 'export':
+    if stop == ('export', 'lvs'):
         design = chip.get('design')
         jobdir = (chip.get('build_dir') +
                 "/" + design + "/" +
