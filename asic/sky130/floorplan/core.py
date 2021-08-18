@@ -102,7 +102,10 @@ def setup_floorplan(fp, chip):
     pin_depth = 1
 
     pins = [
-        ('din', 0, 1, 79.240, 79.570, 'm3'), # in
+        # Hack: tweak these two pin sizes to trick router and avoid DRC errors
+        ('tech_cfg', 5, 16, 78.580 - 1, 78.910, 'm3'), # enable_vddio
+        ('din', 0, 1, 79.240, 79.570 + 1, 'm3'), # in
+
         ('dout', 0, 1, 22.355, 22.615, 'm2'), # out
         ('ie', 0, 1, 45.245, 45.505, 'm2'), # inp_dis
         ('oen', 0, 1, 3.375, 3.605, 'm2'), # oe_n
@@ -111,7 +114,6 @@ def setup_floorplan(fp, chip):
         ('tech_cfg', 2, 16, 38.390, 38.650, 'm2'), # enable_inp_h
         ('tech_cfg', 3, 16, 12.755, 13.015, 'm2'), # enable_vdda_h
         ('tech_cfg', 4, 16, 16.310, 16.570, 'm2'), # enable_vswitch_h
-        ('tech_cfg', 5, 16, 78.580, 78.910, 'm3'), # enable_vddio
         ('tech_cfg', 6, 16, 5.420, 5.650, 'm2'), # ib_mode_sel
         ('tech_cfg', 7, 16, 6.130, 6.390, 'm2'), # vtrip_sel
         ('tech_cfg', 8, 16, 77.610, 77.870, 'm2'), # slow
