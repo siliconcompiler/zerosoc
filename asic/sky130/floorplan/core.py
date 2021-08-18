@@ -137,14 +137,12 @@ def setup_floorplan(fp, chip):
             fp.place_wires(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
             fp.place_wires(['vdd'], 0, y + 50.39, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
             fp.place_pins(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
-            fp.place_pins(['vdd'], 0, y + 50.39, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
             fp.place_vias(['vdd'], vdd_ring_left_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'], vdd_ring_left_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
         elif pad_type == 'vss':
             fp.place_wires(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
             fp.place_wires(['vss'], 0, y + 50.39, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
             fp.place_pins(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
-            fp.place_pins(['vss'], 0, y + 50.39, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
             fp.place_vias(['vss'], vss_ring_left_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], vss_ring_left_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
 
@@ -159,15 +157,11 @@ def setup_floorplan(fp, chip):
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'followpin')
             fp.place_wires(['vdd'], x + 50.39, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'followpin')
-            fp.place_pins(['vdd'], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3')
-            fp.place_pins(['vdd'], x + 50.39, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3')
             fp.place_vias(['vdd'], x + 0.495 + 23.9/2, vdd_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'], x + 50.39 + 23.9/2, vdd_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
         elif pad_type == 'vss':
             fp.place_wires(['vss'], x + 0.495, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3', 'followpin')
             fp.place_wires(['vss'], x + 50.39, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3', 'followpin')
-            fp.place_pins(['vss'], x + 0.495, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3')
-            fp.place_pins(['vss'], x + 50.39, vss_ring_top_y, 0, 0, 23.9, die_h - vss_ring_top_y, 'm3')
             fp.place_vias(['vss'], x + 0.495 + 23.9/2, vss_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], x + 50.39 + 23.9/2, vss_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
 
@@ -181,15 +175,11 @@ def setup_floorplan(fp, chip):
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], vdd_ring_right_x, y + 0.495, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
             fp.place_wires(['vdd'], vdd_ring_right_x, y + 50.39, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
-            fp.place_pins(['vdd'], vdd_ring_right_x, y + 0.495, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3')
-            fp.place_pins(['vdd'], vdd_ring_right_x, y + 50.39, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3')
             fp.place_vias(['vdd'], vdd_ring_right_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'], vdd_ring_right_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
         elif pad_type == 'vss':
             fp.place_wires(['vss'], vss_ring_right_x, y + 0.495, 0, 0, die_w - vss_ring_right_x, 23.9, 'm3', 'followpin')
             fp.place_wires(['vss'], vss_ring_right_x, y + 50.39, 0, 0, die_w - vss_ring_right_x, 23.9, 'm3', 'followpin')
-            fp.place_pins(['vss'], vdd_ring_right_x, y + 0.495, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3')
-            fp.place_pins(['vss'], vdd_ring_right_x, y + 50.39, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3')
             fp.place_vias(['vss'], vss_ring_right_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], vss_ring_right_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
 
@@ -204,15 +194,11 @@ def setup_floorplan(fp, chip):
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], x + 0.495, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
             fp.place_wires(['vdd'], x + 50.39, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
-            fp.place_pins(['vdd'], x + 0.495, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3')
-            fp.place_pins(['vdd'], x + 50.39, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3')
             fp.place_vias(['vdd'], x + 0.495 + 23.9/2, vdd_ring_bottom_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vdd'], x + 50.39 + 23.9/2, vdd_ring_bottom_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
         elif pad_type == 'vss':
             fp.place_wires(['vss'], x + 0.495, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
             fp.place_wires(['vss'], x + 50.39, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
-            fp.place_pins(['vss'], x + 0.495, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3')
-            fp.place_pins(['vss'], x + 50.39, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3')
             fp.place_vias(['vss'], x + 0.495 + 23.9/2, vss_ring_bottom_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], x + 50.39 + 23.9/2, vss_ring_bottom_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
 
