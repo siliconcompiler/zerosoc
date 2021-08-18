@@ -8,7 +8,7 @@ from sources import add_sources
 
 from asic.sky130.floorplan import core, padring
 
-def init_chip(start, stop):
+def init_chip():
     chip = sc.Chip()
 
     # Prevent us from erroring out on lint warnings during import
@@ -19,26 +19,91 @@ def init_chip(start, stop):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     chip.add('define', f'MEM_ROOT={cur_dir}')
 
-    chip.set('start', start)
-    chip.set('stop', stop)
-
     return chip
 
-def configure_asic_core(chip):
+def configure_svflow(chip, start=None, stop=None):
+    flowpipe = [('import', 'morty', 'open'),
+                ('convert', 'sv2v', None),
+                ('syn', 'yosys', 'yosys'),
+                ('synopt', 'openroad', 'openroad'),
+                ('floorplan', 'openroad', 'openroad'),
+                ('place', 'openroad', 'openroad'),
+                ('cts', 'openroad', 'openroad'),
+                ('route', 'openroad', 'openroad'),
+                ('dfm', 'openroad', 'openroad'),
+                ('export', 'klayout', 'klayout'),
+                ('lvs', 'magic', 'klayout'),
+                ('drc', 'magic', 'klayout')]
+
+    for i, (step, tool, showtool) in enumerate(flowpipe):
+        if i > 0:
+            input_step, _, _ = flowpipe[i-1]
+            chip.add('flowgraph', step, 'input', input_step)
+        chip.set('flowgraph', step, 'tool', tool)
+        if showtool:
+            chip.set('flowgraph', step, 'showtool', showtool)
+
+    steps = [step for step, _, _ in flowpipe]
+    startidx = steps.index(start) if start else 0
+    stopidx = steps.index(stop) + 1 if stop else len(steps)
+    chip.set('steplist', steps[startidx:stopidx])
+
+def configure_physflow(chip, start=None, stop=None):
+    flowpipe = [('import', 'verilator', 'open'),
+                ('syn', 'yosys', 'yosys'),
+                ('export', 'klayout', 'klayout'),
+                ('lvs', 'magic', 'klayout'),
+                ('drc', 'magic', 'klayout')]
+
+    for i, (step, tool, showtool) in enumerate(flowpipe):
+        if i > 0:
+            input_step, _, _ = flowpipe[i-1]
+            chip.add('flowgraph', flowpipe[i], 'input', input_step)
+        chip.set('flowgraph', step, 'tool', tool)
+        if showtool:
+            chip.set('flowgraph', step, 'showtool', showtool)
+
+    steps = [step for step, _, _ in flowpipe]
+    startidx = steps.index(start) if start else 0
+    stopidx = steps.index(stop) + 1 if stop else len(steps)
+    chip.set('steplist', steps[startidx:stopidx])
+
+def configure_libs(chip):
+    libname = 'io'
+    chip.add('asic', 'macrolib', libname)
+    chip.set('library', libname, 'type', 'component')
+    chip.add('library', libname, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
+    chip.set('library', libname, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
+    # Need both GDS files: ef relies on fd one
+    chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
+    chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
+    chip.set('library', libname, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad')
+    chip.set('library', libname, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
+    chip.set('library', libname, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
+    chip.set('library', libname, 'cells', 'vss', 'sky130_ef_io__vssd_hvc_pad')
+    chip.set('library', libname, 'cells', 'vssio', 'sky130_ef_io__vssio_hvc_pad')
+    chip.set('library', libname, 'cells', 'corner', 'sky130_ef_io__corner_pad')
+    chip.set('library', libname, 'cells', 'fill1',  'sky130_ef_io__com_bus_slice_1um')
+    chip.set('library', libname, 'cells', 'fill5',  'sky130_ef_io__com_bus_slice_5um')
+    chip.set('library', libname, 'cells', 'fill10', 'sky130_ef_io__com_bus_slice_10um')
+    chip.set('library', libname, 'cells', 'fill20', 'sky130_ef_io__com_bus_slice_20um')
+
+    libname = 'ram'
+    chip.add('asic', 'macrolib', libname)
+    chip.set('library', libname, 'type', 'component')
+    chip.add('library', libname, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
+    chip.add('library', libname, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
+    chip.add('library', libname, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
+    chip.set('library', libname, 'cells', 'ram', 'sky130_sram_2kbyte_1rw1r_32x512_8')
+
+def configure_asic_core(chip, start, stop):
     chip.add('design', 'asic_core')
-    chip.target('skywater130_svasicflow')
+    chip.target('skywater130')
+    configure_svflow(chip, start, stop)
+    configure_libs(chip)
 
+    # TODO: try using -y flag instead of huge source list in separate file
     add_sources(chip)
-
-    # TODO: can use this logic once flowgraph schema is used properly
-    # # Modify flow for SV synthesis:
-    # # - Use morty for import (since Verilator is not SV-friendly)
-    # # - Insert sv2v convert step in between import and syn stages
-    # chip.cfg['flowgraph']['value']
-    # chip.set('flowgraph', 'import', 'output', 'convert')
-    # chip.set('flowgraph', 'import', 'tool', 'morty')
-    # chip.set('flowgraph', 'convert', 'output', 'syn')
-    # chip.set('flowgraph', 'convert', 'tool', 'sv2v')
 
     chip.set('constraint', 'asic/asic_core.sdc')
 
@@ -48,37 +113,14 @@ def configure_asic_core(chip):
     chip.add('source', 'hw/asic_core.v')
     chip.set('asic', 'def', 'asic_core.def')
 
-    # Need to configure IO macro libs so that floorplan generation can determine
-    # cell dimensions
-    macro = 'io'
-    chip.add('asic', 'macrolib', macro)
-    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    chip.set('macro', macro, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
-    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
-    chip.set('macro', macro, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad')
-    chip.set('macro', macro, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
-    chip.set('macro', macro, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
-    chip.set('macro', macro, 'cells', 'vss', 'sky130_ef_io__vssd_hvc_pad')
-    chip.set('macro', macro, 'cells', 'vssio', 'sky130_ef_io__vssio_hvc_pad')
-    chip.set('macro', macro, 'cells', 'corner', 'sky130_ef_io__corner_pad')
-    chip.set('macro', macro, 'cells', 'fill1',  'sky130_ef_io__com_bus_slice_1um')
-    chip.set('macro', macro, 'cells', 'fill5',  'sky130_ef_io__com_bus_slice_5um')
-    chip.set('macro', macro, 'cells', 'fill10', 'sky130_ef_io__com_bus_slice_10um')
-    chip.set('macro', macro, 'cells', 'fill20', 'sky130_ef_io__com_bus_slice_20um')
-    chip.add('source', 'asic/sky130/io/sky130_io.blackbox.v')
-
-    macro = 'ram'
-    chip.add('asic', 'macrolib', macro)
-    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    chip.add('macro', macro, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
-    chip.add('macro', macro, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
-    chip.set('macro', macro, 'cells', 'ram', 'sky130_sram_2kbyte_1rw1r_32x512_8')
     chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
     chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
 
-def configure_asic_top(chip):
+def configure_asic_top(chip, start, stop):
     chip.add('design', 'asic_top')
-    chip.target('skywater130_physasicflow')
+    chip.target('skywater130')
+    configure_physflow(chip, start, stop)
+    configure_libs(chip)
 
     # Hack: pass in empty constraint file to get rid of KLayout post-process
     # error (must have same name as design)
@@ -102,39 +144,15 @@ def configure_asic_top(chip):
     chip.add('source', 'asic/sky130/io/asic_iopoc.v')
     chip.add('source', 'asic/sky130/io/asic_iocut.v')
 
-    chip.set('asic', 'def', 'asic_top.def')
-
-    macro = 'core'
-    chip.add('asic', 'macrolib', macro)
-    chip.set('macro', macro, 'lef', 'asic_core.lef')
-    chip.set('macro', macro, 'gds', 'asic_core.gds')
-    chip.set('macro', macro, 'cells', 'asic_core', 'asic_core')
-
-    macro = 'io'
-    chip.add('asic', 'macrolib', macro)
-    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    chip.set('macro', macro, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
-    # Need both of these GDS files to get corner cell to look correct
-    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
-    chip.add('macro', macro, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
-    chip.set('macro', macro, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad')
-    chip.set('macro', macro, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
-    chip.set('macro', macro, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
-    chip.set('macro', macro, 'cells', 'vss', 'sky130_ef_io__vssd_hvc_pad')
-    chip.set('macro', macro, 'cells', 'vssio', 'sky130_ef_io__vssio_hvc_pad')
-    chip.set('macro', macro, 'cells', 'corner', 'sky130_ef_io__corner_pad')
-    chip.set('macro', macro, 'cells', 'fill1',  'sky130_ef_io__com_bus_slice_1um')
-    chip.set('macro', macro, 'cells', 'fill5',  'sky130_ef_io__com_bus_slice_5um')
-    chip.set('macro', macro, 'cells', 'fill10', 'sky130_ef_io__com_bus_slice_10um')
-    chip.set('macro', macro, 'cells', 'fill20', 'sky130_ef_io__com_bus_slice_20um')
     chip.add('source', 'asic/sky130/io/sky130_io.blackbox.v')
 
-    macro = 'ram'
-    chip.add('asic', 'macrolib', macro)
-    chip.add('macro', macro, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    chip.add('macro', macro, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
-    chip.add('macro', macro, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
-    chip.set('macro', macro, 'cells', 'ram', 'sky130_sram_2kbyte_1rw1r_32x512_8')
+    chip.set('asic', 'def', 'asic_top.def')
+
+    libname = 'core'
+    chip.add('asic', 'macrolib', libname)
+    chip.set('library', libname, 'lef', 'asic_core.lef')
+    chip.set('library', libname, 'gds', 'asic_core.gds')
+    chip.set('library', libname, 'cells', 'asic_core', 'asic_core')
 
 def configure_fpga(chip):
     chip.add('design', 'top_icebreaker')
@@ -146,13 +164,13 @@ def configure_fpga(chip):
     chip.set('constraint', 'fpga/icebreaker.pcf')
 
 def build_fpga(start='import', stop='bitstream'):
-    chip = init_chip(start, stop)
+    chip = init_chip()
     configure_fpga(chip)
     run_build(chip)
 
-def build_core(start='import', stop='export'):
-    chip = init_chip(start, stop)
-    configure_asic_core(chip)
+def build_core(start='import', stop='lvs'):
+    chip = init_chip()
+    configure_asic_core(chip, start, stop)
     core.generate_floorplan(chip)
     run_build(chip)
 
@@ -171,8 +189,8 @@ def build_top(start='import', stop='drc'):
         raise Exception("Error building asic_top: can't find asic_core outputs. "
                         "Please re-run build.py without --top-only")
 
-    chip = init_chip(start, stop)
-    configure_asic_top(chip)
+    chip = init_chip()
+    configure_asic_top(chip, start, stop)
     padring.generate_floorplan(chip)
     run_build(chip)
 
