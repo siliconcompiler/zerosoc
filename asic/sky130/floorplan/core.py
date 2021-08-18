@@ -13,8 +13,8 @@ def setup_floorplan(fp, chip):
 
     _, _, die_w, die_h, core_w, core_h, we_pads, no_pads, ea_pads, so_pads = floorplan_dims(fp)
 
-    fp.configure_net('vdd', 'vdd', 'power')
-    fp.configure_net('vss', 'vss', 'ground')
+    fp.configure_net('vdd', ['VPWR', 'vccd1'], 'power')
+    fp.configure_net('vss', ['VGND', 'vssd1'], 'ground')
 
     gpio_w = fp.available_cells['gpio'].width
     gpio_h = fp.available_cells['gpio'].height + 2.035
