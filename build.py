@@ -97,6 +97,11 @@ def configure_asic_top(chip):
     chip.add('source', 'asic/sky130/io/asic_iovssio.v')
     chip.add('source', 'asic/sky130/io/asic_iocorner.v')
 
+    # Dummy blackbox modules just to get synthesis to pass (these aren't
+    # acutally instantiated)
+    chip.add('source', 'asic/sky130/io/asic_iopoc.v')
+    chip.add('source', 'asic/sky130/io/asic_iocut.v')
+
     chip.set('asic', 'def', 'asic_top.def')
 
     macro = 'core'
@@ -130,8 +135,6 @@ def configure_asic_top(chip):
     chip.add('macro', macro, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
     chip.add('macro', macro, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
     chip.set('macro', macro, 'cells', 'ram', 'sky130_sram_2kbyte_1rw1r_32x512_8')
-    chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
-    chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
 
 def configure_fpga(chip):
     chip.add('design', 'top_icebreaker')

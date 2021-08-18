@@ -1,21 +1,12 @@
 module asic_top (
     inout vdd,
     inout vss,
+    inout vddio,
+    inout vssio,
 
-    inout no_vddio,
-    inout no_vssio,
     inout [8:0] no_pad,
-
-    inout so_vddio,
-    inout so_vssio,
     inout [8:0] so_pad,
-
-    inout ea_vddio,
-    inout ea_vssio,
     inout [8:0] ea_pad,
-
-    inout we_vddio,
-    inout we_vssio,
     inout [8:0] we_pad
 );
 
@@ -109,8 +100,8 @@ module asic_top (
         .vss,
         .vdd,
 
-        .we_vddio,
-        .we_vssio,
+        .we_vddio(vddio),
+        .we_vssio(vssio),
         .we_pad,
         .we_din,
         .we_dout,
@@ -119,8 +110,8 @@ module asic_top (
         .we_oen,
         .we_tech_cfg,
 
-        .no_vddio,
-        .no_vssio,
+        .no_vddio(vddio),
+        .no_vssio(vssio),
         .no_pad, // pad
         .no_din, // data from pad
         .no_dout, // data to pad
@@ -129,8 +120,8 @@ module asic_top (
         .no_oen, // output enable (bar)
         .no_tech_cfg,
 
-        .so_vddio,
-        .so_vssio,
+        .so_vddio(vddio),
+        .so_vssio(vssio),
         .so_pad, // pad
         .so_din, // data from pad
         .so_dout, // data to pad
@@ -139,8 +130,8 @@ module asic_top (
         .so_oen, // output enable (bar)
         .so_tech_cfg,
 
-        .ea_vddio,
-        .ea_vssio,
+        .ea_vddio(vddio),
+        .ea_vssio(vssio),
         .ea_pad, // pad
         .ea_din, // data from pad
         .ea_dout, // data to pad

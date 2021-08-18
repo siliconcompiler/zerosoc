@@ -1,7 +1,8 @@
 module asic_iobuf #(
     parameter DIR = "NO",
     parameter TYPE = "SOFT",
-    parameter TECH_CFG_WIDTH = 16
+    parameter TECH_CFG_WIDTH = 16,
+    parameter TECH_RING_WIDTH = 8
 ) (
     output din,
     input dout,
@@ -15,6 +16,7 @@ module asic_iobuf #(
     inout vss,
     inout vddio,
     inout vssio,
+    inout [TECH_RING_WIDTH-1:0] ring,
 
     inout pad
 );
@@ -57,16 +59,16 @@ sky130_ef_io__gpiov2_pad gpio (
     .ANALOG_POL(tech_cfg[12]), // don't care
     .DM(tech_cfg[15:13]), // strong pull-up, strong pull-down
 
-    .VDDIO(),
-    .VDDIO_Q(), // level-shift reference for high-voltage output
-    .VDDA(), // tied off to vddio b/c analog functionality not used
-    .VCCD(), // core supply as level-shift reference
-    .VSWITCH(), // not sure what this is for, but seems like vdda = vddio
-    .VCCHIB(),
-    .VSSA(),
-    .VSSD(),
-    .VSSIO_Q(),
-    .VSSIO(),
+    .VDDIO(vddio),
+    .VDDIO_Q(ring[0]), // level-shift reference for high-voltage output
+    .VDDA(ring[6]),
+    .VCCD(vdd), // core supply as level-shift reference
+    .VSWITCH(ring[1]), // not sure what this is for, but seems like vdda = vddio
+    .VCCHIB(ring[2]),
+    .VSSA(ring[7]),
+    .VSSD(vss),
+    .VSSIO_Q(ring[3]),
+    .VSSIO(vssio),
 
     // Direction connection from pad to core (unused)
     .PAD_A_NOESD_H(),
@@ -74,8 +76,8 @@ sky130_ef_io__gpiov2_pad gpio (
     .PAD_A_ESD_1_H(),
 
     // Analog stuff (unused)
-    .AMUXBUS_A(),
-    .AMUXBUS_B(),
+    .AMUXBUS_A(ring[4]),
+    .AMUXBUS_B(ring[5]),
 
     // not sure what this output does, so leave disconnected
     .IN_H(),

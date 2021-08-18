@@ -27,16 +27,24 @@ def setup_floorplan(fp, chip):
     fp.place_macros([('corner_se.i0', 'corner')], die_w - corner_h, 0, 0, 0, 'E')
     fp.place_macros([('corner_ne.i0', 'corner')], die_w - corner_w, die_h - corner_h, 0, 0, 'N')
 
+    pin_dim = 10
+    pin_offset_width = (11.2 + 73.8) / 2 - pin_dim / 2
+    pin_offset_depth = gpio_h - ((102.525 + 184.975) / 2 - pin_dim / 2)
+
     # Place I/O pads
     for pad_type, i, y in we_pads:
         if pad_type == 'gpio':
             name = f'padring.we_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
+            pin_name = f'we_pad[{i}]'
         else:
             name = f'{pad_type}{i}'
+            pin_name = pad_type
+        fp.place_pins([pin_name], pin_offset_depth, y + pin_offset_width, 0, 0, pin_dim, pin_dim, 'm5')
         fp.place_macros([(name, pad_type)], 0, y, 0, 0, 'W')
     for pad_type, i, x in no_pads:
         if pad_type == 'gpio':
             name = f'padring.no_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
+            fp.place_pins([f'no_pad[{i}]'], x + pin_offset_width, die_h - pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
         else:
             name = f'{pad_type}{i}'
         pad_h = fp.available_cells[pad_type].height
@@ -44,6 +52,7 @@ def setup_floorplan(fp, chip):
     for pad_type, i, y in ea_pads:
         if pad_type == 'gpio':
             name = f'padring.ea_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
+            fp.place_pins([f'ea_pad[{i}]'], die_w - pin_offset_depth, y + pin_offset_width, 0, 0, pin_dim, pin_dim, 'm5')
         else:
             name = f'{pad_type}{i}'
         pad_h = fp.available_cells[pad_type].height
@@ -51,6 +60,7 @@ def setup_floorplan(fp, chip):
     for pad_type, i, x in so_pads:
         if pad_type == 'gpio':
             name = f'padring.so_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
+            fp.place_pins([f'so_pad[{i}]'], x + pin_offset_width, pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
         else:
             name = f'{pad_type}{i}'
         fp.place_macros([(name, pad_type)], x, 0, 0, 0, 'S')
