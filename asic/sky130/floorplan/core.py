@@ -4,6 +4,8 @@ import os
 import sys
 sys.path.append(os.path.dirname(os.path.realpath(__file__)))
 
+import math
+
 from common import *
 from siliconcompiler.floorplan import Floorplan
 
@@ -11,7 +13,8 @@ def setup_floorplan(fp, chip):
     # TODO: this should be automatically set to a valid value
     fp.db_units = 1000
 
-    _, _, die_w, die_h, core_w, core_h, we_pads, no_pads, ea_pads, so_pads = floorplan_dims(fp)
+    _, _, die_w, die_h, core_w, core_h = define_dimensions(fp)
+    we_pads, no_pads, ea_pads, so_pads = define_io_placement(fp)
 
     fp.configure_net('vdd', ['VPWR', 'vccd1'], 'power')
     fp.configure_net('vss', ['VGND', 'vssd1'], 'ground')
@@ -23,6 +26,7 @@ def setup_floorplan(fp, chip):
 
     margin_w = (die_w - core_w) / 2
     margin_h = (die_h - core_h) / 2
+    print("margins", margin_w, margin_h)
 
     ram_core_space = 250 * fp.std_cell_width
 
@@ -126,13 +130,15 @@ def setup_floorplan(fp, chip):
         ('tech_cfg', 15, 16, 28.490, 28.750, 'm2'), # dm[2]
     ]
 
-    for pad_type, i, y in we_pads:
+    i = 0
+    for pad_type, y in we_pads:
         y -= gpio_h
         if pad_type == 'gpio':
             for pin, bit, width, offset_l, offset_h, layer in pins:
                 name = f'we_{pin}[{i * width + bit}]'
                 pin_width = offset_h - offset_l
                 fp.place_pins([name], 0, y + offset_l, 0, 0, pin_depth, pin_width, layer)
+            i += 1
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
             fp.place_wires(['vdd'], 0, y + 50.39, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
@@ -146,14 +152,15 @@ def setup_floorplan(fp, chip):
             fp.place_vias(['vss'], vss_ring_left_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], vss_ring_left_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
 
-    pow_strap_depth = margin_h + hwidth
-    for pad_type, i, x in no_pads:
+    i = 0
+    for pad_type, x in no_pads:
         x -= gpio_h
         if pad_type == 'gpio':
             for pin, bit, width, offset_l, offset_h, layer in pins:
                 name = f'no_{pin}[{i * width + bit}]'
                 pin_width = offset_h - offset_l
                 fp.place_pins([name], x + offset_l, die_h - pin_depth, 0, 0, pin_width, pin_depth, layer)
+            i += 1
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'followpin')
             fp.place_wires(['vdd'], x + 50.39, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'followpin')
@@ -165,13 +172,15 @@ def setup_floorplan(fp, chip):
             fp.place_vias(['vss'], x + 0.495 + 23.9/2, vss_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], x + 50.39 + 23.9/2, vss_ring_top_y + hwidth/2, 0, 0, 'm3', 'via3_1600x480')
 
-    for pad_type, i, y in ea_pads:
+    i = 0
+    for pad_type, y in ea_pads:
         y -= gpio_h
         if pad_type == 'gpio':
             for pin, bit, width, offset_l, offset_h, layer in pins:
                 name = f'ea_{pin}[{i * width + bit}]'
                 pin_width = offset_h - offset_l
                 fp.place_pins([name], die_w - pin_depth, y + gpio_w - offset_l - pin_width, 0, 0, pin_depth, pin_width, layer)
+            i += 1
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], vdd_ring_right_x, y + 0.495, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
             fp.place_wires(['vdd'], vdd_ring_right_x, y + 50.39, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
@@ -183,14 +192,15 @@ def setup_floorplan(fp, chip):
             fp.place_vias(['vss'], vss_ring_right_x + vwidth/2, y + 0.495 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
             fp.place_vias(['vss'], vss_ring_right_x + vwidth/2, y + 50.39 + 23.9/2, 0, 0, 'm3', 'via3_1600x480')
 
-    pow_strap_depth = margin_h + hwidth
-    for pad_type, i, x in so_pads:
+    i = 0
+    for pad_type, x in so_pads:
         x -= gpio_h
         if pad_type == 'gpio':
             for pin, bit, width, offset_l, offset_h, layer in pins:
                 name = f'so_{pin}[{i * width + bit}]'
                 pin_width = offset_h - offset_l
                 fp.place_pins([name], x + gpio_w - offset_l - pin_width, 0, 0, 0, pin_width, pin_depth, layer)
+            i += 1
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], x + 0.495, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
             fp.place_wires(['vdd'], x + 50.39, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
