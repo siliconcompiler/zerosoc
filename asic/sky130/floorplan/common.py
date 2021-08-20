@@ -1,14 +1,16 @@
+import math
+
 def define_dimensions(fp):
     # Add 2.035 since GPIO cell's bottom pins stick out by that much
     gpio_h = fp.available_cells['gpio'].height + 2.035
 
     place_w = 6750 * fp.std_cell_width
     place_h = 900 * fp.std_cell_height
-    margin_x = 25 * fp.std_cell_width
-    margin_y = 25 * fp.std_cell_height
+    margin_x = 60 * fp.std_cell_width
+    margin_y = 10 * fp.std_cell_height
 
-    core_w = place_w + 2 * margin_x
-    core_h = place_h + 2 * margin_y
+    core_w = math.ceil(place_w + 2 * margin_x)
+    core_h = math.ceil(place_h + 2 * margin_y)
 
     die_w = core_w + 2 * gpio_h
     die_h = core_h + 2 * gpio_h
@@ -34,8 +36,8 @@ def define_io_placement(fp):
     # Define I/O arrangement on each side
     we_io = ['gpio'] * 5 + ['vdd', 'vss', 'vddio', 'vssio'] + ['gpio'] * 4
     no_io = ['gpio'] * 9 + ['vdd', 'vss', 'vddio', 'vssio']
-    ea_io = ['gpio'] * 5 + ['vdd', 'vss', 'vddio', 'vssio'] + ['gpio'] * 4
-    so_io = ['gpio'] * 9 + ['vdd', 'vss', 'vddio', 'vssio']
+    ea_io = ['gpio'] * 9 + ['vdd', 'vss', 'vddio', 'vssio']
+    so_io = ['gpio'] * 5 + ['vdd', 'vss', 'vddio', 'vssio'] + ['gpio'] * 4
 
     # Calculate location of each I/O pad
     spacing = calculate_even_spacing(fp, we_io, die_h - corner_h - corner_w)

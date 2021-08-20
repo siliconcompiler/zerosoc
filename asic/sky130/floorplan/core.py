@@ -24,21 +24,25 @@ def setup_floorplan(fp, chip):
     ram_w = fp.available_cells['ram'].width
     ram_h = fp.available_cells['ram'].height
 
-    margin_w = (die_w - core_w) / 2
-    margin_h = (die_h - core_h) / 2
-    print("margins", margin_w, margin_h)
+    margin_left = 60 * fp.std_cell_width
+    margin_bottom = 10 * fp.std_cell_height
+    margin_right = (die_w - core_w) - margin_left
+    margin_top = (die_h - core_h) - margin_bottom
 
     ram_core_space = 250 * fp.std_cell_width
 
-    ram_x = fp.snap(die_w - margin_w - ram_w - ram_core_space, fp.std_cell_width)
-    ram_y = fp.snap(die_h - margin_h - ram_h - 50 * fp.std_cell_height, fp.std_cell_height)
+    ram_x = fp.snap(die_w - margin_right - ram_w - ram_core_space, fp.std_cell_width)
+    ram_y = fp.snap(die_h - margin_top - ram_h - 50 * fp.std_cell_height, fp.std_cell_height)
 
-    fp.create_die_area(die_w, die_h, core_area = (margin_w, margin_h, ram_x - ram_core_space, core_h + margin_h))
+    fp.create_die_area(die_w, die_h, core_area = (margin_left, margin_bottom, core_w + margin_left, core_h + margin_bottom))
+
+    fp.place_blockage(ram_x - ram_core_space, ram_y - ram_core_space,
+        ram_w + 2 * ram_core_space, ram_h + 2 * ram_core_space)
 
     # PDN config (used throughout)
     n_vert = 8
     vwidth = 5
-    vpitch = ((ram_x - ram_core_space - margin_w)  - n_vert * vwidth) / (n_vert + 1)
+    vpitch = ((ram_x - ram_core_space - margin_left) - n_vert * vwidth) / (n_vert + 1)
     vlayer = 'm4'
 
     n_hori = 10
@@ -46,10 +50,10 @@ def setup_floorplan(fp, chip):
     hpitch = (core_h - n_hori * hwidth) / (n_hori + 1)
     hlayer = 'm5'
 
-    vss_ring_left_x = margin_w - 4 * vwidth
-    vss_ring_right_x = core_w + margin_w + 4 * vwidth
-    vss_ring_bottom_y = margin_h - 4 * hwidth
-    vss_ring_top_y = core_h + margin_h + 4 * hwidth
+    vss_ring_left_x = margin_left - 4 * vwidth
+    vss_ring_right_x = core_w + margin_left + 4 * vwidth
+    vss_ring_bottom_y = margin_bottom - 4 * hwidth
+    vss_ring_top_y = core_h + margin_bottom + 4 * hwidth
     vss_ring_width = core_w + 9 * vwidth
     vss_ring_height = core_h + 9 * hwidth
 
@@ -219,7 +223,7 @@ def setup_floorplan(fp, chip):
     fp.add_viarule('via4_1600x1600', 'M4M5_PR', (0.8, 0.8), ('m4', 'via4', 'm5'), (.8, .8), (.04,  .04, .04, .04))
 
     ## Horizontal straps
-    y = margin_h + hpitch
+    y = margin_bottom + hpitch
     for _ in range(n_hori//2):
         fp.place_wires(['vdd'],
             vdd_ring_left_x, y,
@@ -233,14 +237,14 @@ def setup_floorplan(fp, chip):
         y += 2 * (hpitch + hwidth)
 
     fp.place_vias(['vdd'] * (n_hori // 2),
-        vdd_ring_left_x + vwidth/2, margin_h + hpitch + hwidth/2,
+        vdd_ring_left_x + vwidth/2, margin_bottom + hpitch + hwidth/2,
         0, 2 * (hpitch + hwidth), 'm4', 'via4_1600x1600')
 
     fp.place_vias(['vdd'] * (n_hori // 2),
-        vdd_ring_right_x + vwidth/2, margin_h + hpitch + hwidth/2,
+        vdd_ring_right_x + vwidth/2, margin_bottom + hpitch + hwidth/2,
         0, 2 * (hpitch + hwidth), 'm4', 'via4_1600x1600')
 
-    y = margin_h + hpitch + (hpitch + hwidth)
+    y = margin_bottom + hpitch + (hpitch + hwidth)
     for _ in range(n_hori//2):
         fp.place_wires(['vss'],
             vss_ring_left_x, y,
@@ -253,50 +257,50 @@ def setup_floorplan(fp, chip):
             fp.place_vias(['vss'], ram_x + 681.74 - 1.74/2, y + hwidth/2, 0, 0, 'm4', 'via4_1600x1600')
 
     fp.place_vias(['vss'] * (n_vert // 2),
-        vss_ring_left_x + vwidth/2, margin_h + hpitch + (hpitch + hwidth) + hwidth/2,
+        vss_ring_left_x + vwidth/2, margin_bottom + hpitch + (hpitch + hwidth) + hwidth/2,
         0, 2 * (hpitch + hwidth), 'm4', 'via4_1600x1600')
 
     fp.place_vias(['vss'] * (n_vert // 2),
-        vss_ring_right_x + vwidth/2, margin_h + hpitch + (hpitch + hwidth) + hwidth/2,
+        vss_ring_right_x + vwidth/2, margin_bottom + hpitch + (hpitch + hwidth) + hwidth/2,
         0, 2 * (hpitch + hwidth), 'm4', 'via4_1600x1600')
 
     ## Vertical straps
     fp.place_wires(['vdd'] * (n_vert // 2),
-        margin_w + vpitch, vdd_ring_bottom_y,
+        margin_left + vpitch, vdd_ring_bottom_y,
         2 * (vpitch + vwidth), 0,
         vwidth, vdd_ring_height, vlayer, 'STRIPE')
 
     fp.place_vias(['vdd'] * (n_vert // 2),
-        margin_w + vpitch + vwidth/2, vdd_ring_bottom_y + hwidth/2,
+        margin_left + vpitch + vwidth/2, vdd_ring_bottom_y + hwidth/2,
         2 * (vpitch + vwidth), 0, 'm4', 'via4_1600x1600')
 
     fp.place_vias(['vdd'] * (n_vert // 2),
-        margin_w + vpitch + vwidth/2, vdd_ring_top_y + hwidth/2,
+        margin_left + vpitch + vwidth/2, vdd_ring_top_y + hwidth/2,
         2 * (vpitch + vwidth), 0, 'm4', 'via4_1600x1600')
 
     fp.place_wires(['vss'] * (n_vert // 2),
-        margin_w + vpitch + (vpitch + vwidth), vss_ring_bottom_y,
+        margin_left + vpitch + (vpitch + vwidth), vss_ring_bottom_y,
         2 * (vpitch + vwidth), 0,
         vwidth, core_h + 9 * hwidth, vlayer, 'STRIPE')
 
     fp.place_vias(['vss'] * (n_vert // 2),
-        margin_w + vpitch + (vpitch + vwidth) + vwidth/2, vss_ring_bottom_y + hwidth/2,
+        margin_left + vpitch + (vpitch + vwidth) + vwidth/2, vss_ring_bottom_y + hwidth/2,
         2 * (vpitch + vwidth), 0, 'm4', 'via4_1600x1600')
 
     fp.place_vias(['vss'] * (n_vert // 2),
-        margin_w + vpitch + (vpitch + vwidth) + vwidth/2, vss_ring_top_y + hwidth/2,
+        margin_left + vpitch + (vpitch + vwidth) + vwidth/2, vss_ring_top_y + hwidth/2,
         2 * (vpitch + vwidth), 0, 'm4', 'via4_1600x1600')
 
     # Vias connecting vdd straps
-    x = margin_w + vpitch + vwidth/2
-    y = margin_h + hpitch + hwidth/2
+    x = margin_left + vpitch + vwidth/2
+    y = margin_bottom + hpitch + hwidth/2
     for _ in range(n_hori//2):
         fp.place_vias(['vdd'] * (n_vert//2), x, y, 2 * (vpitch + vwidth), 0, 'm4', 'via4_1600x1600')
         y += 2 * (hpitch + hwidth)
 
     # Vias connecting vss straps
-    x = margin_w + vpitch + vwidth / 2 + (vpitch + vwidth)
-    y = margin_h + hpitch + hwidth / 2 + (hpitch + hwidth)
+    x = margin_left + vpitch + vwidth / 2 + (vpitch + vwidth)
+    y = margin_bottom + hpitch + hwidth / 2 + (hpitch + hwidth)
     for _ in range(n_hori//2):
         fp.place_vias(['vss'] * (n_vert//2), x, y, 2 * (vpitch + vwidth), 0, 'm4', 'via4_1600x1600')
         y += 2 * (hpitch + hwidth)
@@ -305,8 +309,8 @@ def setup_floorplan(fp, chip):
     ngnd = math.ceil(len(fp.rows) / 2)
 
     # Vias connecting vdd straps to std cell stripes
-    x = margin_w + vpitch + vwidth / 2
-    y = margin_h
+    x = margin_left + vpitch + vwidth / 2
+    y = margin_bottom
     for _ in range(n_vert // 2):
         if x < ram_x - ram_core_space:
             fp.place_vias(['vdd'] * npwr, x, y, 0, 2 * fp.std_cell_height, 'm3', 'via3_1600x480')
@@ -318,8 +322,8 @@ def setup_floorplan(fp, chip):
         x += 2 * (vpitch + vwidth)
 
     # Vias connecting vss straps to std cell stripes
-    x = margin_w + vpitch + vwidth / 2 + (vpitch + vwidth)
-    y = margin_h + fp.std_cell_height
+    x = margin_left + vpitch + vwidth / 2 + (vpitch + vwidth)
+    y = margin_bottom + fp.std_cell_height
     for _ in range(n_vert // 2):
         if x < ram_x - ram_core_space:
             fp.place_vias(['vss'] * ngnd, x, y, 0, 2 * fp.std_cell_height, 'm3', 'via3_1600x480')
