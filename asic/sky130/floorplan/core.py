@@ -31,13 +31,13 @@ def setup_floorplan(fp, chip):
 
     ram_core_space = 250 * fp.std_cell_width
 
-    ram_x = fp.snap(die_w - margin_right - ram_w - ram_core_space, fp.std_cell_width)
-    ram_y = fp.snap(die_h - margin_top - ram_h - 50 * fp.std_cell_height, fp.std_cell_height)
+    ram_x = fp.snap(die_w - margin_right - ram_w, fp.std_cell_width)
+    ram_y = fp.snap(die_h - margin_top - ram_h, fp.std_cell_height)
 
     fp.create_die_area(die_w, die_h, core_area = (margin_left, margin_bottom, core_w + margin_left, core_h + margin_bottom))
 
     fp.place_blockage(ram_x - ram_core_space, ram_y - ram_core_space,
-        ram_w + 2 * ram_core_space, ram_h + 2 * ram_core_space)
+        ram_w + ram_core_space, ram_h + ram_core_space)
 
     # PDN config (used throughout)
     n_vert = 8
@@ -45,7 +45,7 @@ def setup_floorplan(fp, chip):
     vpitch = ((ram_x - ram_core_space - margin_left) - n_vert * vwidth) / (n_vert + 1)
     vlayer = 'm4'
 
-    n_hori = 10
+    n_hori = 12
     hwidth = 5
     hpitch = (core_h - n_hori * hwidth) / (n_hori + 1)
     hlayer = 'm5'
@@ -114,6 +114,8 @@ def setup_floorplan(fp, chip):
         ('tech_cfg', 5, 16, 78.580 - 1, 78.910, 'm3'), # enable_vddio
         ('din', 0, 1, 79.240, 79.570 + 1, 'm3'), # in
 
+        ('tech_cfg', 12, 16, 45.865 - 0.5, 46.195 + 0.5, 'm3'), # analog_pol
+
         ('dout', 0, 1, 22.355, 22.615, 'm2'), # out
         ('ie', 0, 1, 45.245, 45.505, 'm2'), # inp_dis
         ('oen', 0, 1, 3.375, 3.605, 'm2'), # oe_n
@@ -128,7 +130,6 @@ def setup_floorplan(fp, chip):
         ('tech_cfg', 9, 16, 26.600, 26.860, 'm2'), # hld_ovr
         ('tech_cfg', 10, 16, 62.430, 62.690, 'm1'), # analog_en
         ('tech_cfg', 11, 16, 30.750, 31.010, 'm2'), # analog_sel
-        ('tech_cfg', 12, 16, 45.865, 46.195, 'm3'), # analog_pol
         ('tech_cfg', 13, 16, 49.855, 50.115, 'm2'), # dm[0]
         ('tech_cfg', 14, 16, 66.835, 67.095, 'm2'), # dm[1]
         ('tech_cfg', 15, 16, 28.490, 28.750, 'm2'), # dm[2]

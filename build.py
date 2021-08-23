@@ -80,6 +80,7 @@ def configure_libs(chip):
     # Need both GDS files: ef relies on fd one
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
+    chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
     chip.set('library', libname, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad')
     chip.set('library', libname, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
     chip.set('library', libname, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
@@ -233,7 +234,7 @@ def main():
         build_core(stop='export')
         build_top(stop='export')
     else:
-        build_core()
+        build_core(stop='export')
         build_top()
 
 if __name__ == '__main__':

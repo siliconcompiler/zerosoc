@@ -15,6 +15,12 @@ def define_dimensions(fp):
     die_w = core_w + 2 * gpio_h
     die_h = core_h + 2 * gpio_h
 
+    # die_w = math.ceil(core_w + 2 * gpio_h)
+    # die_h = math.ceil(core_h + 2 * gpio_h)
+
+    # core_w = die_w - 2 * gpio_h
+    # core_h = die_h - 2 * gpio_h
+
     assert die_w % 1 == 0
     assert die_h % 1 == 0
 
