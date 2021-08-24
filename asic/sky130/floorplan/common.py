@@ -4,8 +4,8 @@ def define_dimensions(fp):
     # Add 2.035 since GPIO cell's bottom pins stick out by that much
     gpio_h = fp.available_cells['gpio'].height + 2.035
 
-    place_w = 6750 * fp.std_cell_width
-    place_h = 900 * fp.std_cell_height
+    place_w = 3375 * fp.std_cell_width
+    place_h = 450 * fp.std_cell_height
     margin_x = 60 * fp.std_cell_width
     margin_y = 10 * fp.std_cell_height
 
