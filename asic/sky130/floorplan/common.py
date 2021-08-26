@@ -2,24 +2,27 @@ import math
 
 def define_dimensions(fp):
     # Add 2.035 since GPIO cell's bottom pins stick out by that much
-    gpio_h = fp.available_cells['gpio'].height + 2.035
+    gpio_h = fp.available_cells['gpio'].height
 
     place_w = 3375 * fp.std_cell_width
     place_h = 450 * fp.std_cell_height
     margin_x = 60 * fp.std_cell_width
     margin_y = 10 * fp.std_cell_height
 
-    core_w = math.ceil(place_w + 2 * margin_x)
-    core_h = math.ceil(place_h + 2 * margin_y)
+    core_w = place_w + 2 * margin_x
+    core_h = place_h + 2 * margin_y
 
-    die_w = core_w + 2 * gpio_h
-    die_h = core_h + 2 * gpio_h
+    # core_w = math.ceil(place_w + 2 * margin_x)
+    # core_h = math.ceil(place_h + 2 * margin_y)
 
-    # die_w = math.ceil(core_w + 2 * gpio_h)
-    # die_h = math.ceil(core_h + 2 * gpio_h)
+    # die_w = core_w + 2 * gpio_h
+    # die_h = core_h + 2 * gpio_h
 
-    # core_w = die_w - 2 * gpio_h
-    # core_h = die_h - 2 * gpio_h
+    die_w = math.ceil(core_w + 2 * gpio_h)
+    die_h = math.ceil(core_h + 2 * gpio_h)
+
+    core_w = die_w - 2 * gpio_h
+    core_h = die_h - 2 * gpio_h
 
     assert die_w % 1 == 0
     assert die_h % 1 == 0

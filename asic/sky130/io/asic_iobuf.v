@@ -37,7 +37,7 @@ module asic_iobuf #(
 // TODO: might need to use "tielo"/"tiehi" signals for some of these instead of
 // 0/1 constants -- see https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts/blob/master/flow/designs/sky130hd/coyote_tc/ios.v
 
-sky130_ef_io__gpiov2_pad gpio (
+sky130_ef_io__gpiov2_pad_wrapped gpio (
     .IN(din),
     .OUT(dout),
     .OE_N(oen),

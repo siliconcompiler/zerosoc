@@ -26,7 +26,7 @@ def init_chip(jobid=0):
 
 def configure_svflow(chip, start=None, stop=None):
     flowpipe = [('import', 'morty', 'open'),
-                ('convert', 'sv2v', None),
+                ('convert', 'sv2v', 'open'),
                 ('syn', 'yosys', 'yosys'),
                 ('synopt', 'openroad', 'openroad'),
                 ('floorplan', 'openroad', 'openroad'),
@@ -43,6 +43,7 @@ def configure_svflow(chip, start=None, stop=None):
             input_step, _, _ = flowpipe[i-1]
             chip.add('flowgraph', step, 'input', input_step)
         chip.set('flowgraph', step, 'tool', tool)
+        chip.set('flowgraph', step, 'mergeop', 'min')
         if showtool:
             chip.set('flowgraph', step, 'showtool', showtool)
 
@@ -63,6 +64,7 @@ def configure_physflow(chip, start=None, stop=None):
             input_step, _, _ = flowpipe[i-1]
             chip.add('flowgraph', step, 'input', input_step)
         chip.set('flowgraph', step, 'tool', tool)
+        chip.set('flowgraph', step, 'mergeop', 'min')
         if showtool:
             chip.set('flowgraph', step, 'showtool', showtool)
 
@@ -81,7 +83,7 @@ def configure_libs(chip):
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
-    chip.set('library', libname, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad')
+    chip.set('library', libname, 'cells', 'gpio', 'sky130_ef_io__gpiov2_pad_wrapped')
     chip.set('library', libname, 'cells', 'vdd', 'sky130_ef_io__vccd_hvc_pad')
     chip.set('library', libname, 'cells', 'vddio', 'sky130_ef_io__vddio_hvc_pad')
     chip.set('library', libname, 'cells', 'vss', 'sky130_ef_io__vssd_hvc_pad')

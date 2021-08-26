@@ -20,7 +20,8 @@ def setup_floorplan(fp, chip):
     fp.configure_net('vss', ['VGND', 'vssd1'], 'ground')
 
     gpio_w = fp.available_cells['gpio'].width
-    gpio_h = fp.available_cells['gpio'].height + 2.035
+    gpio_h = fp.available_cells['gpio'].height
+    pow_h = fp.available_cells['vdd'].height
     ram_w = fp.available_cells['ram'].width
     ram_h = fp.available_cells['ram'].height
 
@@ -107,42 +108,40 @@ def setup_floorplan(fp, chip):
     fp.place_macros([('soc.ram.u_mem.gen_sky130.u_impl_sky130.genblk1.mem', 'ram')], ram_x, ram_y, 0, 0, 'N')
 
     # Place pins
+    pin_width = 0.28
     pin_depth = 1
 
     pins = [
-        # Hack: tweak these two pin sizes to trick router and avoid DRC errors
-        ('tech_cfg', 5, 16, 78.580 - 1, 78.910, 'm3'), # enable_vddio
-        ('din', 0, 1, 79.240, 79.570 + 1, 'm3'), # in
-
-        ('tech_cfg', 12, 16, 45.865 - 0.5, 46.195 + 0.5, 'm3'), # analog_pol
-
-        ('dout', 0, 1, 22.355, 22.615, 'm2'), # out
-        ('ie', 0, 1, 45.245, 45.505, 'm2'), # inp_dis
-        ('oen', 0, 1, 3.375, 3.605, 'm2'), # oe_n
-        ('tech_cfg', 0, 16, 31.815, 32.075, 'm2'), # hld_h_n
-        ('tech_cfg', 1, 16, 35.460, 35.720, 'm2'), # enable_h
-        ('tech_cfg', 2, 16, 38.390, 38.650, 'm2'), # enable_inp_h
-        ('tech_cfg', 3, 16, 12.755, 13.015, 'm2'), # enable_vdda_h
-        ('tech_cfg', 4, 16, 16.310, 16.570, 'm2'), # enable_vswitch_h
-        ('tech_cfg', 6, 16, 5.420, 5.650, 'm2'), # ib_mode_sel
-        ('tech_cfg', 7, 16, 6.130, 6.390, 'm2'), # vtrip_sel
-        ('tech_cfg', 8, 16, 77.610, 77.870, 'm2'), # slow
-        ('tech_cfg', 9, 16, 26.600, 26.860, 'm2'), # hld_ovr
-        ('tech_cfg', 10, 16, 62.430, 62.690, 'm1'), # analog_en
-        ('tech_cfg', 11, 16, 30.750, 31.010, 'm2'), # analog_sel
-        ('tech_cfg', 13, 16, 49.855, 50.115, 'm2'), # dm[0]
-        ('tech_cfg', 14, 16, 66.835, 67.095, 'm2'), # dm[1]
-        ('tech_cfg', 15, 16, 28.490, 28.750, 'm2'), # dm[2]
+        ('din', 0, 1, 75.085), # in
+        ('dout', 0, 1, 19.885), # out
+        ('ie', 0, 1, 41.505), # inp_dis
+        ('oen', 0, 1, 4.245), # oe_n
+        ('tech_cfg', 0, 16, 31.845), # hld_h_n
+        ('tech_cfg', 1, 16, 35.065), # enable_h
+        ('tech_cfg', 2, 16, 38.285), # enable_inp_h
+        ('tech_cfg', 3, 16, 13.445), # enable_vdda_h
+        ('tech_cfg', 4, 16, 16.665), # enable_vswitch_h
+        ('tech_cfg', 5, 16, 69.105), # enable_vddio
+        ('tech_cfg', 6, 16, 7.465), # ib_mode_sel
+        ('tech_cfg', 7, 16, 10.685), # vtrip_sel
+        ('tech_cfg', 8, 16, 65.885), # slow
+        ('tech_cfg', 9, 16, 22.645), # hld_ovr
+        ('tech_cfg', 10, 16, 50.705), # analog_en
+        ('tech_cfg', 11, 16, 29.085), # analog_sel
+        ('tech_cfg', 12, 16, 44.265), # analog_pol
+        ('tech_cfg', 13, 16, 47.485), # dm[0]
+        ('tech_cfg', 14, 16, 56.685), # dm[1]
+        ('tech_cfg', 15, 16, 25.865), # dm[2]
     ]
+    layer = 'm2'
 
     i = 0
     for pad_type, y in we_pads:
         y -= gpio_h
         if pad_type == 'gpio':
-            for pin, bit, width, offset_l, offset_h, layer in pins:
+            for pin, bit, width, offset in pins:
                 name = f'we_{pin}[{i * width + bit}]'
-                pin_width = offset_h - offset_l
-                fp.place_pins([name], 0, y + offset_l, 0, 0, pin_depth, pin_width, layer)
+                fp.place_pins([name], 0, y + offset, 0, 0, pin_depth, pin_width, layer)
             i += 1
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
@@ -161,10 +160,9 @@ def setup_floorplan(fp, chip):
     for pad_type, x in no_pads:
         x -= gpio_h
         if pad_type == 'gpio':
-            for pin, bit, width, offset_l, offset_h, layer in pins:
+            for pin, bit, width, offset in pins:
                 name = f'no_{pin}[{i * width + bit}]'
-                pin_width = offset_h - offset_l
-                fp.place_pins([name], x + offset_l, die_h - pin_depth, 0, 0, pin_width, pin_depth, layer)
+                fp.place_pins([name], x + offset, die_h - pin_depth, 0, 0, pin_width, pin_depth, layer)
             i += 1
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, die_h - vdd_ring_top_y, 'm3', 'followpin')
@@ -181,10 +179,9 @@ def setup_floorplan(fp, chip):
     for pad_type, y in ea_pads:
         y -= gpio_h
         if pad_type == 'gpio':
-            for pin, bit, width, offset_l, offset_h, layer in pins:
+            for pin, bit, width, offset in pins:
                 name = f'ea_{pin}[{i * width + bit}]'
-                pin_width = offset_h - offset_l
-                fp.place_pins([name], die_w - pin_depth, y + gpio_w - offset_l - pin_width, 0, 0, pin_depth, pin_width, layer)
+                fp.place_pins([name], die_w - pin_depth, y + gpio_w - offset - pin_width, 0, 0, pin_depth, pin_width, layer)
             i += 1
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], vdd_ring_right_x, y + 0.495, 0, 0, die_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
@@ -201,10 +198,9 @@ def setup_floorplan(fp, chip):
     for pad_type, x in so_pads:
         x -= gpio_h
         if pad_type == 'gpio':
-            for pin, bit, width, offset_l, offset_h, layer in pins:
+            for pin, bit, width, offset in pins:
                 name = f'so_{pin}[{i * width + bit}]'
-                pin_width = offset_h - offset_l
-                fp.place_pins([name], x + gpio_w - offset_l - pin_width, 0, 0, 0, pin_width, pin_depth, layer)
+                fp.place_pins([name], x + gpio_w - offset - pin_width, 0, 0, 0, pin_width, pin_depth, layer)
             i += 1
         elif pad_type == 'vdd':
             fp.place_wires(['vdd'], x + 0.495, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')

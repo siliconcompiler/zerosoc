@@ -13,13 +13,17 @@ def setup_floorplan(fp, chip):
     we_pads, no_pads, ea_pads, so_pads = define_io_placement(fp)
 
     gpio_w = fp.available_cells['gpio'].width
-    gpio_h = fp.available_cells['gpio'].height + 2.035
+    gpio_h = fp.available_cells['gpio'].height
+    pow_h = fp.available_cells['vdd'].height
     corner_w = fp.available_cells['corner'].width
     corner_h = fp.available_cells['corner'].height
     fill_cell_h = fp.available_cells['fill1'].height
 
     # Initialize die
     fp.create_die_area(die_w, die_h, generate_rows=False, generate_tracks=False)
+
+    fp.configure_net('vdd', ['VPWR', 'vccd1'], 'power')
+    fp.configure_net('vss', ['VGND', 'vssd1'], 'ground')
 
     # Place corners
     # NOTE: scalar placement functions could be nice
@@ -42,6 +46,9 @@ def setup_floorplan(fp, chip):
             name = f'padring.we_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'we_pad[{i}]'
         else:
+            if pad_type in ('vdd', 'vss'):
+                fp.place_wires([pad_type], pow_h, y + 0.495, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'stripe')
+                fp.place_wires([pad_type], pow_h, y + 50.39, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'stripe')
             name = f'{pad_type}{i}'
             pin_name = pad_type
         fp.place_pins([pin_name], pin_offset_depth, y + pin_offset_width, 0, 0, pin_dim, pin_dim, 'm5')
@@ -55,6 +62,9 @@ def setup_floorplan(fp, chip):
             name = f'padring.no_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             fp.place_pins([f'no_pad[{i}]'], x + pin_offset_width, die_h - pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
         else:
+            if pad_type in ('vdd', 'vss'):
+                fp.place_wires([pad_type], x + 0.495, die_h - pow_h - (gpio_h - pow_h), 0, 0, 23.9, gpio_h - pow_h, 'm3', 'stripe')
+                fp.place_wires([pad_type], x + 50.39, die_h - pow_h - (gpio_h - pow_h), 0, 0, 23.9, gpio_h - pow_h, 'm3', 'stripe')
             name = f'{pad_type}{i}'
         pad_h = fp.available_cells[pad_type].height
         fp.place_macros([(name, pad_type)], x, die_h - pad_h, 0, 0, 'N')
@@ -67,6 +77,9 @@ def setup_floorplan(fp, chip):
             name = f'padring.ea_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             fp.place_pins([f'ea_pad[{i}]'], die_w - pin_offset_depth, y + pin_offset_width, 0, 0, pin_dim, pin_dim, 'm5')
         else:
+            if pad_type in ('vdd', 'vss'):
+                fp.place_wires([pad_type], die_w - pow_h - (gpio_h - pow_h), y + 0.495, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'stripe')
+                fp.place_wires([pad_type], die_w - pow_h - (gpio_h - pow_h), y + 50.39, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'stripe')
             name = f'{pad_type}{i}'
         pad_h = fp.available_cells[pad_type].height
         fp.place_macros([(name, pad_type)], die_w - pad_h, y, 0, 0, 'E')
@@ -79,6 +92,9 @@ def setup_floorplan(fp, chip):
             name = f'padring.so_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             fp.place_pins([f'so_pad[{i}]'], x + pin_offset_width, pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
         else:
+            if pad_type in ('vdd', 'vss'):
+                fp.place_wires([pad_type], x + 0.495, pow_h, 0, 0, 23.9, gpio_h - pow_h, 'm3', 'stripe')
+                fp.place_wires([pad_type], x + 50.39, pow_h, 0, 0, 23.9, gpio_h - pow_h, 'm3', 'stripe')
             name = f'{pad_type}{i}'
         fp.place_macros([(name, pad_type)], x, 0, 0, 0, 'S')
 
