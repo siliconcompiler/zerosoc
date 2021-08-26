@@ -30,7 +30,7 @@ def setup_floorplan(fp, chip):
     margin_right = (die_w - core_w) - margin_left
     margin_top = (die_h - core_h) - margin_bottom
 
-    ram_core_space = 250 * fp.std_cell_width
+    ram_core_space = 100 * fp.std_cell_width
 
     ram_x = fp.snap(die_w - margin_right - ram_w, fp.std_cell_width)
     ram_y = fp.snap(die_h - margin_top - ram_h, fp.std_cell_height)

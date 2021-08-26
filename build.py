@@ -102,6 +102,10 @@ def configure_libs(chip):
     chip.add('library', libname, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
     chip.set('library', libname, 'cells', 'ram', 'sky130_sram_2kbyte_1rw1r_32x512_8')
 
+    # Ignore cells in these libraries during DRC, they violate the rules but are
+    # foundry-validated
+    chip.set('exclude', ['ram', 'io'])
+
 def configure_asic_core(chip, start, stop):
     chip.set('design', 'asic_core')
     chip.target('skywater130')
