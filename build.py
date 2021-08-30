@@ -6,7 +6,7 @@ import shutil
 
 from sources import add_sources
 
-from asic.sky130.floorplan import core, padring
+from floorplan import generate_core_floorplan, generate_top_floorplan
 
 def init_chip(jobid=0):
     chip = sc.Chip()
@@ -181,7 +181,7 @@ def build_fpga(start='import', stop='bitstream'):
 def build_core(start='import', stop='lvs'):
     chip = init_chip()
     configure_asic_core(chip, start, stop)
-    core.generate_floorplan(chip)
+    generate_core_floorplan(chip)
     run_build(chip)
 
     # copy out GDS for top-level integration
@@ -201,17 +201,17 @@ def build_top(start='import', stop='drc'):
 
     chip = init_chip()
     configure_asic_top(chip, start, stop)
-    padring.generate_floorplan(chip)
+    generate_top_floorplan(chip)
     run_build(chip)
 
 def build_floorplans():
     chip = init_chip()
     configure_asic_core(chip, 'import', 'export')
-    core.generate_floorplan(chip)
+    generate_core_floorplan(chip)
 
     chip = init_chip()
     configure_asic_top(chip, 'import', 'export')
-    padring.generate_floorplan(chip)
+    generate_top_floorplan(chip)
 
 def run_build(chip):
     chip.run()

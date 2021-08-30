@@ -392,6 +392,17 @@ def top_floorplan(fp):
     ## Place core ##
     fp.place_macros([('core', 'asic_core')], gpio_h, gpio_h, 0, 0, 'N')
 
+def generate_core_floorplan(chip):
+    fp = Floorplan(chip)
+    core_floorplan(fp)
+    fp.write_def('asic_core.def')
+    fp.write_lef('asic_core.lef')
+
+def generate_top_floorplan(chip):
+    fp = Floorplan(chip)
+    top_floorplan(fp)
+    fp.write_def('asic_top.def')
+
 def main():
     core_chip = configure_chip('asic_core')
     core_fp = Floorplan(core_chip)
