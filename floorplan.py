@@ -23,14 +23,14 @@ def configure_chip(design):
     chip.set('design', design)
 
     libname = 'ram'
-    chip.add('library', libname, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
+    chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
     chip.add('library', libname, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
     chip.add('library', libname, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'type', 'component')
 
     libname = 'io'
-    chip.add('library', libname, 'model', 'typical', 'nldm', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
+    chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
     chip.set('library', libname, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
     # Need both GDS files: ef relies on fd one
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
@@ -132,14 +132,18 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
     vss_ring_bottom_y = place_min_y - 4 * hwidth
     vss_ring_width = place_w + 9 * vwidth
     vss_ring_height = place_h + 9 * hwidth
+    vss_ring_right_x = vss_ring_left_x + vss_ring_width
+    vss_ring_top_y = vss_ring_bottom_y + vss_ring_height
 
     vdd_ring_left_x = vss_ring_left_x + 2 * vwidth
     vdd_ring_bottom_y = vss_ring_bottom_y + 2 * hwidth
     vdd_ring_width = vss_ring_width - 4 * vwidth
     vdd_ring_height = vss_ring_height - 4 * hwidth
+    vdd_ring_right_x = vdd_ring_left_x + vdd_ring_width
+    vdd_ring_top_y = vdd_ring_bottom_y + vdd_ring_height
 
-    place_ring('vdd', vdd_ring_left_x, vdd_ring_bottom_y, vdd_ring_width, vdd_ring_height, vwidth, hlayer, vlayer)
-    place_ring('vss', vss_ring_left_x, vss_ring_bottom_y, vss_ring_width, vss_ring_height, vwidth, hlayer, vlayer)
+    fp.place_ring('vdd', vdd_ring_left_x, vdd_ring_bottom_y, vdd_ring_width, vdd_ring_height, hwidth, vwidth, hlayer, vlayer)
+    fp.place_ring('vss', vss_ring_left_x, vss_ring_bottom_y, vss_ring_width, vss_ring_height, hwidth, vwidth, hlayer, vlayer)
 
     # Place horizontal power straps
     fp.place_wires(['vdd'] * (n_hori // 2), vdd_ring_left_x, margin_bottom + hpitch, 0, 2 * (hpitch + hwidth), vdd_ring_width, hwidth, hlayer, 'STRIPE')
@@ -163,46 +167,46 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
     for pad_type, y in we_pads:
         y -= gpio_h
         if pad_type == VDD:
-            net = 'vdd'
+            fp.place_wires(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vdd'], 0, y + 50.39, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_pins(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
         elif pad_type == VSS:
-            net = 'vss'
+            fp.place_wires(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vss'], 0, y + 50.39, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_pins(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
         else:
             continue
-
-        fp.place_wires([net], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
-        fp.place_wires([net], 0, y + 50.39, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
-        fp.place_pins([net], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
 
     for pad_type, x in no_pads:
         x -= gpio_h
         if pad_type == VDD:
-            net = 'vdd'
+            fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, core_h - vdd_ring_top_y, 'm3', 'followpin')
+            fp.place_wires(['vdd'], x + 50.39, vdd_ring_top_y, 0, 0, 23.9, core_h - vdd_ring_top_y, 'm3', 'followpin')
         elif pad_type == VSS:
-            net = 'vss'
+            fp.place_wires(['vss'], x + 0.495, vss_ring_top_y, 0, 0, 23.9, core_h - vss_ring_top_y, 'm3', 'followpin')
+            fp.place_wires(['vss'], x + 50.39, vss_ring_top_y, 0, 0, 23.9, core_h - vss_ring_top_y, 'm3', 'followpin')
         else:
             continue
-        fp.place_wires([net], x + 0.495, vdd_ring_top_y, 0, 0, 23.9, core_h - vdd_ring_top_y, 'm3', 'followpin')
-        fp.place_wires([net], x + 50.39, vdd_ring_top_y, 0, 0, 23.9, core_h - vdd_ring_top_y, 'm3', 'followpin')
 
     for pad_type, y in ea_pads:
         y -= gpio_h
         if pad_type == VDD:
-            net = 'vdd'
+            fp.place_wires(['vdd'], vdd_ring_right_x, y + 0.495, 0, 0, core_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vdd'], vdd_ring_right_x, y + 50.39, 0, 0, core_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
         elif pad_type == VSS:
-            net = 'vss'
+            fp.place_wires(['vss'], vss_ring_right_x, y + 0.495, 0, 0, core_w - vss_ring_right_x, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vss'], vss_ring_right_x, y + 50.39, 0, 0, core_w - vss_ring_right_x, 23.9, 'm3', 'followpin')
         else:
             continue
-        fp.place_wires([net], vdd_ring_right_x, y + 0.495, 0, 0, core_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
-        fp.place_wires([net], vdd_ring_right_x, y + 50.39, 0, 0, core_w - vdd_ring_right_x, 23.9, 'm3', 'followpin')
 
     for pad_type, x in so_pads:
         x -= gpio_h
         if pad_type == VDD:
-            net = 'vdd'
+            fp.place_wires(['vdd'], x + 0.495, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
+            fp.place_wires(['vdd'], x + 50.39, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
         elif pad_type == VSS:
-            net = 'vss'
-        fp.place_wires([net], x + 0.495, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
-        fp.place_wires([net], x + 50.39, 0, 0, 0, 23.9, vdd_ring_bottom_y + hwidth, 'm3', 'followpin')
+            fp.place_wires(['vss'], x + 0.495, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
+            fp.place_wires(['vss'], x + 50.39, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
 
     # fp.insert_vias()
 
@@ -216,7 +220,7 @@ def core_floorplan(fp):
     ram_h = fp.available_cells[RAM].height
     ram_x = place_w + margin_left - ram_w
     ram_y = place_h + margin_bottom - ram_h
-    fp.place_macros([('soc.ram.u_mem.gen_sky130.u_impl_sky130.mem', RAM)], ram_x, ram_y, 0, 0, 'N', snap=True)
+    fp.place_macros([('soc.ram.u_mem.gen_sky130.u_impl_sky130.genblk1.mem', RAM)], ram_x, ram_y, 0, 0, 'N', snap=True)
 
     ram_core_space_x = 120 * fp.std_cell_width
     ram_core_space_y = 20 * fp.std_cell_height
@@ -384,10 +388,10 @@ def top_floorplan(fp):
     fp.place_macros([('corner_ne', CORNER)], top_w - corner_w, top_h - corner_h, 0, 0, 'N')
 
     ## Fill I/O ring ##
-    fp.fill_io_region([(0, 0), (fill_cell_h, top_h)], FILL_CELLS, 'W')
-    fp.fill_io_region([(0, top_h - fill_cell_h), (top_w, top_h)], FILL_CELLS, 'N')
-    fp.fill_io_region([(top_w - fill_cell_h, 0), (top_w, top_h)], FILL_CELLS, 'E')
-    fp.fill_io_region([(0, 0), (top_w, fill_cell_h)], FILL_CELLS, 'S')
+    fp.fill_io_region([(0, 0), (fill_cell_h, top_h)], FILL_CELLS, 'W', 'v')
+    fp.fill_io_region([(0, top_h - fill_cell_h), (top_w, top_h)], FILL_CELLS, 'N', 'h')
+    fp.fill_io_region([(top_w - fill_cell_h, 0), (top_w, top_h)], FILL_CELLS, 'E', 'v')
+    fp.fill_io_region([(0, 0), (top_w, fill_cell_h)], FILL_CELLS, 'S', 'h')
 
     ## Place core ##
     fp.place_macros([('core', 'asic_core')], gpio_h, gpio_h, 0, 0, 'N')
