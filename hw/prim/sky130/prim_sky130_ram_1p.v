@@ -21,6 +21,13 @@ import prim_ram_1p_pkg::*;
   input ram_1p_cfg_t       cfg_i
 );
 
+wire [3:0] wmask;
+
+assign wmask[0] = &wmask_i[7:0];
+assign wmask[1] = &wmask_i[15:8];
+assign wmask[2] = &wmask_i[23:16];
+assign wmask[3] = &wmask_i[31:24];
+
 generate
   if (Width == 32 && Depth == 512) begin
     sky130_sram_2kbyte_1rw1r_32x512_8 mem(

@@ -113,7 +113,7 @@ module zerosoc #(
   // sram device
   logic        ram_req;
   logic        ram_we;
-  logic [10:0] ram_addr;
+  logic [$clog2(RamDepth)-1:0] ram_addr;
   logic [31:0] ram_wdata;
   logic [31:0] ram_wmask;
   logic [31:0] ram_rdata;
