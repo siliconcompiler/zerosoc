@@ -125,6 +125,8 @@ def configure_asic_core(chip, start, stop):
     chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
     chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
 
+    chip.add('source', 'hw/prim/sky130/prim_sky130_clock_gating.v')
+
 def configure_asic_top(chip, start, stop):
     chip.set('design', 'asic_top')
     chip.target('skywater130')

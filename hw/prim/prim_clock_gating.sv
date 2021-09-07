@@ -30,21 +30,19 @@ module prim_clock_gating
 );
   parameter prim_pkg::impl_e Impl = `PRIM_DEFAULT_IMPL;
 
-  assign clk_o = clk_i;
-
-// if (Impl == prim_pkg::ImplXilinx) begin : gen_xilinx
-//     prim_xilinx_clock_gating #(
-//       .NoFpgaGate(NoFpgaGate)
-//     ) u_impl_xilinx (
-//       .*
-//     );
-// end else begin : gen_generic
-//     prim_generic_clock_gating #(
-//       .NoFpgaGate(NoFpgaGate)
-//     ) u_impl_generic (
-//       .*
-//     );
-// end
+  if (Impl == prim_pkg::ImplSky130) begin : gen_sky130
+      prim_sky130_clock_gating #(
+        .NoFpgaGate(NoFpgaGate)
+      ) u_impl_sky130 (
+        .*
+      );
+  end else begin : gen_generic
+      prim_generic_clock_gating #(
+        .NoFpgaGate(NoFpgaGate)
+      ) u_impl_generic (
+        .*
+      );
+  end
 
 endmodule
 //ri lint_check_on OUTPUT_NOT_DRIVEN INPUT_NOT_READ
