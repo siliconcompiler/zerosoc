@@ -25,22 +25,21 @@ def init_chip(jobid=0):
     return chip
 
 def configure_svflow(chip, start=None, stop=None):
-    flowpipe = [('import', 'morty', 'open'),
-                ('convert', 'sv2v', 'open'),
-                ('syn', 'yosys', 'yosys'),
-                ('floorplan', 'openroad', 'openroad'),
-                ('synopt', 'openroad', 'openroad'),
-                ('place', 'openroad', 'openroad'),
-                ('cts', 'openroad', 'openroad'),
-                ('route', 'openroad', 'openroad'),
-                ('dfm', 'openroad', 'openroad'),
-                ('export', 'klayout', 'klayout'),
-                ('lvs', 'magic', 'klayout'),
-                ('drc', 'magic', 'klayout')]
+    flowpipe = [('import', 'morty'),
+                ('convert', 'sv2v'),
+                ('syn', 'yosys'),
+                ('floorplan', 'openroad'),
+                ('place', 'openroad'),
+                ('cts', 'openroad'),
+                ('route', 'openroad'),
+                ('dfm', 'openroad'),
+                ('export', 'klayout'),
+                ('lvs', 'magic'),
+                ('drc', 'magic')]
 
-    for i, (step, tool, showtool) in enumerate(flowpipe):
+    for i, (step, tool) in enumerate(flowpipe):
         if i > 0:
-            input_step, _, _ = flowpipe[i-1]
+            input_step, _ = flowpipe[i-1]
             chip.add('flowgraph', step, 'input', input_step)
         else:
             chip.set('flowgraph', step, 'input',  'source')
@@ -49,24 +48,22 @@ def configure_svflow(chip, start=None, stop=None):
         chip.set('flowgraph', step, 'nproc', 1)
         for metric in chip.getkeys('metric','default', 'default'):
             chip.set('flowgraph', step, 'weight', metric, 1.0)
-        if showtool:
-            chip.set('flowgraph', step, 'showtool', showtool)
 
-    steps = [step for step, _, _ in flowpipe]
+    steps = [step for step, _ in flowpipe]
     startidx = steps.index(start) if start else 0
     stopidx = steps.index(stop) + 1 if stop else len(steps)
     chip.set('steplist', steps[startidx:stopidx])
 
 def configure_physflow(chip, start=None, stop=None):
-    flowpipe = [('import', 'verilator', 'open'),
-                ('syn', 'yosys', 'yosys'),
-                ('export', 'klayout', 'klayout'),
-                ('lvs', 'magic', 'klayout'),
-                ('drc', 'magic', 'klayout')]
+    flowpipe = [('import', 'verilator'),
+                ('syn', 'yosys'),
+                ('export', 'klayout'),
+                ('lvs', 'magic'),
+                ('drc', 'magic')]
 
-    for i, (step, tool, showtool) in enumerate(flowpipe):
+    for i, (step, tool) in enumerate(flowpipe):
         if i > 0:
-            input_step, _, _ = flowpipe[i-1]
+            input_step, _ = flowpipe[i-1]
             chip.add('flowgraph', step, 'input', input_step)
         else:
             chip.set('flowgraph', step, 'input',  'source')
@@ -75,10 +72,8 @@ def configure_physflow(chip, start=None, stop=None):
         chip.set('flowgraph', step, 'nproc', 1)
         for metric in chip.getkeys('metric','default', 'default'):
             chip.set('flowgraph', step, 'weight', metric, 1.0)
-        if showtool:
-            chip.set('flowgraph', step, 'showtool', showtool)
 
-    steps = [step for step, _, _ in flowpipe]
+    steps = [step for step, _ in flowpipe]
     startidx = steps.index(start) if start else 0
     stopidx = steps.index(stop) + 1 if stop else len(steps)
     chip.set('steplist', steps[startidx:stopidx])
