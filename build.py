@@ -40,14 +40,8 @@ def configure_svflow(chip, start=None, stop=None):
     for i, (step, tool) in enumerate(flowpipe):
         if i > 0:
             input_step, _ = flowpipe[i-1]
-            chip.add('flowgraph', step, 'input', input_step)
-        else:
-            chip.set('flowgraph', step, 'input',  'source')
-        chip.set('flowgraph', step, 'tool', tool)
-        chip.set('flowgraph', step, 'mergeop', 'min')
-        chip.set('flowgraph', step, 'nproc', 1)
-        for metric in chip.getkeys('metric','default', 'default'):
-            chip.set('flowgraph', step, 'weight', metric, 1.0)
+            chip.add('flowgraph', step, '0', 'input', input_step, '0')
+        chip.set('flowgraph', step, '0', 'tool', tool)
 
     steps = [step for step, _ in flowpipe]
     startidx = steps.index(start) if start else 0
@@ -64,14 +58,8 @@ def configure_physflow(chip, start=None, stop=None):
     for i, (step, tool) in enumerate(flowpipe):
         if i > 0:
             input_step, _ = flowpipe[i-1]
-            chip.add('flowgraph', step, 'input', input_step)
-        else:
-            chip.set('flowgraph', step, 'input',  'source')
-        chip.set('flowgraph', step, 'tool', tool)
-        chip.set('flowgraph', step, 'mergeop', 'min')
-        chip.set('flowgraph', step, 'nproc', 1)
-        for metric in chip.getkeys('metric','default', 'default'):
-            chip.set('flowgraph', step, 'weight', metric, 1.0)
+            chip.add('flowgraph', step, '0', 'input', input_step, '0')
+        chip.set('flowgraph', step, '0', 'tool', tool)
 
     steps = [step for step, _ in flowpipe]
     startidx = steps.index(start) if start else 0
