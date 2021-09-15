@@ -41,8 +41,8 @@ def configure_chip(design):
     return chip
 
 def define_dimensions(fp):
-    place_w = 3375 * fp.std_cell_width
-    place_h = 450 * fp.std_cell_height
+    place_w = 4860 * fp.std_cell_width
+    place_h = 648 * fp.std_cell_height
     margin_left = 60 * fp.std_cell_width
     margin_bottom = 10 * fp.std_cell_height
 
@@ -86,9 +86,17 @@ def define_io_placement(fp):
     so_io = [GPIO] * 5 + [VDD, VSS, VDDIO, VSSIO] + [GPIO] * 4
 
     we_io_pos = calculate_even_spacing(fp, we_io, top_h - corner_h - corner_w, corner_h)
-    no_io_pos = calculate_even_spacing(fp, no_io, top_w - corner_h - corner_w, corner_h)
-    ea_io_pos = calculate_even_spacing(fp, ea_io, top_h - corner_h - corner_w, corner_w)
     so_io_pos = calculate_even_spacing(fp, so_io, top_w - corner_h - corner_w, corner_w)
+
+    # For east and north, we crowd GPIO on the first half of the side to make
+    # sure we don't run into routing congestion issues due to the RAM in the
+    # top-right corner.
+    mid_w = (top_w - corner_h - corner_w) // 2
+    no_io_pos = (calculate_even_spacing(fp, no_io[:9], mid_w, corner_h) +
+                 calculate_even_spacing(fp, no_io[9:], mid_w, mid_w))
+    mid_h = (top_h - corner_h - corner_w) // 2
+    ea_io_pos = (calculate_even_spacing(fp, ea_io[:9], mid_h, corner_w) +
+                 calculate_even_spacing(fp, ea_io[9:], mid_h, mid_h))
 
     return we_io_pos, no_io_pos, ea_io_pos, so_io_pos
 
@@ -202,7 +210,7 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
             fp.place_wires(['vss'], x + 0.495, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
             fp.place_wires(['vss'], x + 50.39, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
 
-    # fp.insert_vias()
+    fp.insert_vias()
 
 def core_floorplan(fp):
     ## Set up die area ##

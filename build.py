@@ -92,6 +92,7 @@ def configure_asic_core(chip, start, stop):
     chip.set('design', 'asic_core')
     chip.target('skywater130')
     configure_svflow(chip, start, stop)
+    chip.set('eda', 'openroad', 'place', '0', 'option', 'place_density', ['0.15'])
     configure_libs(chip)
 
     # TODO: try using -y flag instead of huge source list in separate file
