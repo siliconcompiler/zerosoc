@@ -210,7 +210,30 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
             fp.place_wires(['vss'], x + 0.495, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
             fp.place_wires(['vss'], x + 50.39, 0, 0, 0, 23.9, vss_ring_bottom_y + hwidth, 'm3', 'followpin')
 
-    fp.insert_vias()
+    rows_below_ram = (ram_y - margin_bottom) // fp.std_cell_height
+    rows_above_ram = len(fp.rows) - rows_below_ram
+
+    npwr_below = 1 + math.floor(rows_below_ram / 2)
+    ngnd_below = math.ceil(rows_below_ram / 2)
+
+    npwr_above = 1 + math.floor(rows_above_ram / 2)
+    ngnd_above = math.ceil(rows_above_ram / 2)
+
+    stripe_w = 0.48
+
+    fp.place_wires(['vdd'] * npwr_below, margin_left, margin_bottom - stripe_w/2, 0, 2 * fp.std_cell_height, place_w, stripe_w, 'm1', 'followpin')
+    fp.place_wires(['vss'] * ngnd_below, margin_left, margin_bottom - stripe_w/2 + fp.std_cell_height, 0, 2 * fp.std_cell_height, place_w, stripe_w, 'm1', 'followpin')
+    fp.place_wires(['vdd'] * npwr_above, margin_left, margin_bottom - stripe_w/2 + npwr_below * 2 * fp.std_cell_height, 0, 2 * fp.std_cell_height, ram_x - 2 * margin_left, stripe_w, 'm1', 'followpin')
+    fp.place_wires(['vss'] * ngnd_above, margin_left, margin_bottom - stripe_w/2 + fp.std_cell_height + ngnd_below * 2 * fp.std_cell_height, 0, 2 * fp.std_cell_height, ram_x - 2 * margin_left, stripe_w, 'm1', 'followpin')
+
+    ram_x = fp.snap(ram_x, fp.std_cell_width)
+    ram_y = fp.snap(ram_y, fp.std_cell_height)
+    fp.place_wires(['vdd'], ram_x + 4.76, ram_y + 4.76, 0, 0, 6.5 - 4.76, 411.78 - 4.76, 'm4', 'followpin')
+    fp.place_wires(['vdd'], ram_x + 676.6, ram_y + 4.76, 0, 0, 678.34 - 676.6, 411.78 - 4.76, 'm4', 'followpin')
+    fp.place_wires(['vss'], ram_x + 1.36, ram_y + 1.36, 0, 0, 3.1 - 1.36, 415.18 - 1.36, 'm4', 'followpin')
+    fp.place_wires(['vss'], ram_x + 680, ram_y + 1.36, 0, 0, 681.74 - 680, 415.18 - 1.36, 'm4', 'followpin')
+
+    fp.insert_vias([('m1', 'm4'), ('m3', 'm4'), ('m3', 'm5'), ('m4', 'm5')])
 
 def core_floorplan(fp):
     ## Set up die area ##
