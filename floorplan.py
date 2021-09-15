@@ -93,10 +93,10 @@ def define_io_placement(fp):
     # top-right corner.
     mid_w = (top_w - corner_h - corner_w) // 2
     no_io_pos = (calculate_even_spacing(fp, no_io[:9], mid_w, corner_h) +
-                 calculate_even_spacing(fp, no_io[9:], mid_w, mid_w))
+                 calculate_even_spacing(fp, no_io[9:], mid_w, mid_w + corner_h))
     mid_h = (top_h - corner_h - corner_w) // 2
     ea_io_pos = (calculate_even_spacing(fp, ea_io[:9], mid_h, corner_w) +
-                 calculate_even_spacing(fp, ea_io[9:], mid_h, mid_h))
+                 calculate_even_spacing(fp, ea_io[9:], mid_h, mid_h + corner_w))
 
     return we_io_pos, no_io_pos, ea_io_pos, so_io_pos
 
