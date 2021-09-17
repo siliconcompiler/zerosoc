@@ -190,8 +190,8 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
             fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y - hwidth, 0, 0, 23.9, core_h - vdd_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
             fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y - hwidth, 0, 0, 23.9, core_h - vdd_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
         elif pad_type == VSS:
-            fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y - hwidth, 0, 0, 23.9, core_h - vdd_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
-            fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y - hwidth, 0, 0, 23.9, core_h - vdd_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
+            fp.place_wires(['vss'], x + 0.495, vss_ring_top_y - hwidth, 0, 0, 23.9, core_h - vss_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
+            fp.place_wires(['vss'], x + 0.495, vss_ring_top_y - hwidth, 0, 0, 23.9, core_h - vss_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
         else:
             continue
 
@@ -356,7 +356,14 @@ def top_floorplan(fp):
             # TODO: does this pad name actually correlate with instance? does it
             # matter? do we need to use fancy pad names for gpio then??
             pad_name = f'{pad_type}{i}'
-            pin_name = pad_type
+            if pad_type == VDD:
+                pin_name = 'vdd'
+            elif pad_type == VSS:
+                pin_name = 'vss'
+            elif pad_type == VDDIO:
+                pin_name = 'vddio'
+            elif pad_type == VSSIO:
+                pin_name = 'vssio'
 
         fp.place_macros([(pad_name, pad_type)], 0, y, 0, 0, 'W')
         fp.place_pins([pin_name], pin_offset_depth, y + pin_offset_width, 0, 0, pin_dim, pin_dim, 'm5')
@@ -368,13 +375,21 @@ def top_floorplan(fp):
         if pad_type == 'gpio':
             pad_name = f'padring.no_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'no_pad[{i}]'
+            fp.place_pins([pin_name], x + pin_offset_width, top_h - pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
         else:
-            name = f'{pad_type}{i}'
-            pin_name = pad_type
+            pad_name = f'{pad_type}{i}'
+            if pad_type == VDD:
+                pin_name = 'vdd'
+            elif pad_type == VSS:
+                pin_name = 'vss'
+            elif pad_type == VDDIO:
+                pin_name = 'vddio'
+            elif pad_type == VSSIO:
+                pin_name = 'vssio'
+
 
         pad_h = fp.available_cells[pad_type].height
         fp.place_macros([(pad_name, pad_type)], x, top_h - pad_h, 0, 0, 'N')
-        fp.place_pins([pin_name], x + pin_offset_width, top_h - pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
 
     indices[GPIO] = 0
     for pad_type, y in ea_pads:
@@ -383,13 +398,20 @@ def top_floorplan(fp):
         if pad_type == 'gpio':
             pad_name = f'padring.ea_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'ea_pad[{i}]'
+            fp.place_pins([pin_name], top_w - pin_offset_depth, y + pin_offset_width, 0, 0, pin_dim, pin_dim, 'm5')
         else:
             pad_name = f'{pad_type}{i}'
-            pin_name = pad_type
+            if pad_type == VDD:
+                pin_name = 'vdd'
+            elif pad_type == VSS:
+                pin_name = 'vss'
+            elif pad_type == VDDIO:
+                pin_name = 'vddio'
+            elif pad_type == VSSIO:
+                pin_name = 'vssio'
 
         pad_h = fp.available_cells[pad_type].height
         fp.place_macros([(pad_name, pad_type)], top_w - pad_h, y, 0, 0, 'E')
-        fp.place_pins([pin_name], top_w - pin_offset_depth, y + pin_offset_width, 0, 0, pin_dim, pin_dim, 'm5')
 
         # if pad_type in (VDD, VSS):
         #     fp.place_wires([pad_type], top_w - pow_h - (gpio_h - pow_h), y + 0.495, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'stripe')
@@ -402,12 +424,19 @@ def top_floorplan(fp):
         if pad_type == 'gpio':
             pad_name = f'padring.so_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'so_pad[{i}]'
+            fp.place_pins([pin_name], x + pin_offset_width, pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
         else:
             pad_name = f'{pad_type}{i}'
-            pin_name = pad_type
+            if pad_type == VDD:
+                pin_name = 'vdd'
+            elif pad_type == VSS:
+                pin_name = 'vss'
+            elif pad_type == VDDIO:
+                pin_name = 'vddio'
+            elif pad_type == VSSIO:
+                pin_name = 'vssio'
 
         fp.place_macros([(pad_name, pad_type)], x, 0, 0, 0, 'S')
-        fp.place_pins([pin_name], x + pin_offset_width, pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
 
         # if pad_type in (VDD, VSS):
         #     fp.place_wires([pad_type], x + 0.495, pow_h, 0, 0, 23.9, gpio_h - pow_h, 'm3', 'stripe')
