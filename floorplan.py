@@ -174,48 +174,50 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
     for pad_type, y in we_pads:
         y -= gpio_h
         if pad_type == VDD:
-            fp.place_wires(['vdd'], -pow_gap, y + 0.495, 0, 0, vdd_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
-            fp.place_wires(['vdd'], -pow_gap, y + 50.39, 0, 0, vdd_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
-            fp.place_pins(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
+            # fp.place_wires(['vdd'], -pow_gap, y + 0.495, 0, 0, vdd_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
+            # fp.place_wires(['vdd'], -pow_gap, y + 50.39, 0, 0, vdd_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_pins (['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
         elif pad_type == VSS:
-            fp.place_wires(['vss'], -pow_gap, y + 0.495, 0, 0, vss_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
-            fp.place_wires(['vss'], -pow_gap, y + 50.39, 0, 0, vss_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
-            fp.place_pins(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
+            # fp.place_wires(['vss'], -pow_gap, y + 0.495, 0, 0, vss_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
+            # fp.place_wires(['vss'], -pow_gap, y + 50.39, 0, 0, vss_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
+            fp.place_pins( ['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
         else:
             continue
 
-    for pad_type, x in no_pads:
-        x -= gpio_h
-        if pad_type == VDD:
-            fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y - hwidth, 0, 0, 23.9, core_h - vdd_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
-            fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y - hwidth, 0, 0, 23.9, core_h - vdd_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
-        elif pad_type == VSS:
-            fp.place_wires(['vss'], x + 0.495, vss_ring_top_y - hwidth, 0, 0, 23.9, core_h - vss_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
-            fp.place_wires(['vss'], x + 0.495, vss_ring_top_y - hwidth, 0, 0, 23.9, core_h - vss_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
-        else:
-            continue
+    # for pad_type, x in no_pads:
+    #     x -= gpio_h
+    #     if pad_type == VDD:
+    #         fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y - hwidth, 0, 0, 23.9, core_h - vdd_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
+    #         fp.place_wires(['vdd'], x + 0.495, vdd_ring_top_y - hwidth, 0, 0, 23.9, core_h - vdd_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
+    #     elif pad_type == VSS:
+    #         fp.place_wires(['vss'], x + 0.495, vss_ring_top_y - hwidth, 0, 0, 23.9, core_h - vss_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
+    #         fp.place_wires(['vss'], x + 0.495, vss_ring_top_y - hwidth, 0, 0, 23.9, core_h - vss_ring_top_y + hwidth + pow_gap, 'm3', 'followpin')
+    #     else:
+    #         continue
 
-    for pad_type, y in ea_pads:
-        y -= gpio_h
-        pad_w = fp.available_cells[pad_type].width
-        if pad_type == VDD:
-            fp.place_wires(['vdd'], vdd_ring_right_x - vwidth, y + pad_w - 0.495 - 23.9, 0, 0, core_w - vdd_ring_right_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
-            fp.place_wires(['vdd'], vdd_ring_right_x - vwidth, y + pad_w - 50.39 - 23.9, 0, 0, core_w - vdd_ring_right_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
-        elif pad_type == VSS:
-            fp.place_wires(['vss'], vss_ring_right_x - vwidth, y + pad_w - 0.495 - 23.9, 0, 0, core_w - vss_ring_right_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
-            fp.place_wires(['vss'], vss_ring_right_x - vwidth, y + pad_w - 50.39 - 23.9, 0, 0, core_w - vss_ring_right_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
-        else:
-            continue
+    # for pad_type, y in ea_pads:
+    #     y -= gpio_h
+    #     pad_w = fp.available_cells[pad_type].width
+    #     if pad_type == VDD:
+    #         fp.place_wires(['vdd'], vdd_ring_right_x - vwidth, y + pad_w - 0.495 - 23.9, 0, 0, core_w - vdd_ring_right_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
+    #         fp.place_wires(['vdd'], vdd_ring_right_x - vwidth, y + pad_w - 50.39 - 23.9, 0, 0, core_w - vdd_ring_right_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
+    #     elif pad_type == VSS:
+    #         fp.place_wires(['vss'], vss_ring_right_x - vwidth, y + pad_w - 0.495 - 23.9, 0, 0, core_w - vss_ring_right_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
+    #         fp.place_wires(['vss'], vss_ring_right_x - vwidth, y + pad_w - 50.39 - 23.9, 0, 0, core_w - vss_ring_right_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
+    #     else:
+    #         continue
 
-    for pad_type, x in so_pads:
-        x -= gpio_h
-        pad_w = fp.available_cells[pad_type].width
-        if pad_type == VDD:
-            fp.place_wires(['vdd'], x + pad_w - 0.495 - 23.9, -pow_gap, 0, 0, 23.9, vdd_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
-            fp.place_wires(['vdd'], x + pad_w - 50.39 - 23.9, -pow_gap, 0, 0, 23.9, vdd_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
-        elif pad_type == VSS:
-            fp.place_wires(['vss'], x + pad_w - 0.495 - 23.9, -pow_gap, 0, 0, 23.9, vss_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
-            fp.place_wires(['vss'], x + pad_w - 50.39 - 23.9, -pow_gap, 0, 0, 23.9, vss_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
+    # for pad_type, x in so_pads:
+    #     x -= gpio_h
+    #     pad_w = fp.available_cells[pad_type].width
+    #     if pad_type == VDD:
+    #         fp.place_wires(['vdd'], x + pad_w - 0.495 - 23.9, -pow_gap, 0, 0, 23.9, vdd_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
+    #         fp.place_wires(['vdd'], x + pad_w - 50.39 - 23.9, -pow_gap, 0, 0, 23.9, vdd_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
+    #     elif pad_type == VSS:
+    #         fp.place_wires(['vss'], x + pad_w - 0.495 - 23.9, -pow_gap, 0, 0, 23.9, vss_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
+    #         fp.place_wires(['vss'], x + pad_w - 50.39 - 23.9, -pow_gap, 0, 0, 23.9, vss_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
 
     rows_below_ram = (ram_y - margin_bottom) // fp.std_cell_height
     rows_above_ram = len(fp.rows) - rows_below_ram
@@ -372,7 +374,7 @@ def top_floorplan(fp):
     for pad_type, x in no_pads:
         i = indices[pad_type]
         indices[pad_type] += 1
-        if pad_type == 'gpio':
+        if pad_type == GPIO:
             pad_name = f'padring.no_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'no_pad[{i}]'
             fp.place_pins([pin_name], x + pin_offset_width, top_h - pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
@@ -395,7 +397,7 @@ def top_floorplan(fp):
     for pad_type, y in ea_pads:
         i = indices[pad_type]
         indices[pad_type] += 1
-        if pad_type == 'gpio':
+        if pad_type == GPIO:
             pad_name = f'padring.ea_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'ea_pad[{i}]'
             fp.place_pins([pin_name], top_w - pin_offset_depth, y + pin_offset_width, 0, 0, pin_dim, pin_dim, 'm5')
@@ -421,7 +423,7 @@ def top_floorplan(fp):
     for pad_type, x in so_pads:
         i = indices[pad_type]
         indices[pad_type] += 1
-        if pad_type == 'gpio':
+        if pad_type == GPIO:
             pad_name = f'padring.so_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'so_pad[{i}]'
             fp.place_pins([pin_name], x + pin_offset_width, pin_offset_depth, 0, 0, pin_dim, pin_dim, 'm5')
@@ -441,6 +443,20 @@ def top_floorplan(fp):
         # if pad_type in (VDD, VSS):
         #     fp.place_wires([pad_type], x + 0.495, pow_h, 0, 0, 23.9, gpio_h - pow_h, 'm3', 'stripe')
         #     fp.place_wires([pad_type], x + 50.39, pow_h, 0, 0, 23.9, gpio_h - pow_h, 'm3', 'stripe')
+
+    ## Set up special nets ##
+    # vdd connects to VPWR pins (standard cells) and vccd1 (SRAM)
+    fp.configure_net('vdd', ['VPWR', 'vccd1'], 'power')
+    # vss connects to VGND pins (standard cells) and vssd1 pin (SRAM)
+    fp.configure_net('vss', ['VGND', 'vssd1'], 'ground')
+
+    for pad_type, y in we_pads:
+        if pad_type == VDD:
+            fp.place_wires(['vdd'], pow_h, y + 0.495, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vdd'], pow_h, y + 50.39, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'followpin')
+        elif pad_type == VSS:
+            fp.place_wires(['vss'], pow_h, y + 0.495, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'followpin')
+            fp.place_wires(['vss'], pow_h, y + 50.39, 0, 0, gpio_h - pow_h, 23.9, 'm3', 'followpin')
 
     ## Place corner cells ##
     fp.place_macros([('corner_sw', CORNER)], 0, 0, 0, 0, 'S')

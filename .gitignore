@@ -12,6 +12,7 @@ build/
 asic_core.gds
 asic_core.def
 asic_core.lef
+asic_core.v
 asic_top.def
 
 # Python build cache
