@@ -177,12 +177,12 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
             # fp.place_wires(['vdd'], -pow_gap, y + 0.495, 0, 0, vdd_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
             # fp.place_wires(['vdd'], -pow_gap, y + 50.39, 0, 0, vdd_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
             fp.place_wires(['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
-            fp.place_pins (['vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
+            fp.place_pins (['_vdd'], 0, y + 0.495, 0, 0, vdd_ring_left_x + vwidth, 23.9, 'm3')
         elif pad_type == VSS:
             # fp.place_wires(['vss'], -pow_gap, y + 0.495, 0, 0, vss_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
             # fp.place_wires(['vss'], -pow_gap, y + 50.39, 0, 0, vss_ring_left_x + vwidth + pow_gap, 23.9, 'm3', 'followpin')
             fp.place_wires(['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3', 'followpin')
-            fp.place_pins( ['vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
+            fp.place_pins( ['_vss'], 0, y + 0.495, 0, 0, vss_ring_left_x + vwidth, 23.9, 'm3')
         else:
             continue
 

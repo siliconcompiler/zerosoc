@@ -1,6 +1,6 @@
 module asic_core (
-    inout vdd,
-    inout vss,
+    inout _vdd,
+    inout _vss,
 
     input [8:0]  we_din,
     output [8:0]  we_dout,

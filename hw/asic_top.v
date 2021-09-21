@@ -39,8 +39,8 @@ module asic_top (
     wire [143:0] ea_tech_cfg;
 
     asic_core core (
-        .vdd,
-        .vss,
+        ._vdd(vdd),
+        ._vss(vss),
 
         .we_din,
         .we_dout,

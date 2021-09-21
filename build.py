@@ -51,7 +51,6 @@ def configure_svflow(chip, start=None, stop=None):
 def configure_physflow(chip, start=None, stop=None):
     flowpipe = [('import', 'verilator'),
                 ('syn', 'yosys'),
-                ('netlist', 'openroad'),
                 ('export_hack', 'klayout'),
                 ('lvs', 'magic'),
                 ('drc', 'magic')]
