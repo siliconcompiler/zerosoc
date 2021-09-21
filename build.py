@@ -77,6 +77,7 @@ def configure_libs(chip):
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
+    chip.set('library', libname, 'site', [])
 
     libname = 'ram'
     chip.add('asic', 'macrolib', libname)
@@ -84,6 +85,7 @@ def configure_libs(chip):
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
     chip.add('library', libname, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
     chip.add('library', libname, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
+    chip.set('library', libname, 'site', [])
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
@@ -147,6 +149,7 @@ def configure_asic_top(chip, start, stop):
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'lef', 'asic_core.lef')
     chip.set('library', libname, 'gds', 'asic_core.gds')
+    chip.set('library', libname, 'site', [])
     chip.set('library', libname, 'cells', 'asic_core', 'asic_core')
 
 def configure_fpga(chip):

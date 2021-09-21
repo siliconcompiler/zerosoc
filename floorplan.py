@@ -41,10 +41,10 @@ def configure_chip(design):
     return chip
 
 def define_dimensions(fp):
-    place_w = 4860 * fp.std_cell_width
-    place_h = 648 * fp.std_cell_height
-    margin_left = 60 * fp.std_cell_width
-    margin_bottom = 10 * fp.std_cell_height
+    place_w = 4860 * fp.stdcell_width
+    place_h = 648 * fp.stdcell_height
+    margin_left = 60 * fp.stdcell_width
+    margin_bottom = 10 * fp.stdcell_height
 
     core_w = place_w + 2 * margin_left
     core_h = place_h + 2 * margin_bottom
@@ -126,9 +126,9 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
 
     ## Set up special nets ##
     # vdd connects to VPWR pins (standard cells) and vccd1 (SRAM)
-    fp.configure_net('vdd', ['VPWR', 'vccd1'], 'power')
+    fp.add_net('vdd', ['VPWR', 'vccd1'], 'power')
     # vss connects to VGND pins (standard cells) and vssd1 pin (SRAM)
-    fp.configure_net('vss', ['VGND', 'vssd1'], 'ground')
+    fp.add_net('vss', ['VGND', 'vssd1'], 'ground')
 
     ## Build power ring within margin outside core ##
     # Used to connect the power I/O pads to the grid in the middle
@@ -219,7 +219,7 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
     #         fp.place_wires(['vss'], x + pad_w - 0.495 - 23.9, -pow_gap, 0, 0, 23.9, vss_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
     #         fp.place_wires(['vss'], x + pad_w - 50.39 - 23.9, -pow_gap, 0, 0, 23.9, vss_ring_bottom_y + hwidth + pow_gap, 'm3', 'followpin')
 
-    rows_below_ram = (ram_y - margin_bottom) // fp.std_cell_height
+    rows_below_ram = (ram_y - margin_bottom) // fp.stdcell_height
     rows_above_ram = len(fp.rows) - rows_below_ram
 
     npwr_below = 1 + math.floor(rows_below_ram / 2)
@@ -230,24 +230,24 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
 
     stripe_w = 0.48
 
-    fp.place_wires(['vdd'] * npwr_below, margin_left, margin_bottom - stripe_w/2, 0, 2 * fp.std_cell_height, place_w, stripe_w, 'm1', 'followpin')
-    fp.place_wires(['vss'] * ngnd_below, margin_left, margin_bottom - stripe_w/2 + fp.std_cell_height, 0, 2 * fp.std_cell_height, place_w, stripe_w, 'm1', 'followpin')
-    fp.place_wires(['vdd'] * npwr_above, margin_left, margin_bottom - stripe_w/2 + npwr_below * 2 * fp.std_cell_height, 0, 2 * fp.std_cell_height, ram_x - 2 * margin_left, stripe_w, 'm1', 'followpin')
-    fp.place_wires(['vss'] * ngnd_above, margin_left, margin_bottom - stripe_w/2 + fp.std_cell_height + ngnd_below * 2 * fp.std_cell_height, 0, 2 * fp.std_cell_height, ram_x - 2 * margin_left, stripe_w, 'm1', 'followpin')
+    fp.place_wires(['vdd'] * npwr_below, margin_left, margin_bottom - stripe_w/2, 0, 2 * fp.stdcell_height, place_w, stripe_w, 'm1', 'followpin')
+    fp.place_wires(['vss'] * ngnd_below, margin_left, margin_bottom - stripe_w/2 + fp.stdcell_height, 0, 2 * fp.stdcell_height, place_w, stripe_w, 'm1', 'followpin')
+    fp.place_wires(['vdd'] * npwr_above, margin_left, margin_bottom - stripe_w/2 + npwr_below * 2 * fp.stdcell_height, 0, 2 * fp.stdcell_height, ram_x - 2 * margin_left, stripe_w, 'm1', 'followpin')
+    fp.place_wires(['vss'] * ngnd_above, margin_left, margin_bottom - stripe_w/2 + fp.stdcell_height + ngnd_below * 2 * fp.stdcell_height, 0, 2 * fp.stdcell_height, ram_x - 2 * margin_left, stripe_w, 'm1', 'followpin')
 
-    ram_x = fp.snap(ram_x, fp.std_cell_width)
-    ram_y = fp.snap(ram_y, fp.std_cell_height)
+    ram_x = fp.snap(ram_x, fp.stdcell_width)
+    ram_y = fp.snap(ram_y, fp.stdcell_height)
     fp.place_wires(['vdd'], ram_x + 4.76, ram_y + 4.76, 0, 0, 6.5 - 4.76, 411.78 - 4.76, 'm4', 'followpin')
     fp.place_wires(['vdd'], ram_x + 676.6, ram_y + 4.76, 0, 0, 678.34 - 676.6, 411.78 - 4.76, 'm4', 'followpin')
     fp.place_wires(['vss'], ram_x + 1.36, ram_y + 1.36, 0, 0, 3.1 - 1.36, 415.18 - 1.36, 'm4', 'followpin')
     fp.place_wires(['vss'], ram_x + 680, ram_y + 1.36, 0, 0, 681.74 - 680, 415.18 - 1.36, 'm4', 'followpin')
 
-    fp.insert_vias([('m1', 'm4'), ('m3', 'm4'), ('m3', 'm5'), ('m4', 'm5')])
+    fp.insert_vias(layers=[('m1', 'm4'), ('m3', 'm4'), ('m3', 'm5'), ('m4', 'm5')])
 
 def core_floorplan(fp):
     ## Set up die area ##
     _, (core_w, core_h), (place_w, place_h), (margin_left, margin_bottom) = define_dimensions(fp)
-    fp.create_die_area([(0, 0), (core_w, core_h)], core_area=[(margin_left, margin_bottom), (place_w + margin_left, place_h + margin_bottom)])
+    fp.create_diearea([(0, 0), (core_w, core_h)], corearea=[(margin_left, margin_bottom), (place_w + margin_left, place_h + margin_bottom)])
 
     ## Place RAM macro ##
     ram_w = fp.available_cells[RAM].width
@@ -256,8 +256,8 @@ def core_floorplan(fp):
     ram_y = place_h + margin_bottom - ram_h
     fp.place_macros([('soc.ram.u_mem.gen_sky130.u_impl_sky130.genblk1.mem', RAM)], ram_x, ram_y, 0, 0, 'N', snap=True)
 
-    ram_core_space_x = 120 * fp.std_cell_width
-    ram_core_space_y = 20 * fp.std_cell_height
+    ram_core_space_x = 120 * fp.stdcell_width
+    ram_core_space_y = 20 * fp.stdcell_height
     fp.place_blockage(ram_x - ram_core_space_x, ram_y - ram_core_space_y, ram_w + ram_core_space_x, ram_h + ram_core_space_y)
 
     ## Place pins ##
@@ -327,7 +327,7 @@ def core_floorplan(fp):
 def top_floorplan(fp):
     ## Create die area ##
     (top_w, top_h), _, _, _ = define_dimensions(fp)
-    fp.create_die_area([(0, 0), (top_w, top_h)])
+    fp.create_diearea([(0, 0), (top_w, top_h)])
 
     ## Place pads ##
     we_pads, no_pads, ea_pads, so_pads = define_io_placement(fp)
@@ -446,9 +446,9 @@ def top_floorplan(fp):
 
     ## Set up special nets ##
     # vdd connects to VPWR pins (standard cells) and vccd1 (SRAM)
-    fp.configure_net('vdd', ['VPWR', 'vccd1'], 'power')
+    fp.add_net('vdd', ['VPWR', 'vccd1'], 'power')
     # vss connects to VGND pins (standard cells) and vssd1 pin (SRAM)
-    fp.configure_net('vss', ['VGND', 'vssd1'], 'ground')
+    fp.add_net('vss', ['VGND', 'vssd1'], 'ground')
 
     for pad_type, y in we_pads:
         if pad_type == VDD:
