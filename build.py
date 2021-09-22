@@ -34,7 +34,8 @@ def configure_svflow(chip, start=None, stop=None):
                 ('route', 'openroad'),
                 ('dfm', 'openroad'),
                 ('export', 'klayout'),
-                ('lvs', 'magic'),
+                ('extspice', 'magic'),
+                ('lvs', 'netgen'),
                 ('drc', 'magic')]
 
     for i, (step, tool) in enumerate(flowpipe):
@@ -52,7 +53,8 @@ def configure_physflow(chip, start=None, stop=None):
     flowpipe = [('import', 'verilator'),
                 ('syn', 'yosys'),
                 ('export_hack', 'klayout'),
-                ('lvs', 'magic'),
+                ('extspice', 'magic'),
+                ('lvs', 'netgen'),
                 ('drc', 'magic')]
 
     for i, (step, tool) in enumerate(flowpipe):
@@ -150,6 +152,7 @@ def configure_asic_top(chip, start, stop):
     chip.set('library', libname, 'gds', 'asic_core.gds')
     chip.set('library', libname, 'site', [])
     chip.set('library', libname, 'cells', 'asic_core', 'asic_core')
+    chip.set('library', libname, 'netlist', 'verilog', 'asic_core.v')
 
 def configure_fpga(chip):
     chip.set('design', 'top_icebreaker')
