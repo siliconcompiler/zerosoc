@@ -13,6 +13,7 @@ def init_chip(jobid=0):
 
     # Prevent us from erroring out on lint warnings during import
     chip.set('relax', 'true')
+    chip.set('quiet', 'true')
 
     # hack to work around fact that $readmemh now runs in context of build
     # directory and can't load .mem files using relative paths
@@ -20,7 +21,7 @@ def init_chip(jobid=0):
     chip.add('define', f'MEM_ROOT={cur_dir}')
 
     if jobid is not None:
-        chip.set('jobid', jobid)
+        chip.set('jobid', str(jobid))
 
     return chip
 
@@ -50,23 +51,38 @@ def configure_svflow(chip, start=None, stop=None):
     chip.set('steplist', steps[startidx:stopidx])
 
 def configure_physflow(chip, start=None, stop=None):
-    flowpipe = [('import', 'verilator'),
-                ('syn', 'yosys'),
-                ('export_hack', 'klayout'),
-                ('extspice', 'magic'),
-                ('lvs', 'netgen'),
-                ('drc', 'magic')]
+    chip.set('flowgraph', 'import', '0', 'tool', 'verilator')
 
-    for i, (step, tool) in enumerate(flowpipe):
-        if i > 0:
-            input_step, _ = flowpipe[i-1]
-            chip.add('flowgraph', step, '0', 'input', input_step, '0')
-        chip.set('flowgraph', step, '0', 'tool', tool)
+    chip.set('flowgraph', 'syn', '0', 'tool', 'yosys')
+    chip.add('flowgraph', 'syn', '0', 'input', 'import', '0') # what is this zero?
 
-    steps = [step for step, _ in flowpipe]
-    startidx = steps.index(start) if start else 0
-    stopidx = steps.index(stop) + 1 if stop else len(steps)
-    chip.set('steplist', steps[startidx:stopidx])
+    chip.set('flowgraph', 'export', '0', 'tool', 'klayout')
+
+    chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
+    chip.add('flowgraph', 'extspice', '0', 'input', 'export', '0')
+
+    chip.set('flowgraph', 'lvsjoin', '0', 'function', 'join')
+    chip.add('flowgraph', 'lvsjoin', '0', 'input', 'syn', '0')
+    chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice', '0')
+
+    chip.set('flowgraph', 'lvs', '0', 'tool', 'netgen')
+    chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin', '0')
+
+    chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
+    chip.add('flowgraph', 'drc', '0', 'input', 'export', '0')
+
+    chip.set('flowgraph', 'signoff', '0', 'function', 'join')
+    chip.add('flowgraph', 'signoff', '0', 'input', 'lvs', '0')
+    chip.add('flowgraph', 'signoff', '0', 'input', 'drc', '0')
+
+def dump_flowgraphs():
+    chip = init_chip()
+    configure_svflow(chip)
+    chip.writegraph('svflow.svg')
+
+    chip = init_chip()
+    configure_physflow(chip)
+    chip.writegraph('physflow.svg')
 
 def configure_libs(chip):
     libname = 'io'
@@ -216,6 +232,7 @@ def main():
     parser.add_argument('--core-only', action='store_true', default=False, help='Only build ASIC core GDS.')
     parser.add_argument('--top-only', action='store_true', default=False, help='Only integrate ASIC core into padring. Assumes ASIC core already built.')
     parser.add_argument('--floorplan-only', action='store_true', default=False, help='Generate floorplans only.')
+    parser.add_argument('--dump-flowgraph', action='store_true', default=False, help='Dump diagram of flowgraphs only.')
     parser.add_argument('--no-verification', action='store_true', default=False, help="Don't run DRC or LVS.")
     parser.add_argument('-a', '--start', default='import', help='Start step (for single-part builds)')
     parser.add_argument('-z', '--stop', default='drc', help='Stop step (for single-part builds)')
@@ -225,6 +242,8 @@ def main():
         build_fpga(options.start, options.stop)
     elif options.floorplan_only:
         build_floorplans()
+    elif options.dump_flowgraph:
+        dump_flowgraphs()
     elif options.core_only:
         build_core(options.start, options.stop)
     elif options.top_only:
