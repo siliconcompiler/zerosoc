@@ -25,7 +25,7 @@ def init_chip(jobid=0):
 
     return chip
 
-def configure_svflow(chip, start=None, stop=None):
+def configure_svflow(chip, start=None, stop=None, verify=True):
     flowpipe = [('import', 'morty'),
                 ('convert', 'sv2v'),
                 ('syn', 'yosys'),
@@ -34,10 +34,7 @@ def configure_svflow(chip, start=None, stop=None):
                 ('cts', 'openroad'),
                 ('route', 'openroad'),
                 ('dfm', 'openroad'),
-                ('export', 'klayout'),
-                ('extspice', 'magic'),
-                ('lvs', 'netgen'),
-                ('drc', 'magic')]
+                ('export', 'klayout')]
 
     for i, (step, tool) in enumerate(flowpipe):
         if i > 0:
@@ -45,23 +42,47 @@ def configure_svflow(chip, start=None, stop=None):
             chip.add('flowgraph', step, '0', 'input', input_step, '0')
         chip.set('flowgraph', step, '0', 'tool', tool)
 
-    steps = [step for step, _ in flowpipe]
-    startidx = steps.index(start) if start else 0
-    stopidx = steps.index(stop) + 1 if stop else len(steps)
-    chip.set('steplist', steps[startidx:stopidx])
+    if verify:
+        chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
+        chip.add('flowgraph', 'extspice', '0', 'input', 'export', '0')
+
+        chip.set('flowgraph', 'lvsjoin', '0', 'function', 'step_join')
+        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'dfm', '0')
+        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice', '0')
+
+        chip.set('flowgraph', 'lvs', '0', 'tool', 'netgen')
+        chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin', '0')
+
+        chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
+        chip.add('flowgraph', 'drc', '0', 'input', 'export', '0')
+
+        chip.set('flowgraph', 'signoff', '0', 'function', 'step_join')
+        chip.add('flowgraph', 'signoff', '0', 'input', 'lvs', '0')
+        chip.add('flowgraph', 'signoff', '0', 'input', 'drc', '0')
+
+    # steps = [step for step, _ in flowpipe]
+    # startidx = steps.index(start) if start else 0
+    # stopidx = steps.index(stop) + 1 if stop else len(steps)
+    # chip.set('steplist', steps[startidx:stopidx])
+
+    # Make sure errors are reported in summary()
+    for step in chip.getkeys('flowgraph'):
+        chip.set('flowgraph', step, '0', 'weight', 'errors', 1.0)
+
+    chip.set('showtool', 'def', 'klayout')
 
 def configure_physflow(chip, start=None, stop=None):
     chip.set('flowgraph', 'import', '0', 'tool', 'verilator')
 
     chip.set('flowgraph', 'syn', '0', 'tool', 'yosys')
-    chip.add('flowgraph', 'syn', '0', 'input', 'import', '0') # what is this zero?
+    chip.add('flowgraph', 'syn', '0', 'input', 'import', '0')
 
     chip.set('flowgraph', 'export', '0', 'tool', 'klayout')
 
     chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
     chip.add('flowgraph', 'extspice', '0', 'input', 'export', '0')
 
-    chip.set('flowgraph', 'lvsjoin', '0', 'function', 'join')
+    chip.set('flowgraph', 'lvsjoin', '0', 'function', 'step_join')
     chip.add('flowgraph', 'lvsjoin', '0', 'input', 'syn', '0')
     chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice', '0')
 
@@ -71,9 +92,13 @@ def configure_physflow(chip, start=None, stop=None):
     chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
     chip.add('flowgraph', 'drc', '0', 'input', 'export', '0')
 
-    chip.set('flowgraph', 'signoff', '0', 'function', 'join')
+    chip.set('flowgraph', 'signoff', '0', 'function', 'step_join')
     chip.add('flowgraph', 'signoff', '0', 'input', 'lvs', '0')
     chip.add('flowgraph', 'signoff', '0', 'input', 'drc', '0')
+
+    # Make sure errors are reported in summary()
+    for step in chip.getkeys('flowgraph'):
+        chip.set('flowgraph', step, '0', 'weight', 'errors', 1.0)
 
 def dump_flowgraphs():
     chip = init_chip()
@@ -108,10 +133,10 @@ def configure_libs(chip):
     # foundry-validated
     chip.set('exclude', ['ram', 'io'])
 
-def configure_asic_core(chip, start, stop):
+def configure_asic_core(chip, start, stop, verify=True):
     chip.set('design', 'asic_core')
     chip.target('skywater130')
-    configure_svflow(chip, start, stop)
+    configure_svflow(chip, start, stop, verify)
     chip.set('eda', 'openroad', 'place', '0', 'option', 'place_density', ['0.15'])
     configure_libs(chip)
 
@@ -168,7 +193,7 @@ def configure_asic_top(chip, start, stop):
     chip.set('library', libname, 'gds', 'asic_core.gds')
     chip.set('library', libname, 'site', [])
     chip.set('library', libname, 'cells', 'asic_core', 'asic_core')
-    chip.set('library', libname, 'netlist', 'verilog', 'asic_core.v')
+    chip.set('library', libname, 'netlist', 'verilog', 'asic_core.vg')
 
 def configure_fpga(chip):
     chip.set('design', 'top_icebreaker')
@@ -184,27 +209,26 @@ def build_fpga(start='import', stop='bitstream'):
     configure_fpga(chip)
     run_build(chip)
 
-def build_core(start='import', stop='lvs'):
+def build_core(start='import', stop='lvs', verify=True):
     chip = init_chip()
-    configure_asic_core(chip, start, stop)
+    configure_asic_core(chip, start, stop, verify)
     generate_core_floorplan(chip)
     run_build(chip)
 
     # copy out GDS for top-level integration
-    if stop in ('export', 'lvs'):
-        design = chip.get('design')
-        jobdir = (chip.get('dir') +
-                "/" + design + "/" +
-                chip.get('jobname') +
-                str(chip.get('jobid')))
-        shutil.copy(f'{jobdir}/export0/outputs/{design}.gds', f'{design}.gds')
-        shutil.copy(f'{jobdir}/export0/outputs/{design}.v', f'{design}.v')
+    design = chip.get('design')
+    jobdir = (chip.get('dir') +
+            "/" + design + "/" +
+            chip.get('jobname') +
+            str(chip.get('jobid')))
+    shutil.copy(f'{jobdir}/export0/outputs/{design}.gds', f'{design}.gds')
+    shutil.copy(f'{jobdir}/dfm0/outputs/{design}.vg', f'{design}.vg')
 
 def build_top(start='import', stop='drc'):
     # check for necessary files generated by previous steps
     if not (os.path.isfile('asic_core.gds') and
             os.path.isfile('asic_core.lef') and
-            os.path.isfile('asic_core.v')):
+            os.path.isfile('asic_core.vg')):
         raise Exception("Error building asic_top: can't find asic_core outputs. "
                         "Please re-run build.py without --top-only")
 
@@ -249,10 +273,10 @@ def main():
     elif options.top_only:
         build_top(options.start, options.stop)
     elif options.no_verification:
-        build_core(stop='export')
+        build_core(verify=False)
         build_top(stop='export')
     else:
-        build_core(stop='export')
+        build_core(verify=False)
         build_top(stop='lvs')
 
 if __name__ == '__main__':
