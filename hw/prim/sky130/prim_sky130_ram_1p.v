@@ -29,7 +29,7 @@ assign wmask[2] = &wmask_i[23:16];
 assign wmask[3] = &wmask_i[31:24];
 
 generate
-  if (Width == 32 && Depth == 512) begin
+  if (Width == 32 && Depth == 512) begin : gen32x512
     sky130_sram_2kbyte_1rw1r_32x512_8 mem(
       .clk0(clk_i),
       .csb0(~req_i),
