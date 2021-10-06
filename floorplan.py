@@ -119,83 +119,94 @@ def core_floorplan(fp):
     instance_name = 'soc.ram.u_mem.gen_sky130.u_impl_sky130.genblk1.mem'
     fp.place_macros([(instance_name, RAM)], ram_x, ram_y, 0, 0, 'N', snap=True)
 
-    ram_core_space_x = 120 * fp.stdcell_width
-    ram_core_space_y = 20 * fp.stdcell_height
-    fp.place_blockage(ram_x - ram_core_space_x, ram_y - ram_core_space_y, ram_w + ram_core_space_x, ram_h + ram_core_space_y)
+    ram_margin_x = 120 * fp.stdcell_width
+    ram_margin_y = 20 * fp.stdcell_height
+    blockage_x = ram_x - ram_margin_x
+    blockage_y = ram_y - ram_margin_y
+    blockage_w = ram_w + ram_margin_x
+    blockage_h = ram_h + ram_margin_y
+    fp.place_blockage(blockage_x, blockage_y, blockage_w, blockage_h)
 
     ## Place pins ##
+    pins = [
+        # (name, offset from cell edge, # bit in vector, width of vector)
+        ('din', 75.085, 0, 1), # in
+        ('dout', 19.885, 0, 1), # out
+        ('ie', 41.505, 0, 1), # inp_dis
+        ('oen', 4.245, 0, 1), # oe_n
+        ('tech_cfg', 31.845, 0, 16), # hld_h_n
+        ('tech_cfg', 35.065, 1, 16), # enable_h
+        ('tech_cfg', 38.285, 2, 16), # enable_inp_h
+        ('tech_cfg', 13.445, 3, 16), # enable_vdda_h
+        ('tech_cfg', 16.665, 4, 16), # enable_vswitch_h
+        ('tech_cfg', 69.105, 5, 16), # enable_vddio
+        ('tech_cfg',  7.465, 6, 16), # ib_mode_sel
+        ('tech_cfg', 10.685, 7, 16), # vtrip_sel
+        ('tech_cfg', 65.885, 8, 16), # slow
+        ('tech_cfg', 22.645, 9, 16), # hld_ovr
+        ('tech_cfg', 50.705, 10, 16), # analog_en
+        ('tech_cfg', 29.085, 11, 16), # analog_sel
+        ('tech_cfg', 44.265, 12, 16), # analog_pol
+        ('tech_cfg', 47.485, 13, 16), # dm[0]
+        ('tech_cfg', 56.685, 14, 16), # dm[1]
+        ('tech_cfg', 25.865, 15, 16), # dm[2]
+    ]
     pin_width = 0.28
     pin_depth = 1
-    layer = 'm2'
-    pins = [
-        # (name, # bit in vector, width of vector, offset from edge of padcell)
-        ('din', 0, 1, 75.085), # in
-        ('dout', 0, 1, 19.885), # out
-        ('ie', 0, 1, 41.505), # inp_dis
-        ('oen', 0, 1, 4.245), # oe_n
-        ('tech_cfg', 0, 16, 31.845), # hld_h_n
-        ('tech_cfg', 1, 16, 35.065), # enable_h
-        ('tech_cfg', 2, 16, 38.285), # enable_inp_h
-        ('tech_cfg', 3, 16, 13.445), # enable_vdda_h
-        ('tech_cfg', 4, 16, 16.665), # enable_vswitch_h
-        ('tech_cfg', 5, 16, 69.105), # enable_vddio
-        ('tech_cfg', 6, 16, 7.465), # ib_mode_sel
-        ('tech_cfg', 7, 16, 10.685), # vtrip_sel
-        ('tech_cfg', 8, 16, 65.885), # slow
-        ('tech_cfg', 9, 16, 22.645), # hld_ovr
-        ('tech_cfg', 10, 16, 50.705), # analog_en
-        ('tech_cfg', 11, 16, 29.085), # analog_sel
-        ('tech_cfg', 12, 16, 44.265), # analog_pol
-        ('tech_cfg', 13, 16, 47.485), # dm[0]
-        ('tech_cfg', 14, 16, 56.685), # dm[1]
-        ('tech_cfg', 15, 16, 25.865), # dm[2]
-    ]
+    pin_layer = 'm2'
 
     we_pads, no_pads, ea_pads, so_pads = define_io_placement(fp)
 
     gpio_w = fp.available_cells[GPIO].width
     gpio_h = fp.available_cells[GPIO].height
 
+    # Filter out GPIO pins
     we_gpio_pos = [pos for pad, pos in we_pads if pad == GPIO]
+    # Constant x position for west side
     pin_x = 0
     for i, pad_y in enumerate(we_gpio_pos):
         pad_y -= gpio_h # account for padring height
-        for pin, bit, width, offset in pins:
+        for pin, offset, bit, width in pins:
+            # Construct name based on side, pin name, and bit # in vector
             name = f'we_{pin}[{i * width + bit}]'
+            # Calculate pin position based on cell and offset
             pin_y = pad_y + offset
-            fp.place_pins([name], pin_x, pin_y, 0, 0, pin_depth, pin_width, layer)
+            # Place pin!
+            fp.place_pins([name], pin_x, pin_y, 0, 0, pin_depth, pin_width, pin_layer)
 
+    # Repeat the same logic for each of the other 3 sides, with positions/axes
+    # adjusted accordingly...
     no_gpio_pos = [pos for pad, pos in no_pads if pad == GPIO]
     pin_y = core_h - pin_depth
     for i, pad_x in enumerate(no_gpio_pos):
-        pad_x -= gpio_h # account for padring height
-        for pin, bit, width, offset in pins:
+        pad_x -= gpio_h
+        for pin, offset, bit, width in pins:
             name = f'no_{pin}[{i * width + bit}]'
             pin_x = pad_x + offset
-            fp.place_pins([name], pin_x, pin_y, 0, 0, pin_width, pin_depth, layer)
+            fp.place_pins([name], pin_x, pin_y, 0, 0, pin_width, pin_depth, pin_layer)
 
     ea_gpio_pos = [pos for pad, pos in ea_pads if pad == GPIO]
     pin_x = core_w - pin_depth
     for i, pad_y in enumerate(ea_gpio_pos):
-        pad_y -= gpio_h # account for padring height
-        for pin, bit, width, offset in pins:
+        pad_y -= gpio_h
+        for pin, offset, bit, width in pins:
             name = f'ea_{pin}[{i * width + bit}]'
             pin_y = pad_y + gpio_w - offset - pin_width
-            fp.place_pins([name], pin_x, pin_y, 0, 0, pin_depth, pin_width, layer)
+            fp.place_pins([name], pin_x, pin_y, 0, 0, pin_depth, pin_width, pin_layer)
 
     so_gpio_pos = [pos for pad, pos in so_pads if pad == GPIO]
     pin_y = 0
     for i, pad_x in enumerate(so_gpio_pos):
-        pad_x -= gpio_h # account for padring height
-        for pin, bit, width, offset in pins:
+        pad_x -= gpio_h
+        for pin, offset, bit, width in pins:
             name = f'so_{pin}[{i * width + bit}]'
             pin_x = pad_x + gpio_w - offset - pin_width
-            fp.place_pins([name], pin_x, pin_y, 0, 0, pin_width, pin_depth, layer)
+            fp.place_pins([name], pin_x, pin_y, 0, 0, pin_width, pin_depth, pin_layer)
 
     ## Place PDN ##
-    place_pdn(fp, ram_x, ram_y, ram_core_space_x)
+    place_pdn(fp, ram_x, ram_y, ram_margin_x)
 
-def place_pdn(fp, ram_x, ram_y, ram_core_space):
+def place_pdn(fp, ram_x, ram_y, ram_margin):
     _, (core_w, core_h), (place_w, place_h), (margin_left, margin_bottom) = define_dimensions(fp)
     we_pads, no_pads, ea_pads, so_pads = define_io_placement(fp)
 
@@ -208,13 +219,11 @@ def place_pdn(fp, ram_x, ram_y, ram_core_space):
     hlayer = 'm5' # metal layer for horizontal straps
 
     ## Calculate even spacing for straps ##
-    vpitch = ((ram_x - ram_core_space - margin_left) - n_vert * vwidth) / (n_vert + 1)
+    vpitch = ((ram_x - ram_margin - margin_left) - n_vert * vwidth) / (n_vert + 1)
     hpitch = (core_h - n_hori * hwidth) / (n_hori + 1)
 
     ## Set up special nets ##
-    # vdd connects to VPWR pins (standard cells) and vccd1 (SRAM)
     fp.add_net('_vdd', ['VPWR', 'vccd1'], 'power')
-    # vss connects to VGND pins (standard cells) and vssd1 pin (SRAM)
     fp.add_net('_vss', ['VGND', 'vssd1'], 'ground')
 
     ## Build power ring within margin outside core ##
@@ -478,9 +487,11 @@ def generate_top_floorplan(chip):
 
 def main():
     core_chip = configure_chip('asic_core')
+    core_chip.write_manifest('sc_manifest.json')
     core_fp = Floorplan(core_chip)
     core_floorplan(core_fp)
     core_fp.write_def('asic_core.def')
+    core_fp.write_lef('asic_core.lef')
 
     chip = configure_chip('asic_top')
 
