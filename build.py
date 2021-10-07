@@ -70,6 +70,7 @@ def configure_svflow(chip, start=None, stop=None, verify=True):
         chip.set('flowgraph', step, '0', 'weight', 'errors', 1.0)
 
     chip.set('showtool', 'def', 'klayout')
+    chip.set('showtool', 'gds', 'klayout')
 
 def configure_physflow(chip, start=None, stop=None):
     chip.set('flowgraph', 'import', '0', 'tool', 'verilator')
@@ -99,6 +100,9 @@ def configure_physflow(chip, start=None, stop=None):
     # Make sure errors are reported in summary()
     for step in chip.getkeys('flowgraph'):
         chip.set('flowgraph', step, '0', 'weight', 'errors', 1.0)
+
+    chip.set('showtool', 'def', 'klayout')
+    chip.set('showtool', 'gds', 'klayout')
 
 def dump_flowgraphs():
     chip = init_chip()

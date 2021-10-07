@@ -38,6 +38,9 @@ def configure_chip(design):
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'type', 'component')
 
+    chip.set('showtool', 'def', 'klayout')
+    chip.set('showtool', 'gds', 'klayout')
+
     return chip
 
 def define_dimensions(fp):
