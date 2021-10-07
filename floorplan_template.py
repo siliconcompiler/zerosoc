@@ -3,6 +3,7 @@ from siliconcompiler.floorplan import Floorplan
 
 import math
 
+#@ begin macro_names
 GPIO = 'sky130_ef_io__gpiov2_pad_wrapped'
 VDD = 'sky130_ef_io__vccd_hvc_pad'
 VDDIO = 'sky130_ef_io__vddio_hvc_pad'
@@ -15,19 +16,31 @@ FILL_CELLS = ['sky130_ef_io__com_bus_slice_1um',
               'sky130_ef_io__com_bus_slice_20um']
 
 RAM = 'sky130_sram_2kbyte_1rw1r_32x512_8'
+#@ end macro_names
 
+#@ begin configure_chip
 def configure_chip(design):
+    #@ begin configure_chip_target
     chip = Chip()
     chip.target('skywater130')
+    #@ end configure_chip_target
 
+    #@ begin configure_chip_design
     chip.set('design', design)
+    #@ end configure_chip_design
 
+    #@ begin configure_chip_macro
     libname = 'ram'
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
     chip.add('library', libname, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
     chip.add('library', libname, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
+    #@ end configure_chip_macro
+    #@ begin configure_chip_macrolib
     chip.add('asic', 'macrolib', libname)
+    #@ end configure_chip_macrolib
+    #@ begin configure_chip_type
     chip.set('library', libname, 'type', 'component')
+    #@ end configure_chip_type
 
     libname = 'io'
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
@@ -42,28 +55,42 @@ def configure_chip(design):
     chip.set('showtool', 'gds', 'klayout')
 
     return chip
+#@ end configure_chip
 
+#@ begin define_dimensions
+#@ begin define_dimensions_prototype
 def define_dimensions(fp):
+#@ end define_dimensions_prototype
+    #@ begin place_dims
     place_w = 4860 * fp.stdcell_width
     place_h = 648 * fp.stdcell_height
     margin_left = 60 * fp.stdcell_width
     margin_bottom = 10 * fp.stdcell_height
+    #@ end place_dims
 
+    #@ begin core
     core_w = place_w + 2 * margin_left
     core_h = place_h + 2 * margin_bottom
+    #@ end core
 
     # Use math.ceil to ensure that top-level's dimensions are a whole number of
     # microns. This implicitly stretches out the top/right margins around the
     # placement area a bit.
+    #@ begin top
     gpio_h = fp.available_cells[GPIO].height
     top_w = math.ceil(core_w + 2 * gpio_h)
     top_h = math.ceil(core_h + 2 * gpio_h)
+    #@ end top
 
+    #@ begin core_stretch
     core_w = top_w - 2 * gpio_h
     core_h = top_h - 2 * gpio_h
+    #@ end core_stretch
 
     return (top_w, top_h), (core_w, core_h), (place_w, place_h), (margin_left, margin_bottom)
+#@ end define_dimensions
 
+#@ begin calculate_even_spacing
 def calculate_even_spacing(fp, pads, distance, start):
     n = len(pads)
     pads_width = sum(fp.available_cells[pad].width for pad in pads)
@@ -76,12 +103,16 @@ def calculate_even_spacing(fp, pads, distance, start):
         pos += fp.available_cells[pad].width + spacing
 
     return io_pos
+#@ end calculate_even_spacing
 
+#@ begin define_io_placement
+#@ begin iolist
 def define_io_placement(fp):
     we_io = [GPIO] * 5 + [VDD, VSS, VDDIO, VSSIO] + [GPIO] * 4
-    no_io = [GPIO] * 9 + [VDD, VSS, VDDIO, VSSIO]
-    ea_io = [GPIO] * 9 + [VDD, VSS, VDDIO, VSSIO]
+    no_io = [GPIO] * 9 + [VDDIO, VSSIO, VDD, VSS]
+    ea_io = [GPIO] * 9 + [VDDIO, VSSIO, VDD, VSS]
     so_io = [GPIO] * 5 + [VDD, VSS, VDDIO, VSSIO] + [GPIO] * 4
+    #@ end iolist
 
     (top_w, top_h), _, _, _ = define_dimensions(fp)
     corner_w = fp.available_cells[CORNER].width
@@ -101,24 +132,31 @@ def define_io_placement(fp):
                  calculate_even_spacing(fp, ea_io[9:], mid_h, mid_h + corner_w))
 
     return we_io_pos, no_io_pos, ea_io_pos, so_io_pos
+#@ end define_io_placement
 
 
 def core_floorplan(fp):
     ## Set up die area ##
+    #@ begin die_area
     dims = define_dimensions(fp)
     _, (core_w, core_h), (place_w, place_h), (margin_left, margin_bottom) = dims
     diearea = [(0, 0), (core_w, core_h)]
     corearea = [(margin_left, margin_bottom), (place_w + margin_left, place_h + margin_bottom)]
     fp.create_diearea(diearea, corearea=corearea)
+    #@ end die_area
+    #@ screenshot die_area.png
 
     ## Place RAM macro ##
+    #@ begin ram_placement
     ram_w = fp.available_cells[RAM].width
     ram_h = fp.available_cells[RAM].height
     ram_x = place_w + margin_left - ram_w
     ram_y = place_h + margin_bottom - ram_h
     instance_name = 'soc.ram.u_mem.gen_sky130.u_impl_sky130.gen32x512.mem'
     fp.place_macros([(instance_name, RAM)], ram_x, ram_y, 0, 0, 'N', snap=True)
+    #@ end ram_placement
 
+    #@ begin blockage_placement
     ram_margin_x = 120 * fp.stdcell_width
     ram_margin_y = 20 * fp.stdcell_height
     blockage_x = ram_x - ram_margin_x
@@ -126,8 +164,11 @@ def core_floorplan(fp):
     blockage_w = ram_w + ram_margin_x
     blockage_h = ram_h + ram_margin_y
     fp.place_blockage(blockage_x, blockage_y, blockage_w, blockage_h)
+    #@ end blockage_placement
+    #@ screenshot ram.png
 
     ## Place pins ##
+    #@ begin pin_data
     pins = [
         # (name, offset from cell edge, # bit in vector, width of vector)
         ('din', 75.085, 0, 1), # in
@@ -154,7 +195,9 @@ def core_floorplan(fp):
     pin_width = 0.28
     pin_depth = 1
     pin_layer = 'm2'
+    #@ end pin_data
 
+    #@ begin pin_loops
     we_pads, no_pads, ea_pads, so_pads = define_io_placement(fp)
 
     gpio_w = fp.available_cells[GPIO].width
@@ -202,15 +245,22 @@ def core_floorplan(fp):
             name = f'so_{pin}[{i * width + bit}]'
             pin_x = pad_x + gpio_w - offset - pin_width
             fp.place_pins([name], pin_x, pin_y, 0, 0, pin_width, pin_depth, pin_layer)
+    #@ end pin_loops
+    #@ def pins.def
 
     ## Place PDN ##
+    #@ begin place_pdn_call
     place_pdn(fp, ram_x, ram_y, ram_margin_x)
+    #@ end place_pdn_call
 
+#@ begin place_pdn_def
 def place_pdn(fp, ram_x, ram_y, ram_margin):
     dims = define_dimensions(fp)
     _, (core_w, core_h), (place_w, place_h), (margin_left, margin_bottom) = dims
     we_pads, no_pads, ea_pads, so_pads = define_io_placement(fp)
+    #@ end place_pdn_def
 
+    #@ begin pdn_config
     n_vert = 8 # how many vertical straps to place
     vwidth = 5 # width of vertical straps in microns
     n_hori = 10 # how many horizontal straps to place
@@ -221,10 +271,15 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
     # Calculate even spacing for straps
     vpitch = ((ram_x - ram_margin - margin_left) - n_vert * vwidth) / (n_vert + 1)
     hpitch = (core_h - n_hori * hwidth) / (n_hori + 1)
+    #@ end pdn_config
 
+    #@ begin pdn_add_nets
     fp.add_net('_vdd', ['VPWR', 'vccd1'], 'power')
     fp.add_net('_vss', ['VGND', 'vssd1'], 'ground')
+    fp.add_net('_vddio', [], 'power')
+    #@ end pdn_add_nets
 
+    #@ begin pdn_place_ring
     vss_ring_left = margin_left - 4 * vwidth
     vss_ring_bottom = margin_bottom - 4 * hwidth
     vss_ring_width = place_w + 9 * vwidth
@@ -243,7 +298,10 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                   vdd_ring_height, hwidth, vwidth, hlayer, vlayer)
     fp.place_ring('_vss', vss_ring_left, vss_ring_bottom, vss_ring_width,
                   vss_ring_height, hwidth, vwidth, hlayer, vlayer)
+    #@ end pdn_place_ring
+    #@ screenshot pdn_ring.png
 
+    #@ begin pdn_power_straps
     # Horizontal stripes
     spacing = 2 * (hpitch + hwidth)
 
@@ -265,7 +323,10 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
     left = margin_left + vpitch + (vpitch + vwidth)
     fp.place_wires(['_vss'] * (n_vert // 2), left, vss_ring_bottom, spacing, 0,
                    vwidth, vss_ring_height, vlayer, shape='stripe')
+    #@ end pdn_power_straps
+    #@ screenshot power_straps.png
 
+    #@ begin power_pad_connections
     gpio_h = fp.available_cells[GPIO].height
     pow_h = fp.available_cells[VDD].height
     # account for GPIO padcells being larger than power padcells
@@ -283,6 +344,11 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                                vdd_ring_left + vwidth + pow_gap, pin_width, 'm3')
                 fp.place_pins (['_vdd'], 0, y + offset, 0, 0,
                                vdd_ring_left + vwidth, pin_width, 'm3', use='power')
+            elif pad_type == VDDIO:
+                fp.place_wires(['_vddio'], -pow_gap, y + offset, 0, 0,
+                               margin_left + vwidth + pow_gap, pin_width, 'm3')
+                fp.place_pins (['_vddio'], 0, y + offset, 0, 0,
+                               margin_left + vwidth, pin_width, 'm3', use='power')
             elif pad_type == VSS:
                 fp.place_wires(['_vss'], -pow_gap, y + offset, 0, 0,
                                vss_ring_left + vwidth + pow_gap, pin_width, 'm3')
@@ -297,6 +363,11 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                                pin_width, core_h - vdd_ring_top + hwidth + pow_gap, 'm3')
                 fp.place_pins(['_vdd'], x + offset, vdd_ring_top - hwidth, 0, 0,
                               pin_width, core_h - vdd_ring_top + hwidth, 'm3', use='power')
+            elif pad_type == VDDIO:
+                fp.place_wires(['_vddio'], x + offset, margin_bottom + place_h - hwidth, 0, 0,
+                               pin_width, core_h - (margin_bottom + place_h - hwidth) + pow_gap, 'm3')
+                fp.place_pins(['_vddio'], x + offset, margin_bottom + place_h - hwidth, 0, 0,
+                              pin_width, core_h - (margin_bottom + place_h - hwidth), 'm3', use='power')
             elif pad_type == VSS:
                 fp.place_wires(['_vss'], x + offset, vss_ring_top - hwidth, 0, 0,
                                pin_width, core_h - vss_ring_top + hwidth + pow_gap, 'm3')
@@ -312,6 +383,11 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                                core_w - vdd_ring_right + vwidth + pow_gap, pin_width, 'm3')
                 fp.place_pins(['_vdd'], vdd_ring_right - vwidth, y + pad_w - offset - pin_width, 0, 0,
                               core_w - vdd_ring_right + vwidth, pin_width, 'm3', use='power')
+            elif pad_type == VDDIO:
+                fp.place_wires(['_vddio'], margin_left + place_w - vwidth, y + pad_w - offset - pin_width, 0, 0,
+                               core_w - (margin_left + place_w - vwidth) + pow_gap, pin_width, 'm3')
+                fp.place_pins(['_vddio'], margin_left + place_w - vwidth, y + pad_w - offset - pin_width, 0, 0,
+                              core_w - (margin_left + place_w - vwidth), pin_width, 'm3', use='power')
             elif pad_type == VSS:
                 fp.place_wires(['_vss'], vss_ring_right - vwidth, y + pad_w - offset - pin_width, 0, 0,
                                core_w - vss_ring_right + vwidth + pow_gap, pin_width, 'm3')
@@ -327,13 +403,21 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                                pin_width, vdd_ring_bottom + hwidth + pow_gap, 'm3')
                 fp.place_pins(['_vdd'], x + pad_w - offset - pin_width, 0, 0, 0,
                               pin_width, vdd_ring_bottom + hwidth, 'm3', use='power')
+            elif pad_type == VDDIO:
+                fp.place_wires(['_vddio'], x + pad_w - offset - pin_width, -pow_gap, 0, 0,
+                               pin_width, margin_bottom + hwidth + pow_gap, 'm3')
+                fp.place_pins(['_vddio'], x + pad_w - offset - pin_width, 0, 0, 0,
+                              pin_width, margin_bottom + hwidth, 'm3', use='power')
             elif pad_type == VSS:
                 fp.place_wires(['_vss'], x + pad_w - offset - pin_width, -pow_gap, 0, 0,
                                pin_width, vss_ring_bottom + hwidth + pow_gap, 'm3')
                 fp.place_pins(['_vss'], x + pad_w - offset - pin_width, 0, 0, 0,
                               pin_width, vss_ring_bottom + hwidth, 'm3', use='power')
+    #@ end power_pad_connections
+    #@ def power_pins.def
 
 
+    #@ begin stdcell_straps
     rows_below_ram = (ram_y - margin_bottom) // fp.stdcell_height
     rows_above_ram = len(fp.rows) - rows_below_ram
 
@@ -361,7 +445,9 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
     bottom = margin_bottom - stripe_w/2 + fp.stdcell_height + ngnd_below * 2 * fp.stdcell_height
     fp.place_wires(['_vss'] * ngnd_above, margin_left, bottom, 0, spacing,
                    ram_x - 2 * margin_left, stripe_w, 'm1', 'followpin')
+    #@ end stdcell_straps
 
+    #@ begin ram_power_pins
     ram_x = fp.snap(ram_x, fp.stdcell_width)
     ram_y = fp.snap(ram_y, fp.stdcell_height)
 
@@ -380,10 +466,16 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
     for x_offset in ram_vss_pins_left:
         fp.place_wires(['_vss'], ram_x + x_offset, ram_y + ram_vss_pin_bottom,
                        0, 0, ram_vss_pins_width, ram_vss_pins_height, 'm4')
+    #@ end ram_power_pins
 
+    #@ begin insert_vias
     fp.insert_vias(layers=[('m1', 'm4'), ('m3', 'm4'), ('m3', 'm5'), ('m4', 'm5')])
+    #@ end insert_vias
 
+    #@ screenshot complete_pdn.png
+    #@ def complete_pdn_zoom.def
 
+#@ begin top_floorplan
 def top_floorplan(fp):
     ## Create die area ##
     (top_w, top_h), _, _, _ = define_dimensions(fp)
@@ -409,6 +501,7 @@ def top_floorplan(fp):
     pin_offset_width = (11.2 + 73.8) / 2 - pin_dim / 2
     pin_offset_depth = gpio_h - ((102.525 + 184.975) / 2 - pin_dim / 2)
 
+    #@ begin place_pads_loop
     for pad_type, y in we_pads:
         i = indices[pad_type]
         indices[pad_type] += 1
@@ -429,6 +522,7 @@ def top_floorplan(fp):
         fp.place_macros([(pad_name, pad_type)], 0, y, 0, 0, 'W')
         fp.place_pins([pin_name], pin_offset_depth, y + pin_offset_width,
                       0, 0, pin_dim, pin_dim, 'm5')
+    #@ end place_pads_loop
 
     indices[GPIO] = 0
     for pad_type, x in no_pads:
@@ -499,22 +593,32 @@ def top_floorplan(fp):
         fp.place_pins([pin_name], x + pin_offset_width, pin_offset_depth,
                        0, 0, pin_dim, pin_dim, 'm5')
 
+    #@ screenshottop unfilled_padring.png
 
     ## Place corner cells ##
+    #@ begin place_macros
     fp.place_macros([('corner_sw', CORNER)], 0, 0, 0, 0, 'S')
     fp.place_macros([('corner_nw', CORNER)], 0, top_h - corner_w, 0, 0, 'W')
     fp.place_macros([('corner_se', CORNER)], top_w - corner_h, 0, 0, 0, 'E')
     fp.place_macros([('corner_ne', CORNER)], top_w - corner_w, top_h - corner_h, 0, 0, 'N')
+    #@ end place_macros
 
     ## Fill I/O ring ##
+    #@ begin fill_io
     fp.fill_io_region([(0, 0), (fill_cell_h, top_h)], FILL_CELLS, 'W', 'v')
     fp.fill_io_region([(0, top_h - fill_cell_h), (top_w, top_h)], FILL_CELLS, 'N', 'h')
     fp.fill_io_region([(top_w - fill_cell_h, 0), (top_w, top_h)], FILL_CELLS, 'E', 'v')
     fp.fill_io_region([(0, 0), (top_w, fill_cell_h)], FILL_CELLS, 'S', 'h')
+    #@ end fill_io
 
+    #@ screenshottop padring.png
+    #@ deftop filled.def
 
     ## Place core ##
+    #@ begin place_core
     fp.place_macros([('core', 'asic_core')], gpio_h, gpio_h, 0, 0, 'N')
+    #@ end place_core
+#@ end top_floorplan
 
 def generate_core_floorplan(chip):
     fp = Floorplan(chip)
@@ -549,4 +653,3 @@ def main():
 
 if __name__ == '__main__':
   main()
-

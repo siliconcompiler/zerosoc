@@ -17,3 +17,7 @@ asic_top.def
 
 # Python build cache
 __pycache__/
+
+# Stuff generated from tutorial template
+floorplan.py
+zerosoc.rst
