@@ -110,7 +110,7 @@ def calculate_even_spacing(fp, pads, distance, start):
 def define_io_placement(fp):
     we_io = [GPIO] * 5 + [VDD, VSS, VDDIO, VSSIO] + [GPIO] * 4
     no_io = [GPIO] * 9 + [VDDIO, VSSIO, VDD, VSS]
-    ea_io = [GPIO] * 9 + [VDDIO, VSSIO, VDD, VSS]
+    ea_io = [GPIO] * 9 + [VDDIO, VSS, VDD, VSSIO]
     so_io = [GPIO] * 5 + [VDD, VSS, VDDIO, VSSIO] + [GPIO] * 4
     #@ end iolist
 
@@ -175,22 +175,24 @@ def core_floorplan(fp):
         ('dout', 19.885, 0, 1), # out
         ('ie', 41.505, 0, 1), # inp_dis
         ('oen', 4.245, 0, 1), # oe_n
-        ('tech_cfg', 31.845, 0, 16), # hld_h_n
-        ('tech_cfg', 35.065, 1, 16), # enable_h
-        ('tech_cfg', 38.285, 2, 16), # enable_inp_h
-        ('tech_cfg', 13.445, 3, 16), # enable_vdda_h
-        ('tech_cfg', 16.665, 4, 16), # enable_vswitch_h
-        ('tech_cfg', 69.105, 5, 16), # enable_vddio
-        ('tech_cfg',  7.465, 6, 16), # ib_mode_sel
-        ('tech_cfg', 10.685, 7, 16), # vtrip_sel
-        ('tech_cfg', 65.885, 8, 16), # slow
-        ('tech_cfg', 22.645, 9, 16), # hld_ovr
-        ('tech_cfg', 50.705, 10, 16), # analog_en
-        ('tech_cfg', 29.085, 11, 16), # analog_sel
-        ('tech_cfg', 44.265, 12, 16), # analog_pol
-        ('tech_cfg', 47.485, 13, 16), # dm[0]
-        ('tech_cfg', 56.685, 14, 16), # dm[1]
-        ('tech_cfg', 25.865, 15, 16), # dm[2]
+        ('tech_cfg', 31.845, 0, 18), # hld_h_n
+        ('tech_cfg', 35.065, 1, 18), # enable_h
+        ('tech_cfg', 38.285, 2, 18), # enable_inp_h
+        ('tech_cfg', 13.445, 3, 18), # enable_vdda_h
+        ('tech_cfg', 16.665, 4, 18), # enable_vswitch_h
+        ('tech_cfg', 69.105, 5, 18), # enable_vddio
+        ('tech_cfg',  7.465, 6, 18), # ib_mode_sel
+        ('tech_cfg', 10.685, 7, 18), # vtrip_sel
+        ('tech_cfg', 65.885, 8, 18), # slow
+        ('tech_cfg', 22.645, 9, 18), # hld_ovr
+        ('tech_cfg', 50.705, 10, 18), # analog_en
+        ('tech_cfg', 29.085, 11, 18), # analog_sel
+        ('tech_cfg', 44.265, 12, 18), # analog_pol
+        ('tech_cfg', 47.485, 13, 18), # dm[0]
+        ('tech_cfg', 56.685, 14, 18), # dm[1]
+        ('tech_cfg', 25.865, 15, 18), # dm[2]
+        ('tech_cfg', 78.305, 16, 18), # tie_lo_esd
+        ('tech_cfg', 71.865, 17, 18), # tie_hi_esd
     ]
     pin_width = 0.28
     pin_depth = 1
@@ -276,7 +278,6 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
     #@ begin pdn_add_nets
     fp.add_net('_vdd', ['VPWR', 'vccd1'], 'power')
     fp.add_net('_vss', ['VGND', 'vssd1'], 'ground')
-    fp.add_net('_vddio', [], 'power')
     #@ end pdn_add_nets
 
     #@ begin pdn_place_ring
@@ -345,10 +346,8 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                 fp.place_pins (['_vdd'], 0, y + offset, 0, 0,
                                vdd_ring_left + vwidth, pin_width, 'm3', use='power')
             elif pad_type == VDDIO:
-                fp.place_wires(['_vddio'], -pow_gap, y + offset, 0, 0,
-                               margin_left + vwidth + pow_gap, pin_width, 'm3')
                 fp.place_pins (['_vddio'], 0, y + offset, 0, 0,
-                               margin_left + vwidth, pin_width, 'm3', use='power')
+                               margin_left, pin_width, 'm3')
             elif pad_type == VSS:
                 fp.place_wires(['_vss'], -pow_gap, y + offset, 0, 0,
                                vss_ring_left + vwidth + pow_gap, pin_width, 'm3')
@@ -364,10 +363,8 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                 fp.place_pins(['_vdd'], x + offset, vdd_ring_top - hwidth, 0, 0,
                               pin_width, core_h - vdd_ring_top + hwidth, 'm3', use='power')
             elif pad_type == VDDIO:
-                fp.place_wires(['_vddio'], x + offset, margin_bottom + place_h - hwidth, 0, 0,
-                               pin_width, core_h - (margin_bottom + place_h - hwidth) + pow_gap, 'm3')
-                fp.place_pins(['_vddio'], x + offset, margin_bottom + place_h - hwidth, 0, 0,
-                              pin_width, core_h - (margin_bottom + place_h - hwidth), 'm3', use='power')
+                fp.place_pins(['_vddio'], x + offset, margin_bottom + place_h, 0, 0,
+                              pin_width, core_h - (margin_bottom + place_h), 'm3')
             elif pad_type == VSS:
                 fp.place_wires(['_vss'], x + offset, vss_ring_top - hwidth, 0, 0,
                                pin_width, core_h - vss_ring_top + hwidth + pow_gap, 'm3')
@@ -384,10 +381,8 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                 fp.place_pins(['_vdd'], vdd_ring_right - vwidth, y + pad_w - offset - pin_width, 0, 0,
                               core_w - vdd_ring_right + vwidth, pin_width, 'm3', use='power')
             elif pad_type == VDDIO:
-                fp.place_wires(['_vddio'], margin_left + place_w - vwidth, y + pad_w - offset - pin_width, 0, 0,
-                               core_w - (margin_left + place_w - vwidth) + pow_gap, pin_width, 'm3')
-                fp.place_pins(['_vddio'], margin_left + place_w - vwidth, y + pad_w - offset - pin_width, 0, 0,
-                              core_w - (margin_left + place_w - vwidth), pin_width, 'm3', use='power')
+                fp.place_pins(['_vddio'], margin_left + place_w, y + pad_w - offset - pin_width, 0, 0,
+                              core_w - (margin_left + place_w), pin_width, 'm3')
             elif pad_type == VSS:
                 fp.place_wires(['_vss'], vss_ring_right - vwidth, y + pad_w - offset - pin_width, 0, 0,
                                core_w - vss_ring_right + vwidth + pow_gap, pin_width, 'm3')
@@ -404,10 +399,8 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
                 fp.place_pins(['_vdd'], x + pad_w - offset - pin_width, 0, 0, 0,
                               pin_width, vdd_ring_bottom + hwidth, 'm3', use='power')
             elif pad_type == VDDIO:
-                fp.place_wires(['_vddio'], x + pad_w - offset - pin_width, -pow_gap, 0, 0,
-                               pin_width, margin_bottom + hwidth + pow_gap, 'm3')
                 fp.place_pins(['_vddio'], x + pad_w - offset - pin_width, 0, 0, 0,
-                              pin_width, margin_bottom + hwidth, 'm3', use='power')
+                              pin_width, margin_bottom, 'm3')
             elif pad_type == VSS:
                 fp.place_wires(['_vss'], x + pad_w - offset - pin_width, -pow_gap, 0, 0,
                                pin_width, vss_ring_bottom + hwidth + pow_gap, 'm3')
@@ -478,7 +471,7 @@ def place_pdn(fp, ram_x, ram_y, ram_margin):
 #@ begin top_floorplan
 def top_floorplan(fp):
     ## Create die area ##
-    (top_w, top_h), _, _, _ = define_dimensions(fp)
+    (top_w, top_h), (core_w, core_h), (place_w, place_h), (margin_left, margin_bottom) = define_dimensions(fp)
     fp.create_diearea([(0, 0), (top_w, top_h)])
 
     ## Place pads ##
@@ -594,6 +587,41 @@ def top_floorplan(fp):
                        0, 0, pin_dim, pin_dim, 'm5')
 
     #@ screenshottop unfilled_padring.png
+
+    # Connections to vddio pins
+    pin_width = 23.9
+    pin_offsets = (0.495, 50.39)
+
+    pad_h = fp.available_cells[VDDIO].height
+    pow_gap = fp.available_cells[GPIO].height - pad_h
+
+    # Place wires/pins connecting power pads to the power ring
+    fp.add_net('_vddio', [], 'power')
+    for pad_type, y in we_pads:
+        if pad_type == VDDIO:
+            for offset in pin_offsets:
+                fp.place_wires (['_vddio'], pad_h, y + offset, 0, 0,
+                                margin_left + pow_gap, pin_width, 'm3')
+
+    margin_top = core_h - (margin_bottom + place_h)
+    for pad_type, x in no_pads:
+        if pad_type == VDDIO:
+            for offset in pin_offsets:
+                fp.place_wires (['_vddio'], x + offset, top_h - pad_h - (margin_top + pow_gap), 0, 0,
+                                pin_width, margin_top + pow_gap, 'm3')
+
+    margin_right = core_w - (margin_left + place_w)
+    for pad_type, y in ea_pads:
+        if pad_type == VDDIO:
+            for offset in pin_offsets:
+                fp.place_wires (['_vddio'], top_w - pad_h - (margin_right + pow_gap), y + offset, 0, 0,
+                                margin_right + pow_gap, pin_width, 'm3')
+
+    for pad_type, x in so_pads:
+        if pad_type == VDDIO:
+            for offset in pin_offsets:
+                fp.place_wires (['_vddio'], x + offset, pad_h, 0, 0,
+                                pin_width, margin_bottom + pow_gap, 'm3')
 
     ## Place corner cells ##
     #@ begin place_macros

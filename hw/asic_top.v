@@ -15,32 +15,33 @@ module asic_top (
     wire [71:0] we_cfg;
     wire [8:0]  we_ie;
     wire [8:0]  we_oen;
-    wire [143:0] we_tech_cfg;
+    wire [161:0] we_tech_cfg;
 
     wire [8:0]  no_din;
     wire [8:0]  no_dout;
     wire [71:0] no_cfg;
     wire [8:0]  no_ie;
     wire [8:0]  no_oen;
-    wire [143:0] no_tech_cfg;
+    wire [161:0] no_tech_cfg;
 
     wire [8:0]  so_din;
     wire [8:0]  so_dout;
     wire [71:0] so_cfg;
     wire [8:0]  so_ie;
     wire [8:0]  so_oen;
-    wire [143:0] so_tech_cfg;
+    wire [161:0] so_tech_cfg;
 
     wire [8:0]  ea_din;
     wire [8:0]  ea_dout;
     wire [71:0] ea_cfg;
     wire [8:0]  ea_ie;
     wire [8:0]  ea_oen;
-    wire [143:0] ea_tech_cfg;
+    wire [161:0] ea_tech_cfg;
 
     asic_core core (
         ._vdd(vdd),
         ._vss(vss),
+        ._vddio(vddio),
 
         .we_din,
         .we_dout,
@@ -95,7 +96,7 @@ module asic_top (
         .WE_VSS(1),
         .ENABLE_POC(0),
         .ENABLE_CUT(0),
-        .TECH_CFG_WIDTH(16)
+        .TECH_CFG_WIDTH(18)
     ) padring (
         .vss,
         .vdd,

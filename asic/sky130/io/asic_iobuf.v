@@ -9,7 +9,7 @@ module asic_iobuf #(
     input ie,
     input oen,
     input [7:0] cfg,
-    input [TECH_CFG_WIDTH-1:0] tech_cfg,
+    inout [TECH_CFG_WIDTH-1:0] tech_cfg,
 
     inout poc,
     inout vdd,
@@ -21,56 +21,71 @@ module asic_iobuf #(
     inout pad
 );
 
-// TODO: hook up IO buffer config
-//#  0    = pull_enable (1=enable)
-//#  1    = pull_select (1=pull up)
-//#  2    = slew limiter
-//#  3    = shmitt trigger enable
-//#  4    = ds[0]
-//#  5    = ds[1]
-//#  6    = ds[2]
-//#  7    = ds[3]
-
-// TODO: should do something with poc signal? maybe this has to do with
-// power-on ramp pins such as enable_h
-
-// TODO: might need to use "tielo"/"tiehi" signals for some of these instead of
-// 0/1 constants -- see https://github.com/The-OpenROAD-Project/OpenROAD-flow-scripts/blob/master/flow/designs/sky130hd/coyote_tc/ios.v
+/*
+ * Wrapper for Skywater130 gpiov2 pad cell to interface with OH generic padring
+ * library.
+ *
+ * This wrapper must contain wiring only, no logic.
+ *
+ * Notes:
+ * - The logic for `ie` is inverted here -- input is enabled when `ie` is low,
+ *   and disabled when `ie` is high.
+ * - All signals ending in _h need to use the VDDIO logic level.
+ *
+ * Documentation:
+ * https://skywater-pdk.readthedocs.io/en/latest/contents/libraries/sky130_fd_io/docs/user_guide.html
+ */
 
 sky130_ef_io__gpiov2_pad_wrapped gpio (
     .IN(din),
     .OUT(dout),
     .OE_N(oen),
-    .INP_DIS(ie), // disable input when ie low
+    .INP_DIS(ie),
     .PAD(pad),
 
-    .HLD_H_N(tech_cfg[0]), // if 0, hold outputs at current state
-    .ENABLE_H(tech_cfg[1]), // if 0, hold outputs at hi-z (used on power-up)
-    .ENABLE_INP_H(tech_cfg[2]), // val doesn't matter when enable_h = 1
+    // If 0, hold outputs at current state
+    .HLD_H_N(tech_cfg[0]),
+    // If 0, hold outputs at hi-z (used on power-up)
+    .ENABLE_H(tech_cfg[1]),
+    // Determines input buffer state when enable_h is 0. Val doesn't matter when
+    // enable_h is 1. Must be tied off to tie_hi_esd or tie_lo_esd.
+    .ENABLE_INP_H(tech_cfg[2]),
+    // Whether to enable the analog power domain in GPIO cell
     .ENABLE_VDDA_H(tech_cfg[3]),
+    // Whether the VSWITCH power supply is enabled
     .ENABLE_VSWITCH_H(tech_cfg[4]),
+    // Whether VDDIO is enabled
     .ENABLE_VDDIO(tech_cfg[5]),
-    .IB_MODE_SEL(tech_cfg[6]), // use vddio based threshold
-    .VTRIP_SEL(tech_cfg[7]), // use cmos threshold
+    // These signals both control the input voltage threshold
+    .IB_MODE_SEL(tech_cfg[6]),
+    .VTRIP_SEL(tech_cfg[7]),
+    // Output slew rate
     .SLOW(tech_cfg[8]),
-    .HLD_OVR(tech_cfg[9]), // don't care when hld_h_n = 1
-    .ANALOG_EN(tech_cfg[10]), // disable analog functionality
-    .ANALOG_SEL(tech_cfg[11]), // don't care
-    .ANALOG_POL(tech_cfg[12]), // don't care
-    .DM(tech_cfg[15:13]), // strong pull-up, strong pull-down
+    // Determine "flow-through" functionality when hld_h_n = 0
+    .HLD_OVR(tech_cfg[9]),
+    // Whether to enable analog functionality
+    .ANALOG_EN(tech_cfg[10]),
+    // Select between AMUXBUS_A and AMUXBUS_B
+    .ANALOG_SEL(tech_cfg[11]),
+    // Selects output polarity in analog mode
+    .ANALOG_POL(tech_cfg[12]),
+    // Drive strength
+    .DM(tech_cfg[15:13]),
 
     .VDDIO(vddio),
-    .VDDIO_Q(ring[0]), // level-shift reference for high-voltage output
+    // level-shift reference for high-voltage output
+    .VDDIO_Q(ring[0]),
     .VDDA(ring[6]),
-    .VCCD(vdd), // core supply as level-shift reference
-    .VSWITCH(ring[1]), // not sure what this is for, but seems like vdda = vddio
+    // core supply as level-shift reference
+    .VCCD(vdd),
+    .VSWITCH(ring[1]),
     .VCCHIB(ring[2]),
     .VSSA(ring[7]),
     .VSSD(vss),
     .VSSIO_Q(ring[3]),
     .VSSIO(vssio),
 
-    // Direction connection from pad to core (unused)
+    // Direct connection from pad to core (unused)
     .PAD_A_NOESD_H(),
     .PAD_A_ESD_0_H(),
     .PAD_A_ESD_1_H(),
@@ -79,13 +94,12 @@ sky130_ef_io__gpiov2_pad_wrapped gpio (
     .AMUXBUS_A(ring[4]),
     .AMUXBUS_B(ring[5]),
 
-    // not sure what this output does, so leave disconnected
+    // Input signal in IO power domain
     .IN_H(),
 
-    // these are used to control enable_inp_h, but we don't care about its val
-    // so leave disconnected
-    .TIE_HI_ESD(),
-    .TIE_LO_ESD()
+    // These are used to tie off enable_inp_h
+    .TIE_LO_ESD(tech_cfg[16]),
+    .TIE_HI_ESD(tech_cfg[17])
 );
 
 

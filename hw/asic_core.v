@@ -1,30 +1,31 @@
 module asic_core (
     inout _vdd,
     inout _vss,
+    inout _vddio,
 
     input [8:0]  we_din,
     output [8:0]  we_dout,
     output [8:0]  we_ie,
     output [8:0]  we_oen,
-    output [143:0] we_tech_cfg,
+    output [161:0] we_tech_cfg,
 
     input [8:0]  no_din,
     output [8:0]  no_dout,
     output [8:0]  no_ie,
     output [8:0]  no_oen,
-    output [143:0] no_tech_cfg,
+    output [161:0] no_tech_cfg,
 
     input [8:0]  so_din,
     output [8:0]  so_dout,
     output [8:0]  so_ie,
     output [8:0]  so_oen,
-    output [143:0] so_tech_cfg,
+    output [161:0] so_tech_cfg,
 
     input [8:0]  ea_din,
     output [8:0]  ea_dout,
     output [8:0]  ea_ie,
     output [8:0]  ea_oen,
-    output [143:0] ea_tech_cfg
+    output [161:0] ea_tech_cfg
 );
 
     wire uart_tx;
@@ -81,79 +82,101 @@ module asic_core (
     assign so_ie = ~so_oen; // ie is secretly ien for skywater
 
     // Tieoffs
+    // Note that all enable signals used for power-on ramp are tied off to their
+    // fixed steady-state values.
     generate
         genvar i;
 
         for(i=0;i<9;i=i+1)
             begin: we_tieoff
-                assign we_tech_cfg[0] = 1'b1; // hld_h_n
-                assign we_tech_cfg[1] = 1'b1; // enable_h
-                assign we_tech_cfg[2] = 1'b0; // enable_inp_h
-                assign we_tech_cfg[3] = 1'b1; // enable_vdda_h
-                assign we_tech_cfg[4] = 1'b1; // enable_vswitch_h
-                assign we_tech_cfg[5] = 1'b1; // enable_vddio
-                assign we_tech_cfg[6] = 1'b0; // ib_mode_sel
-                assign we_tech_cfg[7] = 1'b0; // vtrip_sel
-                assign we_tech_cfg[8] = 1'b0; // slow
-                assign we_tech_cfg[9] = 1'b0; // hld_ovr
-                assign we_tech_cfg[10] = 1'b0; // analog_en
-                assign we_tech_cfg[11] = 1'b0; // analog_sel
-                assign we_tech_cfg[12] = 1'b0; // analog_pol
-                assign we_tech_cfg[15:13] = 3'b110; // dm[2:0]
+                wire tie_lo_esd, tie_hi_esd;
+                assign tie_lo_esd = we_tech_cfg[i*18 + 16];
+                assign tie_hi_esd = we_tech_cfg[i*18 + 17];
+
+                assign we_tech_cfg[i*18 + 0] = _vddio; // hld_h_n
+                assign we_tech_cfg[i*18 + 1] = _vddio; // enable_h
+                assign we_tech_cfg[i*18 + 2] = tie_lo_esd; // enable_inp_h
+                assign we_tech_cfg[i*18 + 3] = _vddio; // enable_vdda_h
+                assign we_tech_cfg[i*18 + 4] = _vddio; // enable_vswitch_h DIFF!!
+                assign we_tech_cfg[i*18 + 5] = 1'b1; // enable_vddio
+                assign we_tech_cfg[i*18 + 6] = 1'b0; // ib_mode_sel
+                assign we_tech_cfg[i*18 + 7] = 1'b0; // vtrip_sel
+                assign we_tech_cfg[i*18 + 8] = 1'b0; // slow
+                assign we_tech_cfg[i*18 + 9] = 1'b0; // hld_ovr
+                assign we_tech_cfg[i*18 + 10] = 1'b0; // analog_en
+                assign we_tech_cfg[i*18 + 11] = 1'b0; // analog_sel
+                assign we_tech_cfg[i*18 + 12] = 1'b0; // analog_pol
+                // strong pull-up, strong pull-down
+                assign we_tech_cfg[i*18 + 15:i*18 + 13] = 3'b110; // dm[2:0]
             end
 
         for(i=0;i<9;i=i+1)
             begin: no_tieoff
-                assign no_tech_cfg[0] = 1'b1; // hld_h_n
-                assign no_tech_cfg[1] = 1'b1; // enable_h
-                assign no_tech_cfg[2] = 1'b0; // enable_inp_h
-                assign no_tech_cfg[3] = 1'b1; // enable_vdda_h
-                assign no_tech_cfg[4] = 1'b1; // enable_vswitch_h
-                assign no_tech_cfg[5] = 1'b1; // enable_vddio
-                assign no_tech_cfg[6] = 1'b0; // ib_mode_sel
-                assign no_tech_cfg[7] = 1'b0; // vtrip_sel
-                assign no_tech_cfg[8] = 1'b0; // slow
-                assign no_tech_cfg[9] = 1'b0; // hld_ovr
-                assign no_tech_cfg[10] = 1'b0; // analog_en
-                assign no_tech_cfg[11] = 1'b0; // analog_sel
-                assign no_tech_cfg[12] = 1'b0; // analog_pol
-                assign no_tech_cfg[15:13] = 3'b110; // dm[2:0]
+                wire tie_lo_esd, tie_hi_esd;
+                assign tie_lo_esd = no_tech_cfg[i*18 + 16];
+                assign tie_hi_esd = no_tech_cfg[i*18 + 17];
+
+                assign no_tech_cfg[i*18 + 0] = _vddio; // hld_h_n
+                assign no_tech_cfg[i*18 + 1] = _vddio; // enable_h
+                assign no_tech_cfg[i*18 + 2] = tie_lo_esd; // enable_inp_h
+                assign no_tech_cfg[i*18 + 3] = _vddio; // enable_vdda_h
+                assign no_tech_cfg[i*18 + 4] = _vddio; // enable_vswitch_h
+                assign no_tech_cfg[i*18 + 5] = 1'b1; // enable_vddio
+                assign no_tech_cfg[i*18 + 6] = 1'b0; // ib_mode_sel
+                assign no_tech_cfg[i*18 + 7] = 1'b0; // vtrip_sel
+                assign no_tech_cfg[i*18 + 8] = 1'b0; // slow
+                assign no_tech_cfg[i*18 + 9] = 1'b0; // hld_ovr
+                assign no_tech_cfg[i*18 + 10] = 1'b0; // analog_en
+                assign no_tech_cfg[i*18 + 11] = 1'b0; // analog_sel
+                assign no_tech_cfg[i*18 + 12] = 1'b0; // analog_pol
+                // strong pull-up, strong pull-down
+                assign no_tech_cfg[i*18 + 15:i*18 + 13] = 3'b110; // dm[2:0]
             end
 
         for(i=0;i<9;i=i+1)
             begin: ea_tieoff
-                assign ea_tech_cfg[0] = 1'b1; // hld_h_n
-                assign ea_tech_cfg[1] = 1'b1; // enable_h
-                assign ea_tech_cfg[2] = 1'b0; // enable_inp_h
-                assign ea_tech_cfg[3] = 1'b1; // enable_vdda_h
-                assign ea_tech_cfg[4] = 1'b1; // enable_vswitch_h
-                assign ea_tech_cfg[5] = 1'b1; // enable_vddio
-                assign ea_tech_cfg[6] = 1'b0; // ib_mode_sel
-                assign ea_tech_cfg[7] = 1'b0; // vtrip_sel
-                assign ea_tech_cfg[8] = 1'b0; // slow
-                assign ea_tech_cfg[9] = 1'b0; // hld_ovr
-                assign ea_tech_cfg[10] = 1'b0; // analog_en
-                assign ea_tech_cfg[11] = 1'b0; // analog_sel
-                assign ea_tech_cfg[12] = 1'b0; // analog_pol
-                assign ea_tech_cfg[15:13] = 3'b110; // dm[2:0]
+                wire tie_lo_esd, tie_hi_esd;
+                assign tie_lo_esd = ea_tech_cfg[i*18 + 16];
+                assign tie_hi_esd = ea_tech_cfg[i*18 + 17];
+
+                assign ea_tech_cfg[i*18 + 0] = _vddio; // hld_h_n
+                assign ea_tech_cfg[i*18 + 1] = _vddio; // enable_h
+                assign ea_tech_cfg[i*18 + 2] = tie_lo_esd; // enable_inp_h
+                assign ea_tech_cfg[i*18 + 3] = _vddio; // enable_vdda_h
+                assign ea_tech_cfg[i*18 + 4] = _vddio; // enable_vswitch_h
+                assign ea_tech_cfg[i*18 + 5] = 1'b1; // enable_vddio
+                assign ea_tech_cfg[i*18 + 6] = 1'b0; // ib_mode_sel
+                assign ea_tech_cfg[i*18 + 7] = 1'b0; // vtrip_sel
+                assign ea_tech_cfg[i*18 + 8] = 1'b0; // slow
+                assign ea_tech_cfg[i*18 + 9] = 1'b0; // hld_ovr
+                assign ea_tech_cfg[i*18 + 10] = 1'b0; // analog_en
+                assign ea_tech_cfg[i*18 + 11] = 1'b0; // analog_sel
+                assign ea_tech_cfg[i*18 + 12] = 1'b0; // analog_pol
+                // strong pull-up, strong pull-down
+                assign ea_tech_cfg[i*18 + 15:i*18 + 13] = 3'b110; // dm[2:0]
             end
 
         for(i=0;i<9;i=i+1)
             begin: so_tieoff
-                assign so_tech_cfg[0] = 1'b1; // hld_h_n
-                assign so_tech_cfg[1] = 1'b1; // enable_h
-                assign so_tech_cfg[2] = 1'b0; // enable_inp_h
-                assign so_tech_cfg[3] = 1'b1; // enable_vdda_h
-                assign so_tech_cfg[4] = 1'b1; // enable_vswitch_h
-                assign so_tech_cfg[5] = 1'b1; // enable_vddio
-                assign so_tech_cfg[6] = 1'b0; // ib_mode_sel
-                assign so_tech_cfg[7] = 1'b0; // vtrip_sel
-                assign so_tech_cfg[8] = 1'b0; // slow
-                assign so_tech_cfg[9] = 1'b0; // hld_ovr
-                assign so_tech_cfg[10] = 1'b0; // analog_en
-                assign so_tech_cfg[11] = 1'b0; // analog_sel
-                assign so_tech_cfg[12] = 1'b0; // analog_pol
-                assign so_tech_cfg[15:13] = 3'b110; // dm[2:0]
+                wire tie_lo_esd, tie_hi_esd;
+                assign tie_lo_esd = ea_tech_cfg[i*18 + 16];
+                assign tie_hi_esd = ea_tech_cfg[i*18 + 17];
+
+                assign so_tech_cfg[i*18 + 0] = _vddio; // hld_h_n
+                assign so_tech_cfg[i*18 + 1] = _vddio; // enable_h
+                assign so_tech_cfg[i*18 + 2] = tie_lo_esd; // enable_inp_h
+                assign so_tech_cfg[i*18 + 3] = _vddio; // enable_vdda_h
+                assign so_tech_cfg[i*18 + 4] = _vddio; // enable_vswitch_h
+                assign so_tech_cfg[i*18 + 5] = 1'b1; // enable_vddio
+                assign so_tech_cfg[i*18 + 6] = 1'b0; // ib_mode_sel
+                assign so_tech_cfg[i*18 + 7] = 1'b0; // vtrip_sel
+                assign so_tech_cfg[i*18 + 8] = 1'b0; // slow
+                assign so_tech_cfg[i*18 + 9] = 1'b0; // hld_ovr
+                assign so_tech_cfg[i*18 + 10] = 1'b0; // analog_en
+                assign so_tech_cfg[i*18 + 11] = 1'b0; // analog_sel
+                assign so_tech_cfg[i*18 + 12] = 1'b0; // analog_pol
+                // strong pull-up, strong pull-down
+                assign so_tech_cfg[i*18 + 15:i*18 + 13] = 3'b110; // dm[2:0]
             end
     endgenerate
 
