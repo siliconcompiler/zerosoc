@@ -23,7 +23,7 @@ def init_chip(jobid=0):
     return chip
 
 def configure_svflow(chip, start=None, stop=None, verify=True):
-    flowpipe = [('import', 'morty'),
+    flowpipe = [('import', 'surelog'),
                 ('convert', 'sv2v'),
                 ('syn', 'yosys'),
                 ('floorplan', 'openroad'),
