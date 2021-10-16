@@ -6,6 +6,7 @@ def add_sources(chip):
     chip.add('idir', 'opentitan/hw/dv/sv/dv_utils')
 
     # SV packages (need to be added explicitly)
+    chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_secded_pkg.sv')
     chip.add('source', 'opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
     chip.add('source', 'opentitan/hw/ip/tlul/rtl/tlul_pkg.sv')
@@ -16,7 +17,6 @@ def add_sources(chip):
     chip.add('source', 'hw/prim/prim_pkg.sv')
     chip.add('source', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_pkg.sv')
     chip.add('source', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_state_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_esc_pkg.sv')
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_ram_1p_pkg.sv')
 

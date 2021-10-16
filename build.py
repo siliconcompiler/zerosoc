@@ -20,9 +20,6 @@ def init_chip(jobid=0):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     chip.add('define', f'MEM_ROOT={cur_dir}')
 
-    if jobid is not None:
-        chip.set('jobid', str(jobid))
-
     return chip
 
 def configure_svflow(chip, start=None, stop=None, verify=True):
@@ -39,26 +36,26 @@ def configure_svflow(chip, start=None, stop=None, verify=True):
     for i, (step, tool) in enumerate(flowpipe):
         if i > 0:
             input_step, _ = flowpipe[i-1]
-            chip.add('flowgraph', step, '0', 'input', input_step, '0')
+            chip.add('flowgraph', step, '0', 'input', input_step + '0')
         chip.set('flowgraph', step, '0', 'tool', tool)
 
     if verify:
         chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
-        chip.add('flowgraph', 'extspice', '0', 'input', 'export', '0')
+        chip.add('flowgraph', 'extspice', '0', 'input', 'export0')
 
         chip.set('flowgraph', 'lvsjoin', '0', 'function', 'step_join')
-        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'dfm', '0')
-        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice', '0')
+        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'dfm0')
+        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice0')
 
         chip.set('flowgraph', 'lvs', '0', 'tool', 'netgen')
-        chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin', '0')
+        chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin0')
 
         chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
-        chip.add('flowgraph', 'drc', '0', 'input', 'export', '0')
+        chip.add('flowgraph', 'drc', '0', 'input', 'export0')
 
         chip.set('flowgraph', 'signoff', '0', 'function', 'step_join')
-        chip.add('flowgraph', 'signoff', '0', 'input', 'lvs', '0')
-        chip.add('flowgraph', 'signoff', '0', 'input', 'drc', '0')
+        chip.add('flowgraph', 'signoff', '0', 'input', 'lvs0')
+        chip.add('flowgraph', 'signoff', '0', 'input', 'drc0')
 
     # steps = [step for step, _ in flowpipe]
     # startidx = steps.index(start) if start else 0
@@ -76,26 +73,26 @@ def configure_physflow(chip, start=None, stop=None):
     chip.set('flowgraph', 'import', '0', 'tool', 'verilator')
 
     chip.set('flowgraph', 'syn', '0', 'tool', 'yosys')
-    chip.add('flowgraph', 'syn', '0', 'input', 'import', '0')
+    chip.add('flowgraph', 'syn', '0', 'input', 'import0')
 
     chip.set('flowgraph', 'export', '0', 'tool', 'klayout')
 
     chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
-    chip.add('flowgraph', 'extspice', '0', 'input', 'export', '0')
+    chip.add('flowgraph', 'extspice', '0', 'input', 'export0')
 
     chip.set('flowgraph', 'lvsjoin', '0', 'function', 'step_join')
-    chip.add('flowgraph', 'lvsjoin', '0', 'input', 'syn', '0')
-    chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice', '0')
+    chip.add('flowgraph', 'lvsjoin', '0', 'input', 'syn0')
+    chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice0')
 
     chip.set('flowgraph', 'lvs', '0', 'tool', 'netgen')
-    chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin', '0')
+    chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin0')
 
     chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
-    chip.add('flowgraph', 'drc', '0', 'input', 'export', '0')
+    chip.add('flowgraph', 'drc', '0', 'input', 'export0')
 
     chip.set('flowgraph', 'signoff', '0', 'function', 'step_join')
-    chip.add('flowgraph', 'signoff', '0', 'input', 'lvs', '0')
-    chip.add('flowgraph', 'signoff', '0', 'input', 'drc', '0')
+    chip.add('flowgraph', 'signoff', '0', 'input', 'lvs0')
+    chip.add('flowgraph', 'signoff', '0', 'input', 'drc0')
 
     # Make sure errors are reported in summary()
     for step in chip.getkeys('flowgraph'):
