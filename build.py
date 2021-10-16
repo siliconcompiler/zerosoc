@@ -22,7 +22,7 @@ def init_chip(jobid=0):
 
     return chip
 
-def configure_svflow(chip, start=None, stop=None, verify=True):
+def configure_svflow(chip, verify=True):
     flowpipe = [('import', 'surelog'),
                 ('convert', 'sv2v'),
                 ('syn', 'yosys'),
@@ -57,11 +57,6 @@ def configure_svflow(chip, start=None, stop=None, verify=True):
         chip.add('flowgraph', 'signoff', '0', 'input', 'lvs0')
         chip.add('flowgraph', 'signoff', '0', 'input', 'drc0')
 
-    # steps = [step for step, _ in flowpipe]
-    # startidx = steps.index(start) if start else 0
-    # stopidx = steps.index(stop) + 1 if stop else len(steps)
-    # chip.set('steplist', steps[startidx:stopidx])
-
     # Make sure errors are reported in summary()
     for step in chip.getkeys('flowgraph'):
         chip.set('flowgraph', step, '0', 'weight', 'errors', 1.0)
@@ -69,30 +64,31 @@ def configure_svflow(chip, start=None, stop=None, verify=True):
     chip.set('showtool', 'def', 'klayout')
     chip.set('showtool', 'gds', 'klayout')
 
-def configure_physflow(chip, start=None, stop=None):
-    chip.set('flowgraph', 'import', '0', 'tool', 'verilator')
-
-    chip.set('flowgraph', 'syn', '0', 'tool', 'yosys')
-    chip.add('flowgraph', 'syn', '0', 'input', 'import0')
-
+def configure_physflow(chip, verify=True):
     chip.set('flowgraph', 'export', '0', 'tool', 'klayout')
 
-    chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
-    chip.add('flowgraph', 'extspice', '0', 'input', 'export0')
+    if verify:
+        chip.set('flowgraph', 'import', '0', 'tool', 'verilator')
 
-    chip.set('flowgraph', 'lvsjoin', '0', 'function', 'step_join')
-    chip.add('flowgraph', 'lvsjoin', '0', 'input', 'syn0')
-    chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice0')
+        chip.set('flowgraph', 'syn', '0', 'tool', 'yosys')
+        chip.add('flowgraph', 'syn', '0', 'input', 'import0')
 
-    chip.set('flowgraph', 'lvs', '0', 'tool', 'netgen')
-    chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin0')
+        chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
+        chip.add('flowgraph', 'extspice', '0', 'input', 'export0')
 
-    chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
-    chip.add('flowgraph', 'drc', '0', 'input', 'export0')
+        chip.set('flowgraph', 'lvsjoin', '0', 'function', 'step_join')
+        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'syn0')
+        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice0')
 
-    chip.set('flowgraph', 'signoff', '0', 'function', 'step_join')
-    chip.add('flowgraph', 'signoff', '0', 'input', 'lvs0')
-    chip.add('flowgraph', 'signoff', '0', 'input', 'drc0')
+        chip.set('flowgraph', 'lvs', '0', 'tool', 'netgen')
+        chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin0')
+
+        chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
+        chip.add('flowgraph', 'drc', '0', 'input', 'export0')
+
+        chip.set('flowgraph', 'signoff', '0', 'function', 'step_join')
+        chip.add('flowgraph', 'signoff', '0', 'input', 'lvs0')
+        chip.add('flowgraph', 'signoff', '0', 'input', 'drc0')
 
     # Make sure errors are reported in summary()
     for step in chip.getkeys('flowgraph'):
@@ -134,10 +130,10 @@ def configure_libs(chip):
     # foundry-validated
     chip.set('exclude', ['ram', 'io'])
 
-def configure_asic_core(chip, start, stop, verify=True):
+def configure_asic_core(chip, verify=True):
     chip.set('design', 'asic_core')
     chip.target('skywater130')
-    configure_svflow(chip, start, stop, verify)
+    configure_svflow(chip, verify)
     chip.set('eda', 'openroad', 'place', '0', 'option', 'place_density', ['0.15'])
     configure_libs(chip)
 
@@ -156,10 +152,10 @@ def configure_asic_core(chip, start, stop, verify=True):
 
     chip.add('source', 'hw/prim/sky130/prim_sky130_clock_gating.v')
 
-def configure_asic_top(chip, start, stop):
+def configure_asic_top(chip, verify=True):
     chip.set('design', 'asic_top')
     chip.target('skywater130')
-    configure_physflow(chip, start, stop)
+    configure_physflow(chip, verify)
     configure_libs(chip)
 
     # Hack: pass in empty constraint file to get rid of KLayout post-process
@@ -205,14 +201,14 @@ def configure_fpga(chip):
     chip.add('source', 'hw/top_icebreaker.v')
     chip.set('constraint', 'fpga/icebreaker.pcf')
 
-def build_fpga(start='import', stop='bitstream'):
+def build_fpga():
     chip = init_chip()
     configure_fpga(chip)
     run_build(chip)
 
-def build_core(start='import', stop='lvs', verify=True):
+def build_core(verify=True):
     chip = init_chip()
-    configure_asic_core(chip, start, stop, verify)
+    configure_asic_core(chip, verify)
     generate_core_floorplan(chip)
     run_build(chip)
 
@@ -222,7 +218,7 @@ def build_core(start='import', stop='lvs', verify=True):
     shutil.copy(gds, os.path.basename(gds))
     shutil.copy(netlist, os.path.basename(netlist))
 
-def build_top(start='import', stop='drc'):
+def build_top(verify=True):
     # check for necessary files generated by previous steps
     if not (os.path.isfile('asic_core.gds') and
             os.path.isfile('asic_core.lef') and
@@ -231,17 +227,17 @@ def build_top(start='import', stop='drc'):
                         "Please re-run build.py without --top-only")
 
     chip = init_chip()
-    configure_asic_top(chip, start, stop)
+    configure_asic_top(chip, verify)
     generate_top_floorplan(chip)
     run_build(chip)
 
 def build_floorplans():
     chip = init_chip()
-    configure_asic_core(chip, 'import', 'export')
+    configure_asic_core(chip)
     generate_core_floorplan(chip)
 
     chip = init_chip()
-    configure_asic_top(chip, 'import', 'export_hack')
+    configure_asic_top(chip)
     generate_top_floorplan(chip)
 
 def run_build(chip):
@@ -255,27 +251,24 @@ def main():
     parser.add_argument('--top-only', action='store_true', default=False, help='Only integrate ASIC core into padring. Assumes ASIC core already built.')
     parser.add_argument('--floorplan-only', action='store_true', default=False, help='Generate floorplans only.')
     parser.add_argument('--dump-flowgraph', action='store_true', default=False, help='Dump diagram of flowgraphs only.')
-    parser.add_argument('--no-verification', action='store_true', default=False, help="Don't run DRC or LVS.")
-    parser.add_argument('-a', '--start', default='import', help='Start step (for single-part builds)')
-    parser.add_argument('-z', '--stop', default='drc', help='Stop step (for single-part builds)')
+    parser.add_argument('--no-verify', action='store_true', default=False, help="Don't run DRC and LVS.")
     options = parser.parse_args()
 
+    verify = not options.no_verify
+
     if options.fpga:
-        build_fpga(options.start, options.stop)
+        build_fpga()
     elif options.floorplan_only:
         build_floorplans()
     elif options.dump_flowgraph:
         dump_flowgraphs()
     elif options.core_only:
-        build_core(options.start, options.stop)
+        build_core(verify=verify)
     elif options.top_only:
-        build_top(options.start, options.stop)
-    elif options.no_verification:
-        build_core(verify=False)
-        build_top(stop='export')
+        build_top(verify=verify)
     else:
         build_core(verify=False)
-        build_top(stop='lvs')
+        build_top(verify=verify)
 
 if __name__ == '__main__':
     main()
