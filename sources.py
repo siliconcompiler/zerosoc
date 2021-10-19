@@ -20,6 +20,11 @@ def add_sources(chip):
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_esc_pkg.sv')
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_ram_1p_pkg.sv')
 
+    # Hack to work around Yosys + Surelog issue. Even though this is found in
+    # one of our ydirs, we get different synthesis results if this isn't ordered
+    # earlier.
+    chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv')
+
     # TODO: we're overwriting the OpenTitan uart_core, so need to include this
     # module explicitly
     chip.add('source', 'hw/uart_core.sv')
