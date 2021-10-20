@@ -37,7 +37,9 @@ generate
       .wmask0(wmask),
       .addr0(addr_i),
       .din0(wdata_i),
-      .dout0(rdata_o)
+      .dout0(rdata_o),
+      .clk1(1'b0),
+      .csb1(1'b0)
     );
   end else begin
     // error!

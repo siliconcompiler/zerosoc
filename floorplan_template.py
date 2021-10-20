@@ -151,7 +151,8 @@ def core_floorplan(fp):
     ram_w = fp.available_cells[RAM].width
     ram_h = fp.available_cells[RAM].height
     ram_x = place_w + margin_left - ram_w
-    ram_y = place_h + margin_bottom - ram_h
+    ram_y = place_h + margin_bottom - ram_h - 15 * fp.stdcell_height
+
     instance_name = 'soc.ram.u_mem.gen_sky130.u_impl_sky130.gen32x512.mem'
     fp.place_macros([(instance_name, RAM)], ram_x, ram_y, 0, 0, 'N', snap=True)
     #@ end ram_placement
