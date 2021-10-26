@@ -1,5 +1,7 @@
 # ZeroSoC
 
+[![Nightly ZeroSoC Build](https://github.com/siliconcompiler/zerosoc/actions/workflows/build.yml/badge.svg)](https://github.com/siliconcompiler/zerosoc/actions/workflows/build.yml)
+
 ZeroSoC is a basic RISC-V SoC meant to demonstrate the capabilities of
 SiliconCompiler. ZeroSoC currently consists of an Ibex core, the OpenTitan's
 UART and GPIO peripherals, and 8 KB of RAM.
