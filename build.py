@@ -22,54 +22,12 @@ def init_chip(jobid=0):
 
     return chip
 
-def configure_svflow(chip, verify=True):
-    flowpipe = [('import', 'surelog'),
-                ('convert', 'sv2v'),
-                ('syn', 'yosys'),
-                ('floorplan', 'openroad'),
-                ('place', 'openroad'),
-                ('cts', 'openroad'),
-                ('route', 'openroad'),
-                ('dfm', 'openroad'),
-                ('export', 'klayout')]
-
-    for i, (step, tool) in enumerate(flowpipe):
-        if i > 0:
-            input_step, _ = flowpipe[i-1]
-            chip.add('flowgraph', step, '0', 'input', input_step + '0')
-        chip.set('flowgraph', step, '0', 'tool', tool)
-
-    if verify:
-        chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
-        chip.add('flowgraph', 'extspice', '0', 'input', 'export0')
-
-        chip.set('flowgraph', 'lvsjoin', '0', 'function', 'step_join')
-        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'dfm0')
-        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice0')
-
-        chip.set('flowgraph', 'lvs', '0', 'tool', 'netgen')
-        chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin0')
-
-        chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
-        chip.add('flowgraph', 'drc', '0', 'input', 'export0')
-
-        chip.set('flowgraph', 'signoff', '0', 'function', 'step_join')
-        chip.add('flowgraph', 'signoff', '0', 'input', 'lvs0')
-        chip.add('flowgraph', 'signoff', '0', 'input', 'drc0')
-
-    # Make sure errors are reported in summary()
-    for step in chip.getkeys('flowgraph'):
-        chip.set('flowgraph', step, '0', 'weight', 'errors', 1.0)
-
-    chip.set('showtool', 'def', 'klayout')
-    chip.set('showtool', 'gds', 'klayout')
-
 def configure_physflow(chip, verify=True):
+    chip.set('flowgraph', 'import', '0', 'tool', 'surelog')
     chip.set('flowgraph', 'export', '0', 'tool', 'klayout')
+    chip.set('flowgraph', 'export', '0', 'input', 'import0')
 
     if verify:
-        chip.set('flowgraph', 'import', '0', 'tool', 'verilator')
-
         chip.set('flowgraph', 'syn', '0', 'tool', 'yosys')
         chip.add('flowgraph', 'syn', '0', 'input', 'import0')
 
@@ -98,10 +56,6 @@ def configure_physflow(chip, verify=True):
     chip.set('showtool', 'gds', 'klayout')
 
 def dump_flowgraphs():
-    chip = init_chip()
-    configure_svflow(chip)
-    chip.writegraph('svflow.svg')
-
     chip = init_chip()
     configure_physflow(chip)
     chip.writegraph('physflow.svg')
@@ -132,9 +86,11 @@ def configure_libs(chip):
 
 def configure_asic_core(chip, verify=True):
     chip.set('design', 'asic_core')
-    chip.target('skywater130')
-    configure_svflow(chip, verify)
+    if verify:
+        chip.set('flowarg', 'verify', ['true'])
+    chip.target('asicflow_skywater130')
     chip.set('eda', 'openroad', 'place', '0', 'option', 'place_density', ['0.15'])
+    chip.set('eda', 'openroad', 'route', '0', 'option', 'grt_allow_congestion', ['true'])
     configure_libs(chip)
 
     add_sources(chip)
