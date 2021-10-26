@@ -187,6 +187,8 @@ def build_top(verify=True):
     generate_top_floorplan(chip)
     run_build(chip)
 
+    return chip
+
 def build_floorplans():
     chip = init_chip()
     configure_asic_core(chip)
