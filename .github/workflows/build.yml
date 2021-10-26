@@ -20,6 +20,7 @@ jobs:
           cd siliconcompiler
           git submodule update --init --recursive third_party/tools/openroad
           pip install -e .
+          pip install pytest
           cd ..
       - run: |
           source $GITHUB_WORKSPACE/clean_env/bin/activate
