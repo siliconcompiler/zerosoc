@@ -1,0 +1,26 @@
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+name: 'Nightly ZeroSoC Build'
+
+jobs:
+  zerosoc_build_job:
+    timeout-minutes: 60
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          submodules: recursive
+      - run: |
+          python3 -m venv create $GITHUB_WORKSPACE/clean_env --clear
+          source $GITHUB_WORKSPACE/clean_env/bin/activate
+          git clone ssh://git@github.com/siliconcompiler/siliconcompiler.git
+          cd siliconcompiler
+          git submodule update --init --recursive third_party/tools/openroad
+          pip install -e .
+          cd ..
+      - run: |
+          source $GITHUB_WORKSPACE/clean_env/bin/activate
+          pytest build.py

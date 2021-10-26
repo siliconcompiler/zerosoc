@@ -200,6 +200,13 @@ def run_build(chip):
     chip.run()
     chip.summary()
 
+def test_zerosoc_build():
+    build_core(verify=False)
+    chip = build_top(verify=True)
+
+    assert chip.get('metric', 'lvs', '0', 'errors', 'real') == 0
+    assert chip.get('metric', 'drc', '0', 'errors', 'real') == 0
+
 def main():
     parser = argparse.ArgumentParser(description='Build ZeroSoC')
     parser.add_argument('--fpga', action='store_true', default=False, help='Build for ice40 FPGA (build ASIC by default)')
