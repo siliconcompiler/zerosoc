@@ -1,14 +1,13 @@
 import argparse
 import siliconcompiler as sc
 import os
-import importlib
 import shutil
 
 from sources import add_sources
 
 from floorplan_template import generate_core_floorplan, generate_top_floorplan
 
-def init_chip(jobid=0):
+def init_chip():
     chip = sc.Chip()
 
     # Prevent us from erroring out on lint warnings during import
