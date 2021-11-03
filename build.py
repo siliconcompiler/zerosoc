@@ -22,30 +22,29 @@ def init_chip():
     return chip
 
 def configure_physflow(chip, verify=True):
-    chip.set('flowgraph', 'import', '0', 'tool', 'surelog')
-    chip.set('flowgraph', 'export', '0', 'tool', 'klayout')
-    chip.set('flowgraph', 'export', '0', 'input', 'import0')
+    chip.node('import', 'surelog')
+    chip.node('export', 'klayout')
+    chip.edge('import', 'export')
 
     if verify:
-        chip.set('flowgraph', 'syn', '0', 'tool', 'yosys')
-        chip.add('flowgraph', 'syn', '0', 'input', 'import0')
+        chip.node('syn', 'yosys')
+        chip.edge('import', 'syn')
+        chip.node('extspice', 'magic')
+        chip.edge('export', 'extspice')
 
-        chip.set('flowgraph', 'extspice', '0', 'tool', 'magic')
-        chip.add('flowgraph', 'extspice', '0', 'input', 'export0')
+        chip.node('lvsjoin', 'join')
+        chip.edge('syn', 'lvsjoin')
+        chip.edge('extspice', 'lvsjoin')
 
-        chip.set('flowgraph', 'lvsjoin', '0', 'function', 'step_join')
-        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'syn0')
-        chip.add('flowgraph', 'lvsjoin', '0', 'input', 'extspice0')
+        chip.node('lvs', 'netgen')
+        chip.edge('lvsjoin', 'lvs')
 
-        chip.set('flowgraph', 'lvs', '0', 'tool', 'netgen')
-        chip.add('flowgraph', 'lvs', '0', 'input', 'lvsjoin0')
+        chip.node('drc', 'magic')
+        chip.edge('export', 'drc')
 
-        chip.set('flowgraph', 'drc', '0', 'tool', 'magic')
-        chip.add('flowgraph', 'drc', '0', 'input', 'export0')
-
-        chip.set('flowgraph', 'signoff', '0', 'function', 'step_join')
-        chip.add('flowgraph', 'signoff', '0', 'input', 'lvs0')
-        chip.add('flowgraph', 'signoff', '0', 'input', 'drc0')
+        chip.node('signoff', 'join')
+        chip.edge('lvs', 'signoff')
+        chip.edge('drc', 'signoff')
 
     # Make sure errors are reported in summary()
     for step in chip.getkeys('flowgraph'):
