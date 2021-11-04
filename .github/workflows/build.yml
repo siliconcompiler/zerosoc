@@ -19,6 +19,7 @@ jobs:
           git clone ssh://git@github.com/siliconcompiler/siliconcompiler.git
           cd siliconcompiler
           git submodule update --init --recursive third_party/tools/openroad
+          git rev-parse HEAD
           pip install -e .
           pip install pytest
           cd ..
