@@ -86,6 +86,7 @@ def configure_asic_core(chip, verify=True):
     chip.set('design', 'asic_core')
     if verify:
         chip.set('flowarg', 'verify', ['true'])
+    chip.set('flowarg', 'sv', ['true'])
     chip.target('asicflow_skywater130')
     chip.set('eda', 'openroad', 'place', '0', 'option', 'place_density', ['0.15'])
     chip.set('eda', 'openroad', 'route', '0', 'option', 'grt_allow_congestion', ['true'])
