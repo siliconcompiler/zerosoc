@@ -149,7 +149,8 @@ def configure_asic_top(chip, verify=True):
 
 def configure_fpga(chip):
     chip.set('design', 'top_icebreaker')
-    chip.target('target', 'ice40_fpgaflow')
+    chip.set('flowarg', 'sv', ['true'])
+    chip.target('fpgaflow_ice40up5k-sg48')
 
     add_sources(chip)
 
