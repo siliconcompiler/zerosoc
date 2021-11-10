@@ -155,7 +155,10 @@ def configure_fpga(chip):
     add_sources(chip)
 
     chip.add('source', 'hw/top_icebreaker.v')
+    chip.add('source', 'hw/prim/ice40/prim_ice40_clock_gating.v')
     chip.set('constraint', 'fpga/icebreaker.pcf')
+
+    chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplIce40"')
 
 def build_fpga():
     chip = init_chip()
