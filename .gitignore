@@ -19,5 +19,5 @@ asic_top.def
 __pycache__/
 
 # Stuff generated from tutorial template
-floorplan.py
 zerosoc.rst
+

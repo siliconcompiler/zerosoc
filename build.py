@@ -5,7 +5,7 @@ import shutil
 
 from sources import add_sources
 
-from floorplan_template import generate_core_floorplan, generate_top_floorplan
+from floorplan import generate_core_floorplan, generate_top_floorplan
 
 def init_chip():
     chip = sc.Chip()
