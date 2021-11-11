@@ -589,7 +589,8 @@ def top_floorplan(fp):
 
     #@ screenshottop unfilled_padring.png
 
-    # Connections to vddio pins
+    ## Connections to vddio pins ##
+    #@ begin place_vddio_pins
     pin_width = 23.9
     pin_offsets = (0.495, 50.39)
 
@@ -623,6 +624,7 @@ def top_floorplan(fp):
             for offset in pin_offsets:
                 fp.place_wires (['_vddio'], x + offset, pad_h, 0, 0,
                                 pin_width, margin_bottom + pow_gap, 'm3')
+    #@ end place_vddio_pins
 
     ## Place corner cells ##
     #@ begin place_macros

@@ -14,7 +14,7 @@ else:
 
 SCREENSHOTS = False
 GENERATE_DEFS = False
-GENERATE_SPHINX = False
+GENERATE_SPHINX = True
 
 def dump_def(fp_code, filename, design):
     scope = {}
@@ -30,7 +30,8 @@ def dump_def(fp_code, filename, design):
     basename = os.path.splitext(filename)[0]
 
     os.makedirs('tmp', exist_ok=True)
-    fp.write_def(f'tmp/{basename}.def')
+    def_file = f'tmp/{basename}.def'
+    fp.write_def(def_file)
 
     return def_file
 
@@ -38,7 +39,7 @@ def screenshot(fp_code, filename, design):
     def_file = dump_def(fp_code, filename, design)
 
     if SCREENSHOTS:
-        cmd = f'klayout -z -rd input_layout={def_file} -rm scrotLayout.py'
+        cmd = f'klayout -z -rd input_layout={def_file} -rm utils/scrotLayout.py'
         subprocess.run(cmd, shell=True)
 
         shutil.copy(f'tmp/{filename}', f'{SC_HOME}/docs/tutorials/_images')

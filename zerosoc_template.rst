@@ -31,32 +31,53 @@ develop your own floorplan using this API.
 Getting Started
 ---------------
 Before we begin, the first thing to know is that the ZeroSoC ASIC is built in
-two different parts:
+two parts:
 
 * First, the *core*, which contains the actual digital logic implementing the
   ZeroSoC.
 * Second, the *top-level*, which wraps the core and places the ZeroSoC's padring
   (the portion that implements I/O) around it.
 
-The ZeroSoC core is built using SC's included OpenROAD-based flow, and it has
+We build the ZeroSoC core using SC's included OpenROAD-based flow, and it has
 metal pins along its sides for input and output. The core and padring are
-designed such that these pins route to the inner pins of the I/O pads by
+designed so that these pins route to the inner pins of the I/O pads by
 abutment. Therefore, the top-level does not require automated place and route --
 it is defined entirely by the top-level floorplan file. This manual placement is
 verified through DRC and LVS, ensuring that it satisfies foundry design rules
-and that it matches the Verilog netlist. This two-part build is important to
-understand since we will specify the floorplans of each component separately.
+and that it matches the Verilog netlist. Understanding this two-part build is
+important since we will specify the floorplans of each component separately.
 
-.. image:: _images/abutment.png
+.. figure:: _images/abutment.png
+  
+  Note how the pins on the edge of the ZeroSoC core (white background) line up
+  with the pins along the edge of the GPIO pads (gray background).  
 
 Let's begin by cloning the ZeroSoC Github repository. Be sure to initialize the
 submodules to pull down the required third-party design files:
 
-.. code-block:: bash
+.. code-block:: console 
 
-  git clone https://github.com/siliconcompiler/zerosoc.git
-  git submodule update --init --recursive
+  $ git clone https://github.com/siliconcompiler/zerosoc.git
+  $ git submodule update --init --recursive
 
+In order to follow along, you should also :ref:`install
+SiliconCompiler<Installation from PyPI>` and the :ref:`KLayout layout
+viewer<Layout viewer>`. 
+
+If you install SC from PyPI rather than from source, you'll need to clone the
+SiliconCompiler repository and configure your SC path to point to the repo in
+order to access the included PDK files:
+
+.. code-block:: console
+
+  $ git clone https://github.com/siliconcompiler/siliconcompiler.git
+  $ export SCPATH=$PWD/siliconcompiler/siliconcompiler
+
+.. note:: 
+   If you close your shell, you'll need to rerun the ``export`` command from the
+   code block above in your next session. To avoid this, you can add the command
+   to your ``~/.bashrc`` to have it always apply.
+   
 The ZeroSoC repo already includes a completed floorplan, ``floorplan.py``. If
 you want to follow along with each step of this tutorial, go ahead and delete or
 rename that file and create a blank ``floorplan.py`` in its place. Then, copy in
@@ -155,12 +176,12 @@ library, your definition of ``configure_chip()`` should look like this::
 
 ..@include configure_chip
 
-Note we've also added a line to set up the chip's ``showtool`` parameter.  While
-this isn't part of the minimal configuration required for using the floorplan
-API, it is required to use ``sc-show``, a tool we'll use to preview your
-floorplan later on in the tutorial. This configuration is normally handled by
-the flow, but we need to do it ourselves since we don't have a flow target for
-this minimal config.
+Note we've also added a few lines to set up the chip's ``showtool`` parameter.
+While this isn't part of the minimal configuration required for using the
+floorplan API, it is required to use ``sc-show``, a tool we'll use to preview
+your floorplan later on in the tutorial. This will usually be handled for you by
+SC's built-in flows, but we need to do it ourselves here since we don't have a
+flow target for this minimal config.
 
 Before moving on, we'll also define some constants above ``configure_chip()`` in
 order to concisely reference the names of each macro we plan to use::
@@ -182,8 +203,8 @@ You can place this function right after ``configure_chip()``::
 
 First, let's define two variables that specify the size of the area in the
 middle of the chip where automated place and route can put standard cells, as
-well as a variables each for the size of the bottom and left margins around the
-area, where the power delivery rings will go::
+well as two variables that specify the size of the bottom and left margins
+around this area. The power delivery rings will go in this margin::
 
 ..@include place_dims
 
@@ -192,8 +213,8 @@ Note that these dimensions are calculated based on two values extracted from the
 margins are multiples of the standard cell size ensures that routing tracks and
 standard cell placement are aligned properly for the automated place and route
 tool to easily route to each cell. This is an example of why we need to provide
-a configured chip object to instantiate our Floorplan object -- that's how it
-extracts this information.
+a configured ``Chip`` object to instantiate our ``Floorplan`` object -- that's
+how it extracts this information.
 
 Based on these margins and placement area, we can compute the size of the core
 itself::
@@ -210,7 +231,7 @@ Our padring height is going to be equal to the height of our I/O library's GPIO
 cell. The floorplan API provides us with the ability to look up the dimensions
 of macros through its ``available_cells`` dictionary.
 
-We also wrap this calculation in ``math.ceil`` to round these dimensions up to
+We also wrap this calculation in ``math.ceil()`` to round these dimensions up to
 a whole number of microns. Having these dimensions be whole numbers is necessary
 for us to construct the padring, which we'll discuss later on in the tutorial.
 
@@ -249,9 +270,9 @@ our floorplan in DEF format, while ``core_manifest.json`` contains our chip
 configuration in SiliconCompiler’s JSON manifest format. We can display this DEF
 file in KLayout by running the following command:
 
-.. code-block:: bash
+.. code-block:: console
 
-  $ sc-show asic_core.def -cfg core_manifest.json
+  $ sc-show -asic_def asic_core.def -cfg core_manifest.json
 
 ``sc-show`` uses the information in ``core_manifest.json`` to configure KLayout
 according to our technology and macro library specifications to give you a
@@ -276,8 +297,10 @@ call to ``create_diearea()``::
 
 We use our predefined dimensions as well as the RAM size information stored in
 ``available_cells`` to place the macro in the upper-right corner of the design.
-We place it here since the only pins we need to access are on the left and
-bottom of the macro, and this ensures those pins are easily accessible.
+We place it here because most of the pins we need to access are on the left and
+bottom of the macro, and this ensures those pins are easily accessible. We lower
+its height by a bit to make space for the router to tie-off a couple pins on the
+other sides of the macro.
 
 It's important to pay attention to how macro instances are specified. Each
 macro is specified as a tuple of two strings: the first is the particular
@@ -328,8 +351,8 @@ defining four lists with the order of the I/O pad types on each side::
 
 We want to design the floorplan so that the pad cells are evenly spaced along the
 west and south sides of the chip, and evenly spaced in two groups on the north
-and east sides. Although we could calculate out the positions by hand, since
-we're using Python, we can do it programatically instead!
+and east sides. We could calculate the positions by hand, but since we're using
+Python, we can do it programatically instead!
 
 First, we'll define a helper function called ``calculate_even_spacing()``::
 
@@ -409,7 +432,7 @@ parameter is a list of pin names that should be connected to that net (in our
 case, "VPWR" and "VGND" for the standard cells, and "vccd1" and "vssd1" for the RAM
 macro).  Finally, the last parameter gives the type of net, based on a set of
 labels defined in the DEF standard. In our case, "_vdd" is of type "power" and
-"_vss" is of type "ground".
+"_vss" is of type "ground."
 
 With this configuration done, any calls to the floorplan API relating to our
 power nets can refer to either the "_vdd" net or the "_vss" net by name.
@@ -448,8 +471,8 @@ a few for-loops over the pads::
 ..@include power_pad_connections
 
 We use ``place_pins()`` here since these wires are all associated with the
-top-level power pins of the core. However, we also have to make a call to
-``place_wires()`` overlapping these pins for two reasons:
+top-level power pins of the core. However, for the VDD and VSS pads we also have
+to make a call to ``place_wires()`` overlapping these pins for two reasons:
 
 1. Via generation (covered later) only looks at special nets, and we need to
    ensure that there are vias inserted between these pins and the power ring
@@ -459,6 +482,9 @@ top-level power pins of the core. However, we also have to make a call to
    to account for the difference in height between the GPIO and power padcells.
    This is why ``pow_gap`` is used in the dimension calculations for the wires,
    but not the pins.
+
+The VDDIO pins don't need an overlapping special net because VDDIO is routed to
+GPIO pin tie-offs automatically by the signal router.
 
 With these wires added, you should see something like the following along each
 side of your design:
@@ -576,10 +602,16 @@ place pins directly underneath these pads, shorted to the pads by being placed
 on the same layer (in this case, metal 5).
 
 Now, if we build this and open ``asic_top.def``, you should see I/O macros
-evenly spaced out along four sides, with the ordering of GPIO versus power pads
+spaced out along each side, with the ordering of GPIO versus power pads
 corresponding to the lists defined earlier.
 
 .. image:: _images/unfilled_padring.png
+
+One other thing we need to do is insert wires connecting the VDDIO power pads to
+the pins on the core. We can accomplish this with another set of four loops over
+the pads on each side::
+
+..@include place_vddio_pins
 
 Next, we need to fill in the padring in order to allow power to be routed
 throughout it. First, we'll place corner cells on each of the four corners,
