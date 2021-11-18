@@ -11,7 +11,9 @@ UART and GPIO peripherals, and 8 KB of RAM.
 Clone the repository and all its submodules.
 
 ```
-$ git clone --recursive git@github.com:siliconcompiler/zerosoc.git
+$ git clone git@github.com:siliconcompiler/zerosoc.git
+$ cd zerosoc
+$ git submodule update --init --recursive
 $ pip install -r python-requirements.txt
 ```
 
