@@ -63,26 +63,30 @@ def configure_libs(chip):
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'type', 'component')
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
+    chip.set('library', libname, 'nldm', 'typical', 'lib', True, field='copy')
     chip.set('library', libname, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
+    chip.set('library', libname, 'lef', True, field='copy')
     # Need both GDS files: ef relies on fd one
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
-    chip.set('library', libname, 'site', [])
+    chip.set('library', libname, 'gds', True, field='copy')
 
     libname = 'ram'
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'type', 'component')
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
+    chip.set('library', libname, 'nldm', 'typical', 'lib', True, field='copy')
     chip.add('library', libname, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
+    chip.set('library', libname, 'lef', True, field='copy')
     chip.add('library', libname, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
-    chip.set('library', libname, 'site', [])
+    chip.set('library', libname, 'gds', True, field='copy')
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
     chip.set('exclude', ['ram', 'io'])
 
-def configure_asic_core(chip, verify=True):
+def configure_asic_core(chip, verify=True, remote=False):
     chip.set('design', 'asic_core')
     if verify:
         chip.set('flowarg', 'verify', ['true'])
@@ -106,6 +110,9 @@ def configure_asic_core(chip, verify=True):
     chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
 
     chip.add('source', 'hw/prim/sky130/prim_sky130_clock_gating.v')
+
+    if remote:
+        chip.set('remote', 'proc', True)
 
 def configure_asic_top(chip, verify=True):
     chip.set('design', 'asic_top')
@@ -165,9 +172,9 @@ def build_fpga():
     configure_fpga(chip)
     run_build(chip)
 
-def build_core(verify=True):
+def build_core(verify=True, remote=False):
     chip = init_chip()
-    configure_asic_core(chip, verify)
+    configure_asic_core(chip, verify, remote)
     generate_core_floorplan(chip)
     run_build(chip)
 
@@ -230,6 +237,7 @@ def main():
     parser.add_argument('--floorplan-only', action='store_true', default=False, help='Generate floorplans only.')
     parser.add_argument('--dump-flowgraph', action='store_true', default=False, help='Dump diagram of flowgraphs only.')
     parser.add_argument('--no-verify', action='store_true', default=False, help="Don't run DRC and LVS.")
+    parser.add_argument('--remote', action='store_true', default=False, help="Run on remote server")
     options = parser.parse_args()
 
     verify = not options.no_verify
@@ -241,11 +249,11 @@ def main():
     elif options.dump_flowgraph:
         dump_flowgraphs()
     elif options.core_only:
-        build_core(verify=verify)
+        build_core(verify=verify, remote=options.remote)
     elif options.top_only:
         build_top(verify=verify)
     else:
-        build_core(verify=False)
+        build_core(verify=False, remote=options.remote)
         build_top(verify=verify)
 
 if __name__ == '__main__':
