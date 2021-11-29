@@ -112,7 +112,7 @@ def configure_asic_core(chip, verify=True, remote=False):
     chip.add('source', 'hw/prim/sky130/prim_sky130_clock_gating.v')
 
     if remote:
-        chip.set('remote', 'proc', True)
+        chip.set('remote', True)
 
 def configure_asic_top(chip, verify=True):
     chip.set('design', 'asic_top')
@@ -241,6 +241,9 @@ def main():
     options = parser.parse_args()
 
     verify = not options.no_verify
+
+    if options.remote and not options.core_only:
+        raise ValueError('--remote flag requires --core-only')
 
     if options.fpga:
         build_fpga()
