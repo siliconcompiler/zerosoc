@@ -1,88 +1,63 @@
 # ZeroSoC
 
-[![Nightly ZeroSoC Build](https://github.com/siliconcompiler/zerosoc/actions/workflows/build.yml/badge.svg)](https://github.com/siliconcompiler/zerosoc/actions/workflows/build.yml)
+ZeroSoC is a RISC-V SoC designed to demonstrate the capabilities of
+[SiliconCompiler][sc]. ZeroSoC consists of an [Ibex core][ibex], UART and GPIO
+peripherals from the [OpenTitan][opentitan] project, and 8 KB of RAM.
 
-ZeroSoC is a basic RISC-V SoC meant to demonstrate the capabilities of
-SiliconCompiler. ZeroSoC currently consists of an Ibex core, the OpenTitan's
-UART and GPIO peripherals, and 8 KB of RAM.
+<p align="center">
+  <img src="docs/img/zerosoc.png" height="360px"/>
+</p>
 
 ## Getting Started
 
-Clone the repository and all its submodules.
+Clone the repository and all its submodules:
 
-```
+```console
 $ git clone git@github.com:siliconcompiler/zerosoc.git
 $ cd zerosoc
 $ git submodule update --init --recursive
 $ pip install -r python-requirements.txt
 ```
 
-## Build flow
+Building ZeroSoC locally for ASIC or FPGA targets requires installing external
+tools. See [TODO: insert link to docs] for installation instructions. The build
+script also supports remote builds, which do not require installing additional
+tools.
 
-There are currently three targets supported by this repository: the Icebreaker
-FPGA dev board via SC, simulation with Icarus Verilog, or an ASIC flow via SC.
+## Usage
 
-### Firmware
+[`build.py`](build.py) is ZeroSoC's build script, based around the SiliconCompiler Python
+API. Running this script with no options initiates a local ZeroSoC ASIC build,
+and runs DRC and LVS on the final GDS.
 
-Both the sim and FPGA targets require building the demo firmware `sw/hello.c`.
-To do so, cd into `sw/` and run `make gen/gpio_regs.h`, followed by `make`.
-Building the firmware requires installing the [RISC-V
-toolchain](https://github.com/riscv/riscv-gnu-toolchain). I configured my
-toolchain using `--with-arch=rv32i --with-abi=ilp32`, and ran the build for
-Newlib. A prebuilt multilib toolchain can be downloaded from Embecosm:
+Running `build.py --help` gives information on additional options:
 
 ```
-$ wget https://buildbot.embecosm.com/job/riscv32-gcc-centos7/67/artifact/riscv32-embecosm-gcc-centos7-20210530.tar.gz
-$ tar xvf riscv32-embecosm-gcc-centos7-20210530.tar.gz --strip-components=1 -C ~/.local/
+-h, --help        show this help message and exit
+--fpga            Build FPGA bitstream.
+--core-only       Only build ASIC core GDS.
+--top-only        Only integrate ASIC core into padring. Assumes core already built.
+--floorplan-only  Only generate floorplans.
+--dump-flowgraph  Only dump diagram of flowgraphs.
+--no-verify       Don't run DRC and LVS.
+--remote          Run on remote server. Requires SC remote credentials.
 ```
 
-In addition, generating the `*.mem` file requires the Python utility
-[bin2coe](https://github.com/anishathalye/bin2coe). I plan to change the
-Makefile to just use riscv-gcc's objcopy instead, since I believe newer versions
-can output to this format.
+## Floorplan tutorial
 
-### Simulation
+ZeroSoC's floorplan is defined in [`floorplan.py`](floorplan.py) using
+SiliconCompiler's Python-based floorplanning API. You can find a step-by-step
+tutorial describing how to write this floorplan from scratch here [TODO: insert
+link].
 
-To build the simulation, run `make sim/soc_tb.out`. Running it with
-`./sim/soc_tb.out` generates a waveform `zerosoc.vcd`. Building the
-simulation executable requires installing [sv2v](https://github.com/zachjs/sv2v) and [Icarus Verilog](http://iverilog.icarus.com/).
+## FPGA
 
-### FPGA
-
-- To build the bitstream, run: `python build.py --fpga -a validate`
-     - Note if the build directory already exists, the validate step can be
-     skipped by removing the `-a` flag
-- To build the firmware and embed it in the FPGA bitstream: `make
-zerosoc_hello.bit`
-- To program the FPGA: `iceprog zerosoc_hello.bit`
-
-Building the FPGA bitstream requires the following prerequisites:
-- [SiliconCompiler](https://github.com/siliconcompiler/siliconcompiler/)
-- Surelog
-- [sv2v](https://github.com/zachjs/sv2v),
-- Yosys
-- NextPNR-ice40 and the Icestorm tools (instructions for building/installing
-these can be found [here](http://www.clifford.at/icestorm/)).
-
-### ASIC
-- To run the ASIC flow, run `python build.py -a validate`
-    - Like with the FPGA flow, there's no need for the `-a` option if the build
-      directory already exists.
-
-## Memory map
-
-Putting this here as a single source of truth between `hw/xbar_pkg.sv` and
-`sw/devices.h`. Having a generator for these files could be useful!
-
-(These addresses are based on the addresses used in OpenTitan, but can be
-changed/finalized once full set of peripherals is complete)
-
-Peripheral | Base Address
------------|-------------
-RAM        | 0x00000000
-UART       | 0x40000000
-GPIO       | 0x40010000
+For more details on how to run the ZeroSoC FPGA demo, see [here](docs/fpga.md).
 
 ## License
 
 [Apache License 2.0](LICENSE)
+
+[sc]: https://github.com/siliconcompiler/siliconcompiler
+[ibex]: https://github.com/lowrisc/ibex
+[opentitan]: https://github.com/lowrisc/opentitan

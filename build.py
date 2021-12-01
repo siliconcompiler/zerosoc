@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import argparse
 import siliconcompiler as sc
 import os
@@ -231,13 +233,13 @@ def test_fpga_build():
 
 def main():
     parser = argparse.ArgumentParser(description='Build ZeroSoC')
-    parser.add_argument('--fpga', action='store_true', default=False, help='Build for ice40 FPGA (build ASIC by default)')
+    parser.add_argument('--fpga', action='store_true', default=False, help='Build FPGA bitstream.')
     parser.add_argument('--core-only', action='store_true', default=False, help='Only build ASIC core GDS.')
-    parser.add_argument('--top-only', action='store_true', default=False, help='Only integrate ASIC core into padring. Assumes ASIC core already built.')
-    parser.add_argument('--floorplan-only', action='store_true', default=False, help='Generate floorplans only.')
-    parser.add_argument('--dump-flowgraph', action='store_true', default=False, help='Dump diagram of flowgraphs only.')
+    parser.add_argument('--top-only', action='store_true', default=False, help='Only integrate ASIC core into padring. Assumes core already built.')
+    parser.add_argument('--floorplan-only', action='store_true', default=False, help='Only generate floorplans.')
+    parser.add_argument('--dump-flowgraph', action='store_true', default=False, help='Only dump diagram of flowgraphs.')
     parser.add_argument('--no-verify', action='store_true', default=False, help="Don't run DRC and LVS.")
-    parser.add_argument('--remote', action='store_true', default=False, help="Run on remote server")
+    parser.add_argument('--remote', action='store_true', default=False, help='Run on remote server. Requires SC remote credentials.')
     options = parser.parse_args()
 
     verify = not options.no_verify
