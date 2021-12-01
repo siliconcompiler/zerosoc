@@ -58,31 +58,25 @@ def configure_physflow(chip, verify=True):
 def dump_flowgraphs():
     chip = init_chip()
     configure_physflow(chip)
-    chip.writegraph('physflow.svg')
+    chip.write_flowgraph('physflow.svg')
 
 def configure_libs(chip):
     libname = 'io'
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'type', 'component')
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    chip.set('library', libname, 'nldm', 'typical', 'lib', True, field='copy')
     chip.set('library', libname, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
-    chip.set('library', libname, 'lef', True, field='copy')
     # Need both GDS files: ef relies on fd one
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
     chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
-    chip.set('library', libname, 'gds', True, field='copy')
 
     libname = 'ram'
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'type', 'component')
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    chip.set('library', libname, 'nldm', 'typical', 'lib', True, field='copy')
     chip.add('library', libname, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
-    chip.set('library', libname, 'lef', True, field='copy')
     chip.add('library', libname, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
-    chip.set('library', libname, 'gds', True, field='copy')
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
@@ -94,9 +88,16 @@ def configure_asic_core(chip, verify=True, remote=False):
         chip.set('flowarg', 'verify', ['true'])
     chip.set('flowarg', 'sv', ['true'])
     chip.target('asicflow_skywater130')
-    chip.set('eda', 'openroad', 'place', '0', 'option', 'place_density', ['0.15'])
-    chip.set('eda', 'openroad', 'route', '0', 'option', 'grt_allow_congestion', ['true'])
+    chip.set('eda', 'openroad', 'place', '0', 'variable', 'place_density', ['0.15'])
+    chip.set('eda', 'openroad', 'route', '0', 'variable', 'grt_allow_congestion', ['true'])
     configure_libs(chip)
+
+    # Need to copy library files into build directory for remote run so the
+    # server can access them
+    if remote:
+        chip.set('library', 'ram', 'nldm', 'typical', 'lib', True, field='copy')
+        chip.set('library', 'ram', 'lef', True, field='copy')
+        chip.set('library', 'ram', 'gds', True, field='copy')
 
     add_sources(chip)
 
@@ -121,10 +122,6 @@ def configure_asic_top(chip, verify=True):
     chip.target('skywater130')
     configure_physflow(chip, verify)
     configure_libs(chip)
-
-    # Hack: pass in empty constraint file to get rid of KLayout post-process
-    # error (must have same name as design)
-    chip.set('constraint', 'asic/asic_top.sdc')
 
     chip.add('source', 'hw/asic_top.v')
     chip.add('source', 'hw/asic_core.bb.v')
@@ -178,6 +175,8 @@ def build_core(verify=True, remote=False):
     chip = init_chip()
     configure_asic_core(chip, verify, remote)
     generate_core_floorplan(chip)
+    # after generating floorplan, we don't need IO in macrolib anymore
+    chip.set('asic', 'macrolib', ['ram'])
     run_build(chip)
 
     # copy out GDS for top-level integration
