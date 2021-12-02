@@ -101,7 +101,7 @@ def configure_asic_core(chip, verify=True, remote=False):
 
     add_sources(chip)
 
-    chip.set('constraint', 'asic/asic_core.sdc')
+    chip.clock(name='core_clock', pin='we_din\[5\]', period=20)
 
     chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
     chip.add('define', 'RAM_DEPTH=512')
@@ -221,6 +221,14 @@ def test_zerosoc_build():
     # currently expect 2 errors that seem like false positives
     assert chip.get('metric', 'lvs', '0', 'errors', 'real') == 2
     assert chip.get('metric', 'drc', '0', 'errors', 'real') == 0
+
+    # check for timing errors
+    assert chip.get('metric', 'route', '0', 'holdslack', 'real') >= 0
+    assert chip.get('metric', 'route', '0', 'holdwns', 'real') >= 0
+    assert chip.get('metric', 'route', '0', 'holdtns', 'real') >= 0
+    assert chip.get('metric', 'route', '0', 'setupslack', 'real') >= 0
+    assert chip.get('metric', 'route', '0', 'setupwns', 'real') >= 0
+    assert chip.get('metric', 'route', '0', 'setuptns', 'real') >= 0
 
     chip = build_top(verify=True)
 

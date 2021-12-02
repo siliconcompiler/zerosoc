@@ -7,6 +7,10 @@ module prim_sky130_clock_gating #(
   output logic clk_o
 );
 
-sky130_fd_sc_hd__dlclkp_1 latch (.CLK (clk_i), .GATE(en_i | test_en_i), .GCLK(clk_o));
+// sky130_fd_sc_hd__dlclkp_1 latch (.CLK (clk_i), .GATE(en_i | test_en_i), .GCLK(clk_o));
+
+// We've noticed issues with OpenROAD CTS's handling of clock gates, so hardcode
+// a passthru for now.
+assign clk_o = clk_i;
 
 endmodule
