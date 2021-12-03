@@ -20,9 +20,9 @@ $ pip install -r python-requirements.txt
 ```
 
 Building ZeroSoC locally for ASIC or FPGA targets requires installing external
-tools. See [TODO: insert link to docs] for installation instructions. The build
-script also supports remote builds, which do not require installing additional
-tools.
+tools. This [page][tools] contains links to installation instructions for SC's
+supported tools. The build script also supports remote builds, which do not
+require installing additional tools.
 
 ## Usage
 
@@ -47,8 +47,7 @@ Running `build.py --help` gives information on additional options:
 
 ZeroSoC's floorplan is defined in [`floorplan.py`](floorplan.py) using
 SiliconCompiler's Python-based floorplanning API. You can find a step-by-step
-tutorial describing how to write this floorplan from scratch here [TODO: insert
-link].
+tutorial describing how to write this floorplan from scratch [here][tutorial].
 
 ## FPGA
 
@@ -61,3 +60,5 @@ For more details on how to run the ZeroSoC FPGA demo, see [here](docs/fpga.md).
 [sc]: https://github.com/siliconcompiler/siliconcompiler
 [ibex]: https://github.com/lowrisc/ibex
 [opentitan]: https://github.com/lowrisc/opentitan
+[tutorial]: https://docs.siliconcompiler.com/en/latest/tutorials/zerosoc.html
+[tools]: https://docs.siliconcompiler.com/en/latest/reference_manual/tools.html
