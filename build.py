@@ -218,8 +218,7 @@ def run_build(chip):
 def test_zerosoc_build():
     chip = build_core(verify=True)
 
-    # currently expect 2 errors that seem like false positives
-    assert chip.get('metric', 'lvs', '0', 'errors', 'real') == 2
+    assert chip.get('metric', 'lvs', '0', 'errors', 'real') == 0
     assert chip.get('metric', 'drc', '0', 'errors', 'real') == 0
 
     # check for timing errors
