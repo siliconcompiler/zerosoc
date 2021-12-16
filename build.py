@@ -80,7 +80,7 @@ def configure_libs(chip):
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
-    chip.set('exclude', ['ram', 'io'])
+    chip.set('asic', 'exclude', ['ram', 'io'])
 
 def configure_asic_core(chip, verify=True, remote=False):
     chip.set('design', 'asic_core')
@@ -107,7 +107,7 @@ def configure_asic_core(chip, verify=True, remote=False):
     chip.add('define', 'RAM_DEPTH=512')
 
     chip.add('source', 'hw/asic_core.v')
-    chip.set('asic', 'def', 'asic_core.def')
+    chip.set('read', 'def', 'floorplan', '0', 'asic_core.def')
 
     chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
     chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
@@ -143,7 +143,7 @@ def configure_asic_top(chip, verify=True):
 
     chip.add('source', 'asic/sky130/io/sky130_io.blackbox.v')
 
-    chip.set('asic', 'def', 'asic_top.def')
+    chip.set('read', 'def', 'export', '0', 'asic_top.def')
 
     libname = 'core'
     chip.add('asic', 'macrolib', libname)
