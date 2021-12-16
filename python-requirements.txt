@@ -1,3 +1,4 @@
 bin2coe
 hjson
 mako
+siliconcompiler
