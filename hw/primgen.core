@@ -1,0 +1,26 @@
+CAPI=2:
+# Copyright lowRISC contributors.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+#Hacked to avoid LowRISC-specific fork of FuseSoC
+name: "lowrisc:prim:primgen:0.1"
+
+filesets:
+  prim:
+    files:
+      - prim/prim_pkg.sv
+      - prim/ice40/prim_ice40_clock_gating.v
+      - prim/prim_buf.sv
+      - prim/prim_ram_1p.sv
+      - prim/prim_flop.sv
+      - prim/prim_flop_2sync.sv
+      - prim/prim_clock_gating.sv
+    file_type : systemVerilogSource
+
+targets:
+  default: {filesets : [prim]}
+generators:
+  primgen:
+    interpreter: python3
+    command: fake_primgen.py
