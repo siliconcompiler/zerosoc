@@ -153,22 +153,88 @@ def configure_asic_top(chip, verify=True):
     chip.set('library', libname, 'cells', 'asic_core', 'asic_core')
     chip.set('library', libname, 'netlist', 'verilog', 'asic_core.vg')
 
-def configure_fpga(chip):
-    chip.set('design', 'top_icebreaker')
+def build_fpga():
+
+    from fusesoc.config import Config
+    from fusesoc.coremanager import CoreManager
+    from fusesoc.edalizer import Edalizer
+    from fusesoc.librarymanager import Library
+    from fusesoc.vlnv import Vlnv
+
+    cm = CoreManager(Config())
+
+    cm.add_library(Library("zerosoc", '.'))
+    #Add hw last because we override some cores from opentitan there
+    cm.add_library(Library("hw", 'hw'))
+
+    core = cm.get_core(Vlnv("zeroasic::zerosoc"))
+
+    edalizer = Edalizer(
+        toplevel=core.name,
+        flags={"tool": "vivado", "target" : "icebreaker"},
+        core_manager=cm,
+        cache_root=cm.config.cache_root,
+        work_root=".",
+        system_name=None,
+    )
+
+    # Run the setup task on all cores (fetch and patch them as needed)
+    edalizer.setup_cores()
+
+    # Get all generators defined in any of the cores
+    edalizer.extract_generators()
+
+    # Run all generators. Generators can create new cores, which are added
+    # to the list of available cores.
+    edalizer.run_generators()
+
+    # Create EDAM contents
+    edalizer.create_eda_api_struct()
+
+    edam = edalizer.edalize
+    
+    chip = sc.Chip()
+
+    # Prevent us from erroring out on lint warnings during import
+    chip.set('relax', 'true')
+    chip.set('quiet', 'true')
+
+    # hack to work around fact that $readmemh now runs in context of build
+    # directory and can't load .mem files using relative paths
+    cur_dir = os.path.dirname(os.path.realpath(__file__))
+    chip.add('define', f'MEM_ROOT={cur_dir}')
+
+    #Flowarg and tech arg needs to be set first
     chip.set('flowarg', 'sv', ['true'])
     chip.target('fpgaflow_ice40up5k-sg48')
 
-    add_sources(chip)
+    #Automatically set sv flowarg when systemVerilogSource files are found?
+    for f in edam.get('files'):
+        if f.get('is_include_file'):
+            chip.add('idir', os.path.dirname(f['name']))
+        elif not 'file_type' in f:
+            print(f['name'] + " has no file type")
+        elif f['file_type'] in ['PCF']:
+            chip.add('constraint', f['name'])
+        else: #FIXME: More sanity checks here
+            chip.add('source', f['name'])
+            print(f['name'])
 
-    chip.add('source', 'hw/top_icebreaker.v')
-    chip.add('source', 'hw/prim/ice40/prim_ice40_clock_gating.v')
-    chip.set('constraint', 'fpga/icebreaker.pcf')
+    for name,p in edam.get('parameters').items():
+        if p['paramtype'] == 'vlogdefine':
+            #This is a bit of a hack. Probably copy some code from Edalize here
+            val = p.get('default', '')
+            if p['datatype'] == 'str':
+                val = f'="{val}"'
+            elif p['datatype'] == 'bool':
+                val = ''
+            else:
+                print("FIXME")
+                exit(1)
+            chip.add('define', name+val)
 
-    chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplIce40"')
+    chip.set('design', edam['toplevel'])
 
-def build_fpga():
-    chip = init_chip()
-    configure_fpga(chip)
     run_build(chip)
 
 def build_core(verify=True, remote=False):

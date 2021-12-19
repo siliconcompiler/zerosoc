@@ -41,7 +41,7 @@ module top_icebreaker (
 `define MAKE_MEM_PATH(filename) `"`MEM_ROOT/filename`"
 
     zerosoc #(
-        .RamInitFile(`MAKE_MEM_PATH(random.mem)),
+        .RamInitFile("/home/olof/projects/siliconcompiler/zerosoc/random.mem"),
         .RamDepth(2048),
         .ASIC(0)
     ) soc(
