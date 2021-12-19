@@ -1,0 +1,45 @@
+CAPI=2:
+
+name : zeroasic::zerosoc:0
+description: Demonstration SoC for SiliconCompiler
+
+filesets:
+  rtl:
+    files:
+      - hw/xbar_pkg.sv
+      - hw/xbar.sv
+      - hw/tl_dbg.sv
+      - hw/zerosoc.sv
+      - hw/top_icebreaker.v
+      - fpga/icebreaker.pcf : {file_type : PCF}
+    file_type : systemVerilogSource
+    depend:
+      - lowrisc:prim:ram_1p_adv
+      - lowrisc:ip:gpio
+      - lowrisc:ip:uart
+
+      - lowrisc:prim_generic:ram_1p
+      - lowrisc:prim_generic:buf
+      - lowrisc:prim_generic:flop_2sync
+      - lowrisc:prim_generic:flop
+      - lowrisc:prim_generic:clock_gating
+
+      - lowrisc:ip:rv_core_ibex
+      - lowrisc:ibex:ibex_pkg #Included by ibex itself somehow?
+
+targets:
+  icebreaker:
+    default_tool: icestorm
+    filesets: [rtl]
+    parameters: [SYNTHESIS, PRIM_DEFAULT_IMPL=prim_pkg::ImplIce40]
+    toplevel : top_icebreaker
+
+parameters:
+  SYNTHESIS:
+    datatype : bool
+    default : true
+    paramtype : vlogdefine
+
+  PRIM_DEFAULT_IMPL:
+    datatype : str
+    paramtype : vlogdefine
