@@ -86,10 +86,10 @@ def configure_asic_core(chip, verify=True, remote=False):
     chip.set('design', 'asic_core')
     if verify:
         chip.set('flowarg', 'verify', ['true'])
-    chip.set('flowarg', 'sv', ['true'])
+    chip.set('frontend', 'systemverilog')
     chip.target('asicflow_skywater130')
-    chip.set('eda', 'openroad', 'place', '0', 'variable', 'place_density', ['0.15'])
-    chip.set('eda', 'openroad', 'route', '0', 'variable', 'grt_allow_congestion', ['true'])
+    chip.set('eda', 'openroad', 'variable', 'place', '0', 'place_density', ['0.15'])
+    chip.set('eda', 'openroad', 'variable', 'route', '0', 'grt_allow_congestion', ['true'])
     configure_libs(chip)
 
     # Need to copy library files into build directory for remote run so the
@@ -155,7 +155,7 @@ def configure_asic_top(chip, verify=True):
 
 def configure_fpga(chip):
     chip.set('design', 'top_icebreaker')
-    chip.set('flowarg', 'sv', ['true'])
+    chip.set('frontend', 'systemverilog')
     chip.target('fpgaflow_ice40up5k-sg48')
 
     add_sources(chip)
