@@ -5,6 +5,15 @@ def add_sources(chip):
     chip.add('idir', 'opentitan/hw/ip/prim/rtl/')
     chip.add('idir', 'opentitan/hw/dv/sv/dv_utils')
 
+    # Workaround for new import collection scheme. Since we now rename collected
+    # source files, Surelog errors out due to a conflict between collected pkg
+    # files and the same pkgs found in the ydirs. I think before it would ignore
+    # files in the ydir with the same names as ones passed in directly as
+    # sources. To avoid this issue for now, we disable collecting the source
+    # files by unsetting the 'copy' flag. This doesn't cause any problems since
+    # we run import locally anyways.
+    chip.set('source', False, field='copy')
+
     # SV packages (need to be added explicitly)
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
     chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_secded_pkg.sv')
