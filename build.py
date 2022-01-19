@@ -149,7 +149,6 @@ def configure_asic_top(chip, verify=True):
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'lef', 'asic_core.lef')
     chip.set('library', libname, 'gds', 'asic_core.gds')
-    chip.set('library', libname, 'site', [])
     chip.set('library', libname, 'cells', 'asic_core', 'asic_core')
     chip.set('library', libname, 'netlist', 'verilog', 'asic_core.vg')
 
