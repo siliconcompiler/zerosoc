@@ -16,7 +16,7 @@ jobs:
       - run: |
           python3 -m venv create $GITHUB_WORKSPACE/clean_env --clear
           source $GITHUB_WORKSPACE/clean_env/bin/activate
-          git clone ssh://git@github.com/siliconcompiler/siliconcompiler.git
+          git clone https://github.com/siliconcompiler/siliconcompiler.git
           cd siliconcompiler
           git submodule update --init --recursive third_party/tools/openroad
           git rev-parse HEAD
