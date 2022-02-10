@@ -24,36 +24,39 @@ def init_chip():
     return chip
 
 def configure_physflow(chip, verify=True):
-    chip.node('import', 'surelog')
-    chip.node('export', 'klayout')
-    chip.edge('import', 'export')
+    flow = 'physflow'
+    chip.node(flow, 'import', 'surelog')
+    chip.node(flow, 'export', 'klayout')
+    chip.edge(flow, 'import', 'export')
 
     if verify:
-        chip.node('syn', 'yosys')
-        chip.edge('import', 'syn')
-        chip.node('extspice', 'magic')
-        chip.edge('export', 'extspice')
+        chip.node(flow, 'syn', 'yosys')
+        chip.edge(flow, 'import', 'syn')
+        chip.node(flow, 'extspice', 'magic')
+        chip.edge(flow, 'export', 'extspice')
 
-        chip.node('lvsjoin', 'join')
-        chip.edge('syn', 'lvsjoin')
-        chip.edge('extspice', 'lvsjoin')
+        chip.node(flow, 'lvsjoin', 'join')
+        chip.edge(flow, 'syn', 'lvsjoin')
+        chip.edge(flow, 'extspice', 'lvsjoin')
 
-        chip.node('lvs', 'netgen')
-        chip.edge('lvsjoin', 'lvs')
+        chip.node(flow, 'lvs', 'netgen')
+        chip.edge(flow, 'lvsjoin', 'lvs')
 
-        chip.node('drc', 'magic')
-        chip.edge('export', 'drc')
+        chip.node(flow, 'drc', 'magic')
+        chip.edge(flow, 'export', 'drc')
 
-        chip.node('signoff', 'join')
-        chip.edge('lvs', 'signoff')
-        chip.edge('drc', 'signoff')
+        chip.node(flow, 'signoff', 'join')
+        chip.edge(flow, 'lvs', 'signoff')
+        chip.edge(flow, 'drc', 'signoff')
 
     # Make sure errors are reported in summary()
-    for step in chip.getkeys('flowgraph'):
-        chip.set('flowgraph', step, '0', 'weight', 'errors', 1.0)
+    for step in chip.getkeys('flowgraph', flow):
+        chip.set('flowgraph', flow, step, '0', 'weight', 'errors', 1.0)
 
     chip.set('showtool', 'def', 'klayout')
     chip.set('showtool', 'gds', 'klayout')
+
+    chip.set('flow', flow)
 
 def dump_flowgraphs():
     chip = init_chip()
@@ -87,7 +90,7 @@ def configure_asic_core(chip, verify=True, remote=False):
     if verify:
         chip.set('flowarg', 'verify', ['true'])
     chip.set('frontend', 'systemverilog')
-    chip.target('asicflow_skywater130')
+    chip.load_target('skywater130_demo')
     chip.set('eda', 'openroad', 'variable', 'place', '0', 'place_density', ['0.15'])
     chip.set('eda', 'openroad', 'variable', 'route', '0', 'grt_allow_congestion', ['true'])
     configure_libs(chip)
@@ -119,7 +122,9 @@ def configure_asic_core(chip, verify=True, remote=False):
 
 def configure_asic_top(chip, verify=True):
     chip.set('design', 'asic_top')
-    chip.target('skywater130')
+    # TODO: this loads a little more than we need, but it makes it easier to
+    # get floorplanning to run.
+    chip.load_target('skywater130_demo')
     configure_physflow(chip, verify)
     configure_libs(chip)
 
@@ -149,13 +154,13 @@ def configure_asic_top(chip, verify=True):
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'lef', 'asic_core.lef')
     chip.set('library', libname, 'gds', 'asic_core.gds')
-    chip.set('library', libname, 'cells', 'asic_core', 'asic_core')
     chip.set('library', libname, 'netlist', 'verilog', 'asic_core.vg')
 
 def configure_fpga(chip):
     chip.set('design', 'top_icebreaker')
     chip.set('frontend', 'systemverilog')
-    chip.target('fpgaflow_ice40up5k-sg48')
+    chip.set('fpga', 'partname', 'ice40up5k-sg48')
+    chip.load_target('fpgaflow_demo')
 
     add_sources(chip)
 
