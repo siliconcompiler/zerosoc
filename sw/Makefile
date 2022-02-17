@@ -19,7 +19,7 @@ OBJDUMP := $(PREFIX)objdump
 CFLAGS := -O2 -march=rv32i -mabi=ilp32 -fdata-sections -ffunction-sections -ffreestanding -I../opentitan/ -Igen/
 ASFLAGS := -march=rv32i -mabi=ilp32
 OBJDUMPFLAGS := --disassemble-all --source --section-headers --demangle
-LDFLAGS := -Wl,-melf32lriscv -nostdlib
+LDFLAGS := -Wl,-melf32lriscv -nostdlib -march=rv32i -mabi=ilp32
 BIN2COEFLAGS := --width 32 --depth $(ROM_DEPTH) --fill 0
 
 all: hello.mem
