@@ -130,7 +130,7 @@ configured in the provided chip object:
 
 Let's fill out ``configure_chip()`` to accomplish these tasks one-by-one. First,
 we instantiate a new chip and set its target to Skywater 130, an open-source PDK
-that has its configuration bundled with SC::
+that has a demo build target bundled with SC::
 
 ..@include configure_chip_target
 
@@ -272,7 +272,7 @@ file in KLayout by running the following command:
 
 .. code-block:: console
 
-  $ sc-show -asic_def asic_core.def -cfg core_manifest.json
+  $ sc-show -read_def "show 0 asic_core.def" -cfg core_manifest.json
 
 ``sc-show`` uses the information in ``core_manifest.json`` to configure KLayout
 according to our technology and macro library specifications to give you a

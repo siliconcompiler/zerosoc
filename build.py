@@ -64,22 +64,24 @@ def dump_flowgraphs():
     chip.write_flowgraph('physflow.svg')
 
 def configure_libs(chip):
+    stackup = chip.get('asic', 'stackup')
+
     libname = 'io'
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'type', 'component')
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    chip.set('library', libname, 'lef', 'asic/sky130/io/sky130_ef_io.lef')
+    chip.set('library', libname, 'lef', stackup, 'asic/sky130/io/sky130_ef_io.lef')
     # Need both GDS files: ef relies on fd one
-    chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io.gds')
-    chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_fd_io.gds')
-    chip.add('library', libname, 'gds', 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
+    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_ef_io.gds')
+    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_fd_io.gds')
+    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
 
     libname = 'ram'
     chip.add('asic', 'macrolib', libname)
     chip.set('library', libname, 'type', 'component')
     chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    chip.add('library', libname, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
-    chip.add('library', libname, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
+    chip.add('library', libname, 'lef', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
+    chip.add('library', libname, 'gds', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
@@ -98,9 +100,10 @@ def configure_asic_core(chip, verify=True, remote=False):
     # Need to copy library files into build directory for remote run so the
     # server can access them
     if remote:
+        stackup = chip.get('asic', 'stackup')
         chip.set('library', 'ram', 'nldm', 'typical', 'lib', True, field='copy')
-        chip.set('library', 'ram', 'lef', True, field='copy')
-        chip.set('library', 'ram', 'gds', True, field='copy')
+        chip.set('library', 'ram', 'lef', stackup, True, field='copy')
+        chip.set('library', 'ram', 'gds', stackup, True, field='copy')
 
     add_sources(chip)
 
@@ -151,9 +154,10 @@ def configure_asic_top(chip, verify=True):
     chip.set('read', 'def', 'export', '0', 'asic_top.def')
 
     libname = 'core'
+    stackup = chip.get('asic', 'stackup')
     chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'lef', 'asic_core.lef')
-    chip.set('library', libname, 'gds', 'asic_core.gds')
+    chip.set('library', libname, 'lef', stackup, 'asic_core.lef')
+    chip.set('library', libname, 'gds', stackup, 'asic_core.gds')
     chip.set('library', libname, 'netlist', 'verilog', 'asic_core.vg')
 
 def configure_fpga(chip):
