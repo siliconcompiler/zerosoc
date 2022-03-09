@@ -23,46 +23,6 @@ def init_chip():
 
     return chip
 
-def configure_physflow(chip, verify=True):
-    flow = 'physflow'
-    chip.node(flow, 'import', 'surelog')
-    chip.node(flow, 'export', 'klayout')
-    chip.edge(flow, 'import', 'export')
-
-    if verify:
-        chip.node(flow, 'syn', 'yosys')
-        chip.edge(flow, 'import', 'syn')
-        chip.node(flow, 'extspice', 'magic')
-        chip.edge(flow, 'export', 'extspice')
-
-        chip.node(flow, 'lvsjoin', 'join')
-        chip.edge(flow, 'syn', 'lvsjoin')
-        chip.edge(flow, 'extspice', 'lvsjoin')
-
-        chip.node(flow, 'lvs', 'netgen')
-        chip.edge(flow, 'lvsjoin', 'lvs')
-
-        chip.node(flow, 'drc', 'magic')
-        chip.edge(flow, 'export', 'drc')
-
-        chip.node(flow, 'signoff', 'join')
-        chip.edge(flow, 'lvs', 'signoff')
-        chip.edge(flow, 'drc', 'signoff')
-
-    # Make sure errors are reported in summary()
-    for step in chip.getkeys('flowgraph', flow):
-        chip.set('flowgraph', flow, step, '0', 'weight', 'errors', 1.0)
-
-    chip.set('showtool', 'def', 'klayout')
-    chip.set('showtool', 'gds', 'klayout')
-
-    chip.set('flow', flow)
-
-def dump_flowgraphs():
-    chip = init_chip()
-    configure_physflow(chip)
-    chip.write_flowgraph('physflow.svg')
-
 def configure_libs(chip):
     stackup = chip.get('asic', 'stackup')
 
@@ -87,10 +47,8 @@ def configure_libs(chip):
     # foundry-validated
     chip.set('asic', 'exclude', ['ram', 'io'])
 
-def configure_asic_core(chip, verify=True, remote=False):
+def configure_asic_core(chip, remote=False):
     chip.set('design', 'asic_core')
-    if verify:
-        chip.set('flowarg', 'verify', ['true'])
     chip.set('frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
     chip.set('eda', 'openroad', 'variable', 'place', '0', 'place_density', ['0.15'])
@@ -123,12 +81,10 @@ def configure_asic_core(chip, verify=True, remote=False):
     if remote:
         chip.set('remote', True)
 
-def configure_asic_top(chip, verify=True):
+def configure_asic_top(chip):
     chip.set('design', 'asic_top')
-    # TODO: this loads a little more than we need, but it makes it easier to
-    # get floorplanning to run.
     chip.load_target('skywater130_demo')
-    configure_physflow(chip, verify)
+    chip.set('flow', 'asictopflow')
     configure_libs(chip)
 
     chip.add('source', 'hw/asic_top.v')
@@ -181,11 +137,13 @@ def build_fpga():
 
 def build_core(verify=True, remote=False):
     chip = init_chip()
-    configure_asic_core(chip, verify, remote)
+    configure_asic_core(chip, remote)
     generate_core_floorplan(chip)
     # after generating floorplan, we don't need IO in macrolib anymore
     chip.set('asic', 'macrolib', ['ram'])
     run_build(chip)
+    if verify:
+        run_signoff(chip, 'dfm', 'export')
 
     # copy out GDS for top-level integration
     gds = chip.find_result('gds', step='export')
@@ -204,9 +162,11 @@ def build_top(verify=True):
                         "Please re-run build.py without --top-only")
 
     chip = init_chip()
-    configure_asic_top(chip, verify)
+    configure_asic_top(chip)
     generate_top_floorplan(chip)
     run_build(chip)
+    if verify:
+        run_signoff(chip, 'syn', 'export')
 
     return chip
 
@@ -222,6 +182,20 @@ def build_floorplans():
 def run_build(chip):
     chip.run()
     chip.summary()
+
+def run_signoff(chip, netlist_step, layout_step):
+    jobname = chip.get('jobname')
+    chip.set('jobname', f'{jobname}_signoff')
+    chip.set('flow', 'signoffflow')
+
+    gds_path = chip.find_result('gds', step=layout_step)
+    netlist_path = chip.find_result('vg', step=netlist_step)
+
+    chip.set('read', 'gds', 'extspice', '0', gds_path)
+    chip.set('read', 'gds', 'drc', '0', gds_path)
+    chip.set('read', 'netlist', 'lvs', '0', netlist_path)
+
+    run_build(chip)
 
 def test_zerosoc_build():
     chip = build_core(verify=True)
@@ -251,7 +225,6 @@ def main():
     parser.add_argument('--core-only', action='store_true', default=False, help='Only build ASIC core GDS.')
     parser.add_argument('--top-only', action='store_true', default=False, help='Only integrate ASIC core into padring. Assumes core already built.')
     parser.add_argument('--floorplan-only', action='store_true', default=False, help='Only generate floorplans.')
-    parser.add_argument('--dump-flowgraph', action='store_true', default=False, help='Only dump diagram of flowgraphs.')
     parser.add_argument('--no-verify', action='store_true', default=False, help="Don't run DRC and LVS.")
     parser.add_argument('--remote', action='store_true', default=False, help='Run on remote server. Requires SC remote credentials.')
     options = parser.parse_args()
@@ -265,8 +238,6 @@ def main():
         build_fpga()
     elif options.floorplan_only:
         build_floorplans()
-    elif options.dump_flowgraph:
-        dump_flowgraphs()
     elif options.core_only:
         build_core(verify=verify, remote=options.remote)
     elif options.top_only:
