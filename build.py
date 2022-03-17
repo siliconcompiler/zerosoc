@@ -11,6 +11,7 @@ from floorplan import generate_core_floorplan, generate_top_floorplan
 
 def init_chip():
     chip = sc.Chip()
+    chip.set('loglevel', 'INFO')
 
     # Prevent us from erroring out on lint warnings during import
     chip.set('relax', 'true')
@@ -45,7 +46,9 @@ def configure_libs(chip):
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
-    chip.set('asic', 'exclude', ['ram', 'io'])
+    chip.set('asic', 'exclude', 'drc', '0', ['ram', 'io'])
+    chip.set('asic', 'exclude', 'extspice', '0', ['ram', 'io'])
+    chip.set('asic', 'exclude', 'lvs', '0', ['ram', 'io'])
 
 def configure_asic_core(chip, remote=False):
     chip.set('design', 'asic_core')
