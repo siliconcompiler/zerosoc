@@ -288,10 +288,8 @@ the RAM macro. We'll do this using the floorplan API's
 :meth:`~siliconcompiler.floorplan.Floorplan.place_macros` function, which allows
 you to place a list of macros from a starting position and a given pitch along
 the x and y-axes. To place a single macro like the ZeroSoC’s RAM, we'll just
-pass in a list of one instance, and 0s for the pitch values. Note that we
-specify ``snap=True`` to ensure the RAM's position is standard-cell aligned.
-This ensures proper alignment for routing.  Insert the following code after our
-call to ``create_diearea()``::
+pass in a list of one instance, and 0s for the pitch values. Insert the
+following code after our call to ``create_diearea()``::
 
 ..@include ram_placement
 
