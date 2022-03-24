@@ -15,6 +15,7 @@ Clone the repository and all its submodules:
 ```console
 $ git clone git@github.com:siliconcompiler/zerosoc.git
 $ cd zerosoc
+$ git checkout stable
 $ git submodule update --init --recursive
 $ pip install -r python-requirements.txt
 ```
@@ -23,6 +24,11 @@ Building ZeroSoC locally for ASIC or FPGA targets requires installing external
 tools. This [page][tools] contains links to installation instructions for SC's
 supported tools. The build script also supports remote builds, which do not
 require installing additional tools.
+
+**Note**: The ZeroSoC tip of main is considered unstable and may not be
+compatible with the latest SiliconCompiler. To ensure compatibility, we
+recommend checking out the [`stable`][stable] tag and using the most recent
+release version of SC.
 
 ## Usage
 
@@ -62,3 +68,4 @@ For more details on how to run the ZeroSoC FPGA demo, see [here](docs/fpga.md).
 [opentitan]: https://github.com/lowrisc/opentitan
 [tutorial]: https://docs.siliconcompiler.com/en/latest/tutorials/zerosoc.html
 [tools]: https://docs.siliconcompiler.com/en/latest/reference_manual/tools.html
+[stable]: https://github.com/siliconcompiler/zerosoc/tree/stable
