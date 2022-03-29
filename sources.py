@@ -38,8 +38,11 @@ def add_sources(chip):
     # module explicitly
     chip.add('source', 'hw/uart_core.sv')
 
+    chip.add('source', 'hw/zerosoc.sv')
+    chip.add('source', 'hw/xbar.sv')
+    chip.add('source', 'hw/tl_dbg.sv')
+
     # Add RTL of all modules we use to search path
-    chip.add('ydir', 'hw')
     chip.add('ydir', 'hw/prim')
     chip.add('ydir', 'opentitan/hw/ip/tlul/rtl')
     chip.add('ydir', 'opentitan/hw/ip/rv_core_ibex/rtl')
