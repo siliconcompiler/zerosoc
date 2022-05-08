@@ -1,171 +1,169 @@
 #!/usr/bin/env python3
 
 import argparse
-import siliconcompiler as sc
+import copy
+import siliconcompiler
 import os
-import shutil
 
 from sources import add_sources
 
 from floorplan import generate_core_floorplan, generate_top_floorplan
 
-def init_chip():
-    chip = sc.Chip()
-    chip.set('loglevel', 'INFO')
+def setup_options(chip):
+    '''Helper to setup common options for each build.'''
+    chip.set('option', 'loglevel', 'INFO')
 
     # Prevent us from erroring out on lint warnings during import
-    chip.set('relax', 'true')
-    chip.set('quiet', 'true')
+    chip.set('option', 'relax', True)
+    chip.set('option', 'quiet', True)
 
     # hack to work around fact that $readmemh now runs in context of build
     # directory and can't load .mem files using relative paths
     cur_dir = os.path.dirname(os.path.realpath(__file__))
-    chip.add('define', f'MEM_ROOT={cur_dir}')
+    chip.add('option', 'define', f'MEM_ROOT={cur_dir}')
 
-    return chip
+def build_fpga():
+    chip = siliconcompiler.Chip('top_icebreaker')
+    setup_options(chip)
 
-def configure_libs(chip):
-    stackup = chip.get('asic', 'stackup')
-
-    libname = 'io'
-    chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'type', 'component')
-    chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    chip.set('library', libname, 'lef', stackup, 'asic/sky130/io/sky130_ef_io.lef')
-    # Need both GDS files: ef relies on fd one
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_ef_io.gds')
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_fd_io.gds')
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
-
-    libname = 'ram'
-    chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'type', 'component')
-    chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    chip.add('library', libname, 'lef', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
-
-    # Ignore cells in these libraries during DRC, they violate the rules but are
-    # foundry-validated
-    chip.set('asic', 'exclude', 'drc', '0', ['ram', 'io'])
-    chip.set('asic', 'exclude', 'extspice', '0', ['ram', 'io'])
-    chip.set('asic', 'exclude', 'lvs', '0', ['ram', 'io'])
-
-def configure_asic_core(chip, remote=False):
-    chip.set('design', 'asic_core')
-    chip.set('frontend', 'systemverilog')
-    chip.load_target('skywater130_demo')
-    chip.set('eda', 'openroad', 'variable', 'place', '0', 'place_density', ['0.15'])
-    chip.set('eda', 'openroad', 'variable', 'route', '0', 'grt_allow_congestion', ['true'])
-    configure_libs(chip)
-
-    # Need to copy library files into build directory for remote run so the
-    # server can access them
-    if remote:
-        stackup = chip.get('asic', 'stackup')
-        chip.set('library', 'ram', 'nldm', 'typical', 'lib', True, field='copy')
-        chip.set('library', 'ram', 'lef', stackup, True, field='copy')
-        chip.set('library', 'ram', 'gds', stackup, True, field='copy')
-
-    add_sources(chip)
-
-    chip.clock(name='core_clock', pin='we_din\[5\]', period=20)
-
-    chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
-    chip.add('define', 'RAM_DEPTH=512')
-
-    chip.add('source', 'hw/asic_core.v')
-    chip.set('read', 'def', 'floorplan', '0', 'asic_core.def')
-
-    chip.add('source', 'hw/prim/sky130/prim_sky130_ram_1p.v')
-    chip.add('source', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
-
-    chip.add('source', 'hw/prim/sky130/prim_sky130_clock_gating.v')
-
-    if remote:
-        chip.set('remote', True)
-
-def configure_asic_top(chip):
-    chip.set('design', 'asic_top')
-    chip.load_target('skywater130_demo')
-    chip.set('flow', 'asictopflow')
-    configure_libs(chip)
-
-    chip.add('source', 'hw/asic_top.v')
-    chip.add('source', 'hw/asic_core.bb.v')
-    chip.add('source', 'oh/padring/hdl/oh_padring.v')
-    chip.add('source', 'oh/padring/hdl/oh_pads_domain.v')
-    chip.add('source', 'oh/padring/hdl/oh_pads_corner.v')
-
-    chip.add('source', 'asic/sky130/io/asic_iobuf.v')
-    chip.add('source', 'asic/sky130/io/asic_iovdd.v')
-    chip.add('source', 'asic/sky130/io/asic_iovddio.v')
-    chip.add('source', 'asic/sky130/io/asic_iovss.v')
-    chip.add('source', 'asic/sky130/io/asic_iovssio.v')
-    chip.add('source', 'asic/sky130/io/asic_iocorner.v')
-
-    # Dummy blackbox modules just to get synthesis to pass (these aren't
-    # acutally instantiated)
-    chip.add('source', 'asic/sky130/io/asic_iopoc.v')
-    chip.add('source', 'asic/sky130/io/asic_iocut.v')
-
-    chip.add('source', 'asic/sky130/io/sky130_io.blackbox.v')
-
-    chip.set('read', 'def', 'export', '0', 'asic_top.def')
-
-    libname = 'core'
-    stackup = chip.get('asic', 'stackup')
-    chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'lef', stackup, 'asic_core.lef')
-    chip.set('library', libname, 'gds', stackup, 'asic_core.gds')
-    chip.set('library', libname, 'netlist', 'verilog', 'asic_core.vg')
-
-def configure_fpga(chip):
-    chip.set('design', 'top_icebreaker')
     chip.set('frontend', 'systemverilog')
     chip.set('fpga', 'partname', 'ice40up5k-sg48')
     chip.load_target('fpgaflow_demo')
 
     add_sources(chip)
 
-    chip.add('source', 'hw/top_icebreaker.v')
-    chip.add('source', 'hw/prim/ice40/prim_ice40_clock_gating.v')
-    chip.set('constraint', 'fpga/icebreaker.pcf')
+    chip.add('source', 'verilog', 'hw/top_icebreaker.v')
+    chip.add('source', 'verilog', 'hw/prim/ice40/prim_ice40_clock_gating.v')
+    chip.set('source', 'pcf', 'fpga/icebreaker.pcf')
 
-    chip.add('define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplIce40"')
+    chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplIce40"')
 
-def build_fpga():
-    chip = init_chip()
-    configure_fpga(chip)
     run_build(chip)
 
-def build_core(verify=True, remote=False):
-    chip = init_chip()
-    configure_asic_core(chip, remote)
-    generate_core_floorplan(chip)
-    # after generating floorplan, we don't need IO in macrolib anymore
-    chip.set('asic', 'macrolib', ['ram'])
-    run_build(chip)
-    if verify:
-        run_signoff(chip, 'dfm', 'export')
+def configure_core_chip(remote=False):
+    chip = siliconcompiler.Chip('asic_core')
 
-    # copy out GDS for top-level integration
-    gds = chip.find_result('gds', step='export')
-    netlist = chip.find_result('vg', step='dfm')
-    shutil.copy(gds, os.path.basename(gds))
-    shutil.copy(netlist, os.path.basename(netlist))
+    setup_options(chip)
+
+    chip.set('option', 'frontend', 'systemverilog')
+    chip.load_target('skywater130_demo')
+
+    chip.set('eda', 'openroad', 'variable', 'place', '0', 'place_density', ['0.15'])
+    chip.set('eda', 'openroad', 'variable', 'route', '0', 'grt_allow_congestion', ['true'])
+
+    chip.set('asic', 'macrolib', ['sky130sram', 'sky130io'])
+    chip.load_lib('sky130sram')
+    chip.load_lib('sky130io')
+
+    # Ignore cells in these libraries during DRC, they violate the rules but are
+    # foundry-validated
+    # TODO: how to do this with new schema?
+    # chip.set('asic', 'exclude', 'drc', '0', ['ram', 'io'])
+    # chip.set('asic', 'exclude', 'extspice', '0', ['ram', 'io'])
+    # chip.set('asic', 'exclude', 'lvs', '0', ['ram', 'io'])
+
+    # Need to copy library files into build directory for remote run so the
+    # server can access them
+    if remote:
+        stackup = chip.get('asic', 'stackup')
+        chip.set('library', 'sky130sram', 'model', 'timing', 'nldm', True, field='copy')
+        chip.set('library', 'sky130sram', 'model', 'layout', 'lef', stackup, True, field='copy')
+        chip.set('library', 'sky130sram', 'model', 'layout', 'gds', stackup, True, field='copy')
+
+        chip.set('option', 'remote', True)
+
+    add_sources(chip)
+
+    # TODO: need to replace with SDC
+    # chip.clock(name='core_clock', pin='we_din\[5\]', period=20)
+
+    chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
+    chip.add('option', 'define', 'RAM_DEPTH=512')
+
+    chip.add('source', 'verilog', 'hw/asic_core.v')
+    chip.set('source', 'def', 'asic_core.def')
+
+    chip.add('source', 'verilog', 'hw/prim/sky130/prim_sky130_ram_1p.v')
+    chip.add('source', 'verilog', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
+
+    chip.add('source', 'verilog', 'hw/prim/sky130/prim_sky130_clock_gating.v')
 
     return chip
 
-def build_top(verify=True):
-    # check for necessary files generated by previous steps
-    if not (os.path.isfile('asic_core.gds') and
-            os.path.isfile('asic_core.lef') and
-            os.path.isfile('asic_core.vg')):
-        raise Exception("Error building asic_top: can't find asic_core outputs. "
-                        "Please re-run build.py without --top-only")
+def build_core(verify=True, remote=False):
+    chip = configure_core_chip(remote)
+    stackup = chip.get('asic', 'stackup')
 
-    chip = init_chip()
-    configure_asic_top(chip)
+    generate_core_floorplan(chip)
+    chip.set('model', 'layout', 'lef', stackup, 'asic_core.lef')
+
+    # after generating floorplan, we don't need IO in macrolib anymore
+    chip.set('asic', 'macrolib', ['sky130sram'])
+
+    run_build(chip)
+
+    if verify:
+        run_signoff(chip, 'dfm', 'export')
+
+    # set up pointers to final outputs for integration
+    gds = chip.find_result('gds', step='export')
+    netlist = chip.find_result('vg', step='dfm')
+
+    chip.set('model', 'layout', 'gds', stackup, gds)
+    # where do I put netlist?
+    # chip.set('model', 'netlist', 'vg', stackup, netlist)
+
+    return chip
+
+def configure_top_chip(core_chip):
+    chip = siliconcompiler.Chip('asic_top')
+
+    setup_options(chip)
+
+    # TODO: we need a library function to handle this
+    chip.cfg['library']['asic_core'] = copy.deepcopy(core_chip.cfg)
+    del chip.cfg['library']['asic_core']['pdk']
+
+    # Ignore cells in these libraries during DRC, they violate the rules but are
+    # foundry-validated
+    # TODO: how to do this with new schema?
+    # chip.set('asic', 'exclude', 'drc', '0', ['ram', 'io'])
+    # chip.set('asic', 'exclude', 'extspice', '0', ['ram', 'io'])
+    # chip.set('asic', 'exclude', 'lvs', '0', ['ram', 'io'])
+
+    chip.load_target('skywater130_demo')
+    chip.set('flow', 'asictopflow')
+
+    chip.set('asic', 'macrolib', ['asic_core', 'sky130sram', 'sky130io'])
+    chip.load_lib('sky130sram')
+    chip.load_lib('sky130io')
+
+    chip.add('source', 'verilog', 'hw/asic_top.v')
+    chip.add('source', 'verilog', 'hw/asic_core.bb.v')
+    chip.add('source', 'verilog', 'oh/padring/hdl/oh_padring.v')
+    chip.add('source', 'verilog', 'oh/padring/hdl/oh_pads_domain.v')
+    chip.add('source', 'verilog', 'oh/padring/hdl/oh_pads_corner.v')
+
+    chip.add('source', 'verilog', 'asic/sky130/io/asic_iobuf.v')
+    chip.add('source', 'verilog', 'asic/sky130/io/asic_iovdd.v')
+    chip.add('source', 'verilog', 'asic/sky130/io/asic_iovddio.v')
+    chip.add('source', 'verilog', 'asic/sky130/io/asic_iovss.v')
+    chip.add('source', 'verilog', 'asic/sky130/io/asic_iovssio.v')
+    chip.add('source', 'verilog', 'asic/sky130/io/asic_iocorner.v')
+
+    # Dummy blackbox modules just to get synthesis to pass (these aren't
+    # acutally instantiated)
+    chip.add('source', 'verilog', 'asic/sky130/io/asic_iopoc.v')
+    chip.add('source', 'verilog', 'asic/sky130/io/asic_iocut.v')
+
+    chip.add('source', 'verilog', 'asic/sky130/io/sky130_io.blackbox.v')
+
+    chip.set('source', 'def', 'asic_top.def')
+
+    return chip
+
+def build_top(core_chip, verify=True):
+    chip = configure_top_chip(core_chip)
     generate_top_floorplan(chip)
     run_build(chip)
     if verify:
@@ -174,29 +172,28 @@ def build_top(verify=True):
     return chip
 
 def build_floorplans():
-    chip = init_chip()
-    configure_asic_core(chip)
-    generate_core_floorplan(chip)
+    core_chip = configure_core_chip()
+    generate_core_floorplan(core_chip)
+    stackup = core_chip.get('asic', 'stackup')
+    core_chip.set('model', 'layout', 'lef', stackup, 'asic_core.lef')
 
-    chip = init_chip()
-    configure_asic_top(chip)
-    generate_top_floorplan(chip)
+    top_chip = configure_top_chip(core_chip)
+    generate_top_floorplan(top_chip)
 
 def run_build(chip):
     chip.run()
     chip.summary()
 
 def run_signoff(chip, netlist_step, layout_step):
-    jobname = chip.get('jobname')
-    chip.set('jobname', f'{jobname}_signoff')
-    chip.set('flow', 'signoffflow')
-
     gds_path = chip.find_result('gds', step=layout_step)
     netlist_path = chip.find_result('vg', step=netlist_step)
 
-    chip.set('read', 'gds', 'extspice', '0', gds_path)
-    chip.set('read', 'gds', 'drc', '0', gds_path)
-    chip.set('read', 'netlist', 'lvs', '0', netlist_path)
+    jobname = chip.get('jobname')
+    chip.set('option', 'jobname', f'{jobname}_signoff')
+    chip.set('option', 'flow', 'signoffflow')
+
+    chip.set('source', 'gds', gds_path)
+    chip.set('source', 'netlist', netlist_path)
 
     run_build(chip)
 

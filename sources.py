@@ -1,9 +1,9 @@
 def add_sources(chip):
-    chip.add('define', 'SYNTHESIS')
+    chip.add('option', 'define', 'SYNTHESIS')
 
     # Include dirs
-    chip.add('idir', 'opentitan/hw/ip/prim/rtl/')
-    chip.add('idir', 'opentitan/hw/dv/sv/dv_utils')
+    chip.add('option', 'idir', 'opentitan/hw/ip/prim/rtl/')
+    chip.add('option', 'idir', 'opentitan/hw/dv/sv/dv_utils')
 
     # Workaround for new import collection scheme. Since we now rename collected
     # source files, Surelog errors out due to a conflict between collected pkg
@@ -12,42 +12,42 @@ def add_sources(chip):
     # sources. To avoid this issue for now, we disable collecting the source
     # files by unsetting the 'copy' flag. This doesn't cause any problems since
     # we run import locally anyways.
-    chip.set('source', False, field='copy')
+    chip.set('source', 'systemverilog', False, field='copy')
 
     # SV packages (need to be added explicitly)
-    chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_secded_pkg.sv')
-    chip.add('source', 'opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/tlul/rtl/tlul_pkg.sv')
-    chip.add('source', 'hw/xbar_pkg.sv')
-    chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/uart/rtl/uart_reg_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/gpio/rtl/gpio_reg_pkg.sv')
-    chip.add('source', 'hw/prim/prim_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_state_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_esc_pkg.sv')
-    chip.add('source', 'opentitan/hw/ip/prim/rtl/prim_ram_1p_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/prim/rtl/prim_secded_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/tlul/rtl/tlul_pkg.sv')
+    chip.add('source', 'systemverilog', 'hw/xbar_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/uart/rtl/uart_reg_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/gpio/rtl/gpio_reg_pkg.sv')
+    chip.add('source', 'systemverilog', 'hw/prim/prim_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_state_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/prim/rtl/prim_esc_pkg.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/ip/prim/rtl/prim_ram_1p_pkg.sv')
 
     # Hack to work around Yosys + Surelog issue. Even though this is found in
     # one of our ydirs, we get different synthesis results if this isn't ordered
     # earlier.
-    chip.add('source', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv')
+    chip.add('source', 'systemverilog', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv')
 
     # TODO: we're overwriting the OpenTitan uart_core, so need to include this
     # module explicitly
-    chip.add('source', 'hw/uart_core.sv')
+    chip.add('source', 'systemverilog', 'hw/uart_core.sv')
 
-    chip.add('source', 'hw/zerosoc.sv')
-    chip.add('source', 'hw/xbar.sv')
-    chip.add('source', 'hw/tl_dbg.sv')
+    chip.add('source', 'systemverilog', 'hw/zerosoc.sv')
+    chip.add('source', 'systemverilog', 'hw/xbar.sv')
+    chip.add('source', 'systemverilog', 'hw/tl_dbg.sv')
 
     # Add RTL of all modules we use to search path
-    chip.add('ydir', 'hw/prim')
-    chip.add('ydir', 'opentitan/hw/ip/tlul/rtl')
-    chip.add('ydir', 'opentitan/hw/ip/rv_core_ibex/rtl')
-    chip.add('ydir', 'opentitan/hw/vendor/lowrisc_ibex/rtl')
-    chip.add('ydir', 'opentitan/hw/ip/uart/rtl')
-    chip.add('ydir', 'opentitan/hw/ip/gpio/rtl')
-    chip.add('ydir', 'opentitan/hw/ip/prim/rtl')
-    chip.add('ydir', 'opentitan/hw/ip/prim_generic/rtl')
+    chip.add('option', 'ydir', 'hw/prim')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/tlul/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/rv_core_ibex/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/vendor/lowrisc_ibex/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/uart/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/gpio/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/prim/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/prim_generic/rtl')
