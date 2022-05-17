@@ -21,30 +21,16 @@ FILL_CELLS = ['sky130_ef_io__com_bus_slice_1um',
 RAM = 'sky130_sram_2kbyte_1rw1r_32x512_8'
 
 def configure_chip(design):
-    chip = Chip()
+    chip = Chip(design)
     chip.load_target('skywater130_demo')
 
-    chip.set('design', design)
+    chip.load_lib('sky130sram')
+    chip.load_lib('sky130io')
+    chip.add('asic', 'macrolib', 'sky130sram')
+    chip.add('asic', 'macrolib', 'sky130io')
 
-    stackup = chip.get('asic', 'stackup')
-    libname = 'ram'
-    chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    chip.add('library', libname, 'lef', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
-    chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'type', 'component')
-
-    libname = 'io'
-    chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    chip.set('library', libname, 'lef', stackup, 'asic/sky130/io/sky130_ef_io.lef')
-    # Need both GDS files: "ef" relies on "fd"
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_ef_io.gds')
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_fd_io.gds')
-    chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'type', 'component')
-
-    chip.set('showtool', 'def', 'klayout')
-    chip.set('showtool', 'gds', 'klayout')
+    chip.set('option', 'showtool', 'def', 'klayout')
+    chip.set('option', 'showtool', 'gds', 'klayout')
 
     return chip
 
@@ -587,11 +573,10 @@ def main():
     chip = configure_chip('asic_top')
 
     # Add asic_core as library
-    libname = 'asic_core'
-    chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'type', 'component')
     stackup = chip.get('asic', 'stackup')
-    chip.set('library', libname, 'lef', stackup, 'asic_core.lef')
+    core_chip.set('model', 'layout', 'lef', stackup, 'asic_core.lef')
+    chip.import_library(core_chip)
+    chip.add('asic', 'macrolib', 'asic_core')
 
     fp = Floorplan(chip)
     top_floorplan(fp)

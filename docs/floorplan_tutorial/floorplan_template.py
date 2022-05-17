@@ -21,39 +21,21 @@ RAM = 'sky130_sram_2kbyte_1rw1r_32x512_8'
 #@ begin configure_chip
 def configure_chip(design):
     #@ begin configure_chip_target
-    chip = Chip()
+    chip = Chip(design)
     chip.load_target('skywater130_demo')
     #@ end configure_chip_target
 
-    #@ begin configure_chip_design
-    chip.set('design', design)
-    #@ end configure_chip_design
-
     #@ begin configure_chip_macro
-    stackup = chip.get('asic', 'stackup')
-    libname = 'ram'
-    chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    chip.add('library', libname, 'lef', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
+    chip.load_lib('sky130sram')
+    chip.load_lib('sky130io')
     #@ end configure_chip_macro
     #@ begin configure_chip_macrolib
-    chip.add('asic', 'macrolib', libname)
+    chip.add('asic', 'macrolib', 'sky130sram')
+    chip.add('asic', 'macrolib', 'sky130io')
     #@ end configure_chip_macrolib
-    #@ begin configure_chip_type
-    chip.set('library', libname, 'type', 'component')
-    #@ end configure_chip_type
 
-    libname = 'io'
-    chip.add('library', libname, 'nldm', 'typical', 'lib', 'asic/sky130/io/sky130_dummy_io.lib')
-    chip.set('library', libname, 'lef', stackup, 'asic/sky130/io/sky130_ef_io.lef')
-    # Need both GDS files: "ef" relies on "fd"
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_ef_io.gds')
-    chip.add('library', libname, 'gds', stackup, 'asic/sky130/io/sky130_fd_io.gds')
-    chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'type', 'component')
-
-    chip.set('showtool', 'def', 'klayout')
-    chip.set('showtool', 'gds', 'klayout')
+    chip.set('option', 'showtool', 'def', 'klayout')
+    chip.set('option', 'showtool', 'gds', 'klayout')
 
     return chip
 #@ end configure_chip
@@ -668,11 +650,10 @@ def main():
     chip = configure_chip('asic_top')
 
     # Add asic_core as library
-    libname = 'asic_core'
-    chip.add('asic', 'macrolib', libname)
-    chip.set('library', libname, 'type', 'component')
     stackup = chip.get('asic', 'stackup')
-    chip.set('library', libname, 'lef', stackup, 'asic_core.lef')
+    core_chip.set('model', 'layout', 'lef', stackup, 'asic_core.lef')
+    chip.import_library(core_chip)
+    chip.add('asic', 'macrolib', 'asic_core')
 
     fp = Floorplan(chip)
     top_floorplan(fp)

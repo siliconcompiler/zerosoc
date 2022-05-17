@@ -7,8 +7,8 @@ import os
 import shutil
 import subprocess
 
-if 'SC_HOME' in os.environ:
-    SC_HOME = os.environ['SC_HOME']
+if 'SILICONCOMPILER' in os.environ:
+    SC_HOME = os.environ['SILICONCOMPILER']
 else:
     SC_HOME = None
 
