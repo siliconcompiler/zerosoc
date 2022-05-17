@@ -12,35 +12,35 @@ def add_sources(chip):
     # sources. To avoid this issue for now, we disable collecting the source
     # files by unsetting the 'copy' flag. This doesn't cause any problems since
     # we run import locally anyways.
-    chip.set('source', 'systemverilog', False, field='copy')
+    chip.set('input', 'verilog', False, field='copy')
 
     # SV packages (need to be added explicitly)
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/prim/rtl/prim_secded_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/tlul/rtl/tlul_pkg.sv')
-    chip.add('source', 'systemverilog', 'hw/xbar_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/uart/rtl/uart_reg_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/gpio/rtl/gpio_reg_pkg.sv')
-    chip.add('source', 'systemverilog', 'hw/prim/prim_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_state_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/prim/rtl/prim_esc_pkg.sv')
-    chip.add('source', 'systemverilog', 'opentitan/hw/ip/prim/rtl/prim_ram_1p_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/prim/rtl/prim_secded_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/tlul/rtl/tlul_pkg.sv')
+    chip.add('input', 'verilog', 'hw/xbar_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/uart/rtl/uart_reg_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/gpio/rtl/gpio_reg_pkg.sv')
+    chip.add('input', 'verilog', 'hw/prim/prim_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_state_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/prim/rtl/prim_esc_pkg.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/ip/prim/rtl/prim_ram_1p_pkg.sv')
 
     # Hack to work around Yosys + Surelog issue. Even though this is found in
     # one of our ydirs, we get different synthesis results if this isn't ordered
     # earlier.
-    chip.add('source', 'systemverilog', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv')
+    chip.add('input', 'verilog', 'opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv')
 
     # TODO: we're overwriting the OpenTitan uart_core, so need to include this
     # module explicitly
-    chip.add('source', 'systemverilog', 'hw/uart_core.sv')
+    chip.add('input', 'verilog', 'hw/uart_core.sv')
 
-    chip.add('source', 'systemverilog', 'hw/zerosoc.sv')
-    chip.add('source', 'systemverilog', 'hw/xbar.sv')
-    chip.add('source', 'systemverilog', 'hw/tl_dbg.sv')
+    chip.add('input', 'verilog', 'hw/zerosoc.sv')
+    chip.add('input', 'verilog', 'hw/xbar.sv')
+    chip.add('input', 'verilog', 'hw/tl_dbg.sv')
 
     # Add RTL of all modules we use to search path
     chip.add('option', 'ydir', 'hw/prim')

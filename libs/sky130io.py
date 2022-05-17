@@ -1,6 +1,6 @@
 import siliconcompiler
 
-def setup():
+def setup(chip):
     libname = 'sky130io'
     lib = siliconcompiler.Chip(libname)
 
@@ -16,3 +16,5 @@ def setup():
     lib.add('model', 'layout', 'gds', stackup, 'asic/sky130/io/sky130_ef_io.gds')
     lib.add('model', 'layout', 'gds', stackup, 'asic/sky130/io/sky130_fd_io.gds')
     lib.add('model', 'layout', 'gds', stackup, 'asic/sky130/io/sky130_ef_io__gpiov2_pad_wrapped.gds')
+
+    return lib

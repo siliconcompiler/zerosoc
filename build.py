@@ -32,9 +32,9 @@ def build_fpga():
 
     add_sources(chip)
 
-    chip.add('source', 'verilog', 'hw/top_icebreaker.v')
-    chip.add('source', 'verilog', 'hw/prim/ice40/prim_ice40_clock_gating.v')
-    chip.set('source', 'pcf', 'fpga/icebreaker.pcf')
+    chip.add('input', 'verilog', 'hw/top_icebreaker.v')
+    chip.add('input', 'verilog', 'hw/prim/ice40/prim_ice40_clock_gating.v')
+    chip.set('input', 'pcf', 'fpga/icebreaker.pcf')
 
     chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplIce40"')
 
@@ -48,8 +48,8 @@ def configure_core_chip(remote=False):
     chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
 
-    chip.set('eda', 'openroad', 'variable', 'place', '0', 'place_density', ['0.15'])
-    chip.set('eda', 'openroad', 'variable', 'route', '0', 'grt_allow_congestion', ['true'])
+    chip.set('tool', 'openroad', 'var', 'place', '0', 'place_density', ['0.15'])
+    chip.set('tool', 'openroad', 'var', 'route', '0', 'grt_allow_congestion', ['true'])
 
     chip.set('asic', 'macrolib', ['sky130sram', 'sky130io'])
     chip.load_lib('sky130sram')
@@ -57,10 +57,9 @@ def configure_core_chip(remote=False):
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
-    # TODO: how to do this with new schema?
-    # chip.set('asic', 'exclude', 'drc', '0', ['ram', 'io'])
-    # chip.set('asic', 'exclude', 'extspice', '0', ['ram', 'io'])
-    # chip.set('asic', 'exclude', 'lvs', '0', ['ram', 'io'])
+    for step in ('extspice', 'drc'):
+        chip.set('tool', 'magic', 'var', step, '0', 'exclude', ['sky130sram', 'sky130io'])
+    chip.set('tool', 'netgen', 'var', 'lvs', '0', 'exclude', ['sky130sram', 'sky130io'])
 
     # Need to copy library files into build directory for remote run so the
     # server can access them
@@ -74,19 +73,18 @@ def configure_core_chip(remote=False):
 
     add_sources(chip)
 
-    # TODO: need to replace with SDC
-    # chip.clock(name='core_clock', pin='we_din\[5\]', period=20)
+    chip.clock('we_din\[5\]', period=20)
 
     chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
     chip.add('option', 'define', 'RAM_DEPTH=512')
 
-    chip.add('source', 'verilog', 'hw/asic_core.v')
-    chip.set('source', 'def', 'asic_core.def')
+    chip.add('input', 'verilog', 'hw/asic_core.v')
+    chip.set('input', 'floorplan.def', 'asic_core.def')
 
-    chip.add('source', 'verilog', 'hw/prim/sky130/prim_sky130_ram_1p.v')
-    chip.add('source', 'verilog', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
+    chip.add('input', 'verilog', 'hw/prim/sky130/prim_sky130_ram_1p.v')
+    chip.add('input', 'verilog', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
 
-    chip.add('source', 'verilog', 'hw/prim/sky130/prim_sky130_clock_gating.v')
+    chip.add('input', 'verilog', 'hw/prim/sky130/prim_sky130_clock_gating.v')
 
     return chip
 
@@ -110,8 +108,8 @@ def build_core(verify=True, remote=False):
     netlist = chip.find_result('vg', step='dfm')
 
     chip.set('model', 'layout', 'gds', stackup, gds)
-    # where do I put netlist?
-    # chip.set('model', 'netlist', 'vg', stackup, netlist)
+    chip.set('output', 'netlist', netlist)
+    chip.write_manifest('asic_core.pkg.json')
 
     return chip
 
@@ -121,44 +119,42 @@ def configure_top_chip(core_chip):
     setup_options(chip)
 
     # TODO: we need a library function to handle this
-    chip.cfg['library']['asic_core'] = copy.deepcopy(core_chip.cfg)
-    del chip.cfg['library']['asic_core']['pdk']
+    chip.import_library(core_chip)
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
-    # TODO: how to do this with new schema?
-    # chip.set('asic', 'exclude', 'drc', '0', ['ram', 'io'])
-    # chip.set('asic', 'exclude', 'extspice', '0', ['ram', 'io'])
-    # chip.set('asic', 'exclude', 'lvs', '0', ['ram', 'io'])
+    for step in ('extspice', 'drc',):
+        chip.set('tool', 'magic', 'var', step, '0', 'exclude', ['sky130sram', 'sky130io'])
+    chip.set('tool', 'netgen', 'var', 'lvs', '0', 'exclude', ['sky130sram', 'sky130io'])
 
     chip.load_target('skywater130_demo')
-    chip.set('flow', 'asictopflow')
+    chip.set('option', 'flow', 'asictopflow')
 
     chip.set('asic', 'macrolib', ['asic_core', 'sky130sram', 'sky130io'])
     chip.load_lib('sky130sram')
     chip.load_lib('sky130io')
 
-    chip.add('source', 'verilog', 'hw/asic_top.v')
-    chip.add('source', 'verilog', 'hw/asic_core.bb.v')
-    chip.add('source', 'verilog', 'oh/padring/hdl/oh_padring.v')
-    chip.add('source', 'verilog', 'oh/padring/hdl/oh_pads_domain.v')
-    chip.add('source', 'verilog', 'oh/padring/hdl/oh_pads_corner.v')
+    chip.add('input', 'verilog', 'hw/asic_top.v')
+    chip.add('input', 'verilog', 'hw/asic_core.bb.v')
+    chip.add('input', 'verilog', 'oh/padring/hdl/oh_padring.v')
+    chip.add('input', 'verilog', 'oh/padring/hdl/oh_pads_domain.v')
+    chip.add('input', 'verilog', 'oh/padring/hdl/oh_pads_corner.v')
 
-    chip.add('source', 'verilog', 'asic/sky130/io/asic_iobuf.v')
-    chip.add('source', 'verilog', 'asic/sky130/io/asic_iovdd.v')
-    chip.add('source', 'verilog', 'asic/sky130/io/asic_iovddio.v')
-    chip.add('source', 'verilog', 'asic/sky130/io/asic_iovss.v')
-    chip.add('source', 'verilog', 'asic/sky130/io/asic_iovssio.v')
-    chip.add('source', 'verilog', 'asic/sky130/io/asic_iocorner.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/asic_iobuf.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/asic_iovdd.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/asic_iovddio.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/asic_iovss.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/asic_iovssio.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/asic_iocorner.v')
 
     # Dummy blackbox modules just to get synthesis to pass (these aren't
     # acutally instantiated)
-    chip.add('source', 'verilog', 'asic/sky130/io/asic_iopoc.v')
-    chip.add('source', 'verilog', 'asic/sky130/io/asic_iocut.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/asic_iopoc.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/asic_iocut.v')
 
-    chip.add('source', 'verilog', 'asic/sky130/io/sky130_io.blackbox.v')
+    chip.add('input', 'verilog', 'asic/sky130/io/sky130_io.blackbox.v')
 
-    chip.set('source', 'def', 'asic_top.def')
+    chip.set('input', 'def', 'asic_top.def')
 
     return chip
 
@@ -188,33 +184,33 @@ def run_signoff(chip, netlist_step, layout_step):
     gds_path = chip.find_result('gds', step=layout_step)
     netlist_path = chip.find_result('vg', step=netlist_step)
 
-    jobname = chip.get('jobname')
+    jobname = chip.get('option', 'jobname')
     chip.set('option', 'jobname', f'{jobname}_signoff')
     chip.set('option', 'flow', 'signoffflow')
 
-    chip.set('source', 'gds', gds_path)
-    chip.set('source', 'netlist', netlist_path)
+    chip.set('input', 'gds', gds_path)
+    chip.set('input', 'netlist', netlist_path)
 
     run_build(chip)
 
 def test_zerosoc_build():
     chip = build_core(verify=True)
 
-    assert chip.get('metric', 'lvs', '0', 'errors', 'real') == 0
-    assert chip.get('metric', 'drc', '0', 'errors', 'real') == 0
+    assert chip.get('metric', 'lvs', '0', 'errors') == 0
+    assert chip.get('metric', 'drc', '0', 'errors') == 0
 
     # check for timing errors
-    assert chip.get('metric', 'route', '0', 'holdslack', 'real') >= 0
-    assert chip.get('metric', 'route', '0', 'holdwns', 'real') >= 0
-    assert chip.get('metric', 'route', '0', 'holdtns', 'real') >= 0
-    assert chip.get('metric', 'route', '0', 'setupslack', 'real') >= 0
-    assert chip.get('metric', 'route', '0', 'setupwns', 'real') >= 0
-    assert chip.get('metric', 'route', '0', 'setuptns', 'real') >= 0
+    assert chip.get('metric', 'route', '0', 'holdslack') >= 0
+    assert chip.get('metric', 'route', '0', 'holdwns') >= 0
+    assert chip.get('metric', 'route', '0', 'holdtns') >= 0
+    assert chip.get('metric', 'route', '0', 'setupslack') >= 0
+    assert chip.get('metric', 'route', '0', 'setupwns') >= 0
+    assert chip.get('metric', 'route', '0', 'setuptns') >= 0
 
     chip = build_top(verify=True)
 
-    assert chip.get('metric', 'lvs', '0', 'errors', 'real') == 0
-    assert chip.get('metric', 'drc', '0', 'errors', 'real') == 0
+    assert chip.get('metric', 'lvs', '0', 'errors') == 0
+    assert chip.get('metric', 'drc', '0', 'errors') == 0
 
 def test_fpga_build():
     build_fpga()
@@ -241,10 +237,12 @@ def main():
     elif options.core_only:
         build_core(verify=verify, remote=options.remote)
     elif options.top_only:
-        build_top(verify=verify)
+        chip = siliconcompiler.Chip('asic_core')
+        chip.read_manifest('asic_core.pkg.json')
+        build_top(chip, verify=verify)
     else:
-        build_core(verify=False, remote=options.remote)
-        build_top(verify=verify)
+        core_chip = build_core(verify=False, remote=options.remote)
+        build_top(core_chip, verify=verify)
 
 if __name__ == '__main__':
     main()
