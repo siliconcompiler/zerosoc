@@ -13,4 +13,4 @@ def setup(chip):
     lib.add('model', 'layout', 'lef', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
     lib.add('model', 'layout', 'gds', stackup, 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
 
-    return lib
+    chip.import_library(lib)
