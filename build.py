@@ -65,7 +65,7 @@ def configure_core_chip(remote=False):
     # server can access them
     if remote:
         stackup = chip.get('asic', 'stackup')
-        chip.set('library', 'sky130sram', 'model', 'timing', 'nldm', True, field='copy')
+        chip.set('library', 'sky130sram', 'model', 'timing', 'nldm', 'typical', True, field='copy')
         chip.set('library', 'sky130sram', 'model', 'layout', 'lef', stackup, True, field='copy')
         chip.set('library', 'sky130sram', 'model', 'layout', 'gds', stackup, True, field='copy')
 
