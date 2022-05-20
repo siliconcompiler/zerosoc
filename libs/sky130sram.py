@@ -5,6 +5,9 @@ def setup(chip):
     lib = siliconcompiler.Chip(libname)
 
     stackup = '5M1LI' # TODO: this should this be extracted from something
+    version = 'v0_0_2'
+
+    lib.set('package', 'version', version)
 
     lib.set('asic', 'pdk', 'skywater130')
     lib.set('asic', 'stackup', stackup)
