@@ -1,4 +1,4 @@
 bin2coe
 hjson
 mako
-siliconcompiler
+siliconcompiler ~= 0.9
