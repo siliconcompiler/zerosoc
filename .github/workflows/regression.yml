@@ -6,7 +6,7 @@ jobs:
   regression:
     timeout-minutes: 60
     runs-on: ubuntu-latest
-    container: ghcr.io/siliconcompiler/sc_tools
+    container: ghcr.io/nmoroze/sc_tools
     defaults:
       run:
         shell: bash
