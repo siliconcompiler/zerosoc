@@ -1,0 +1,25 @@
+on: [workflow_dispatch, push]
+
+name: 'Regression tests'
+
+jobs:
+  regression:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container: ghcr.io/siliconcompiler/sc_tools
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          path: src
+      - run: apt install python3.8-venv
+      - run: |
+          cd src
+          source /siliconcompiler/third_party/tools/openroad/setup_env.sh
+          python3 -m venv create ./clean_env --clear
+          source ./clean_env/bin/activate
+          echo $VIRTUAL_ENV
+          pip3 install -r python-requirements.txt
+          pytest build.py::test_zerosoc_build
