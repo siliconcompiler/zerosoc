@@ -11,9 +11,10 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         with:
           path: src
+          submodules: true
       - run: apt install python3.8-venv
       - run: |
           cd src
