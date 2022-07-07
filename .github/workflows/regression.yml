@@ -22,4 +22,4 @@ jobs:
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
-          pytest build.py::test_zerosoc_build
+          python3 -m pytest build.py::test_zerosoc_build
