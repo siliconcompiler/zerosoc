@@ -23,3 +23,5 @@ jobs:
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
           python3 -m pytest build.py::test_zerosoc_build
+        env:
+          SCPATH: /siliconcompiler/siliconcompiler
