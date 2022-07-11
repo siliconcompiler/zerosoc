@@ -188,6 +188,10 @@ def run_signoff(chip, netlist_step, layout_step):
     chip.set('option', 'jobname', f'{jobname}_signoff')
     chip.set('option', 'flow', 'signoffflow')
 
+    # Hack: workaround the fact that remote runs alter the steplist
+    if chip.get('option', 'remote'):
+        chip.set('option', 'steplist', [])
+
     chip.set('input', 'gds', gds_path)
     chip.set('input', 'netlist', netlist_path)
 
