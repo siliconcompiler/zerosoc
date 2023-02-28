@@ -41,7 +41,6 @@ module asic_top (
     asic_core core (
         ._vdd(vdd),
         ._vss(vss),
-        ._vddio(vddio),
 
         .we_din,
         .we_dout,
