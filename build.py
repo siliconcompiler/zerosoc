@@ -139,7 +139,6 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
 
     chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'global_connect', os.path.join(os.path.dirname(__file__), 'openroad', 'global_connect.tcl'))
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'pdn_config', os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen.tcl'))
 
     chip.set('tool', 'openroad', 'task', 'export', 'var', 'write_cdl', 'false')
 
@@ -180,10 +179,11 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
 
     return chip
 
-def configure_top_chip(core_chip):
+def configure_top_chip(core_chip, resume=False):
     chip = siliconcompiler.Chip('asic_top')
 
     setup_options(chip)
+    chip.set('option', 'resume', resume)
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
@@ -196,8 +196,9 @@ def configure_top_chip(core_chip):
                 exclude = core_chip.get('tool', tool, 'task', task, 'var', 'exclude')
                 chip.set('tool', tool, 'task', task, 'var', 'exclude', exclude)
 
+    chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
-    chip.set('option', 'flow', 'asictopflow')
+    chip.set('option', 'flow', 'asicflow')
 
     chip.use(core_chip)
     chip.use(sky130io)
@@ -215,6 +216,7 @@ def configure_top_chip(core_chip):
     chip.input('asic/sky130/io/asic_iovss.v')
     chip.input('asic/sky130/io/asic_iovssio.v')
     chip.input('asic/sky130/io/asic_iocorner.v')
+    chip.input('opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
 
     # Dummy blackbox modules just to get synthesis to pass (these aren't
     # acutally instantiated)
@@ -223,11 +225,19 @@ def configure_top_chip(core_chip):
 
     chip.input('asic/sky130/io/sky130_io.blackbox.v')
 
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'global_connect', os.path.join(os.path.dirname(__file__), 'openroad', 'global_connect_top.tcl'))
+
+    chip.set('tool', 'openroad', 'task', 'place', 'var', 'dpo_enable', 'false')
+
+    chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+
     return chip
 
-def build_top(core_chip, verify=True):
-    chip = configure_top_chip(core_chip)
-    #generate_top_floorplan(chip)
+def build_top(core_chip, verify=True, resume=False):
+    chip = configure_top_chip(core_chip, resume=resume)
+
+    generate_top_floorplan(chip)
+
     run_build(chip)
     if verify:
         run_signoff(chip, 'syn', 'export')
@@ -312,9 +322,9 @@ def main():
         if not os.path.exists('asic_core.pkg.json'):
             print("'asic_core.pkg.json' has not been generated.", file=sys.stderr)
             return
-        chip = siliconcompiler.Chip('asic_core')
-        chip.read_manifest('asic_core.pkg.json')
-        build_top(chip, verify=verify)
+        core_chip = siliconcompiler.Chip('asic_core')
+        core_chip.read_manifest('asic_core.pkg.json')
+        build_top(core_chip, verify=verify, resume=options.resume)
     else:
         core_chip = build_core(verify=False, remote=options.remote)
         build_top(core_chip, verify=verify)
