@@ -1,10 +1,11 @@
 import siliconcompiler
 
+
 def setup(chip):
     libname = 'sky130sram'
     lib = siliconcompiler.Library(chip, libname)
 
-    stackup = '5M1LI' # TODO: this should this be extracted from something
+    stackup = '5M1LI'
     version = 'v0_0_2'
 
     lib.set('package', 'version', version)
@@ -13,14 +14,16 @@ def setup(chip):
     lib.set('option', 'stackup', stackup)
 
     # Only one corner available, so use that for all corners
-    lib.add('output', 'slow',    'nldm', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    lib.add('output', 'typical', 'nldm', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
-    lib.add('output', 'fast',    'nldm', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib')
+    libpath = 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8_TT_1p8V_25C.lib'
+    lib.add('output', 'slow',    'nldm', libpath)
+    lib.add('output', 'typical', 'nldm', libpath)
+    lib.add('output', 'fast',    'nldm', libpath)
 
     lib.add('output', stackup, 'lef', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.lef')
     lib.add('output', stackup, 'gds', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.gds')
 
     return lib
+
 
 if __name__ == "__main__":
     lib = setup(siliconcompiler.Chip('<lib>'))

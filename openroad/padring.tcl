@@ -1,4 +1,3 @@
-
 # Create false IO sites, since sky130 does not have PAD sites available
 make_fake_io_site -name IO_HSITE -width 1 -height 200
 make_fake_io_site -name IO_VSITE -width 1 -height 200
@@ -6,33 +5,6 @@ make_fake_io_site -name IO_CSITE -width 200 -height 204
 
 # Create IO Rows
 make_io_sites -horizontal_site IO_HSITE -vertical_site IO_VSITE -corner_site IO_CSITE -offset 10 -rotation R180
-
-
-proc place_pad {args} {
-    puts $args
-  sta::parse_key_args "place_pad" args \
-    keys {-master -location -row} \
-    flags {-mirror}
-
-  sta::check_argc_eq1 "place_pad" $args
-
-  set master "NULL"
-  if {[info exists keys(-master)]} {
-    set master [pad::find_master $keys(-master)]
-  }
-  set name [lindex $args 0]
-  pad::assert_required place_pad -location
-  set offset [ord::microns_to_dbu $keys(-location)]
-
-  pad::assert_required place_pad -row
-  puts $name
-  pad::place_pad $master \
-                 $name \
-                 [pad::get_row $keys(-row)] \
-                 $offset \
-                 [info exists flags(-mirror)]
-}
-
 
 # Place pads
 proc place_padring_edge { row dim edge } {
@@ -45,10 +17,8 @@ proc place_padring_edge { row dim edge } {
     set pad_interval [expr $span / ($pad_length + 1)]
     for { set i 0 } { $i < $pad_length } { incr i } {
         set pad_name   [lindex [dict get $sc_cfg tool $sc_tool task $sc_task {var} padring_${edge}_name] $i]
-        set pad_master [lindex [dict get $sc_cfg tool $sc_tool task $sc_task {var} padring_${edge}_master] $i]
         puts "Placing IO pad: $pad_name"
         place_pad \
-            -master $pad_master \
             -row $row \
             -location [expr $span_start + ($i + 0.5) * $pad_interval] \
             $pad_name
