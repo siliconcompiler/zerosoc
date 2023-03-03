@@ -3,6 +3,7 @@ zerosoc.vcd
 
 # SC build dir
 build/
+*.json
 
 # FPGA build outputs
 *.asc
