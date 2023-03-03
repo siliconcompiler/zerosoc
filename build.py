@@ -260,7 +260,7 @@ def configure_top_chip(core_chip=None, resume=False, remote=False):
     return chip
 
 
-def build_top(core_chip, verify=True, resume=False, remote=False, floorplan=False):
+def build_top(core_chip=None, verify=True, resume=False, remote=False, floorplan=False):
     chip = configure_top_chip(core_chip, remote=remote, resume=resume)
 
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')

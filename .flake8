@@ -1,0 +1,4 @@
+[flake8]
+extend-exclude = opentitan,oh
+max-complexity = 10
+max-line-length = 100

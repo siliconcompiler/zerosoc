@@ -13,6 +13,7 @@ FILL_CELLS = ['sky130_ef_io__com_bus_slice_1um',
 
 RAM = 'sky130_sram_2kbyte_1rw1r_32x512_8'
 
+
 def define_io_placement():
     we_io = [GPIO] * 5 + [VDD, VSS, VDDIO, VSSIO] + [GPIO] * 4
     no_io = [GPIO] * 9 + [VDDIO, VSSIO, VDD, VSS]
@@ -21,8 +22,9 @@ def define_io_placement():
 
     return we_io, no_io, ea_io, so_io
 
+
 def generate_core_floorplan(chip):
-    ## Set up die area ##
+    # Set up die area
     core_w = 1700
     core_h = 1200
     core_margin = 10
@@ -32,47 +34,38 @@ def generate_core_floorplan(chip):
     chip.set('constraint', 'outline', diearea)
     chip.set('constraint', 'corearea', corearea)
 
-    ## Place RAM macro ##
-    # ram_w = fp.available_cells[RAM].width
-    # ram_h = fp.available_cells[RAM].height
-    # ram_x = fp.snap(place_w + margin_left - ram_w, 0.46)
-    # # Add hand-calculated fudge factor to align left-side pins with routing tracks.
-    # ram_y = place_h + margin_bottom - ram_h - 15 * 2.72 + 0.53
-
+    # Place RAM macro
     instance_name = 'soc.ram.u_mem.gen_sky130.u_impl_sky130.gen32x512.mem'
     chip.set('constraint', 'component', instance_name, 'placement', [core_w / 2, core_h / 2, 0])
 
-    ## Place pins ##
+    # Place pins
     pins = [
         # (name, offset from cell edge, # bit in vector, width of vector)
-        ('din', 0, 1), # in
-        ('dout', 0, 1), # out
-        ('ie', 0, 1), # inp_dis
-        ('oen', 0, 1), # oe_n
-        ('tech_cfg', 0, 18), # hld_h_n
-        ('tech_cfg', 1, 18), # enable_h
-        ('tech_cfg', 2, 18), # enable_inp_h
-        ('tech_cfg', 3, 18), # enable_vdda_h
-        ('tech_cfg', 4, 18), # enable_vswitch_h
-        ('tech_cfg', 5, 18), # enable_vddio
-        ('tech_cfg', 6, 18), # ib_mode_sel
-        ('tech_cfg', 7, 18), # vtrip_sel
-        ('tech_cfg', 8, 18), # slow
-        ('tech_cfg', 9, 18), # hld_ovr
-        ('tech_cfg', 10, 18), # analog_en
-        ('tech_cfg', 11, 18), # analog_sel
-        ('tech_cfg', 12, 18), # analog_pol
-        ('tech_cfg', 13, 18), # dm[0]
-        ('tech_cfg', 14, 18), # dm[1]
-        ('tech_cfg', 15, 18), # dm[2]
-        ('tech_cfg', 16, 18), # tie_lo_esd
-        ('tech_cfg', 17, 18), # tie_hi_esd
+        ('din', 0, 1),  # in
+        ('dout', 0, 1),  # out
+        ('ie', 0, 1),  # inp_dis
+        ('oen', 0, 1),  # oe_n
+        ('tech_cfg', 0, 18),  # hld_h_n
+        ('tech_cfg', 1, 18),  # enable_h
+        ('tech_cfg', 2, 18),  # enable_inp_h
+        ('tech_cfg', 3, 18),  # enable_vdda_h
+        ('tech_cfg', 4, 18),  # enable_vswitch_h
+        ('tech_cfg', 5, 18),  # enable_vddio
+        ('tech_cfg', 6, 18),  # ib_mode_sel
+        ('tech_cfg', 7, 18),  # vtrip_sel
+        ('tech_cfg', 8, 18),  # slow
+        ('tech_cfg', 9, 18),  # hld_ovr
+        ('tech_cfg', 10, 18),  # analog_en
+        ('tech_cfg', 11, 18),  # analog_sel
+        ('tech_cfg', 12, 18),  # analog_pol
+        ('tech_cfg', 13, 18),  # dm[0]
+        ('tech_cfg', 14, 18),  # dm[1]
+        ('tech_cfg', 15, 18),  # dm[2]
+        ('tech_cfg', 16, 18),  # tie_lo_esd
+        ('tech_cfg', 17, 18),  # tie_hi_esd
     ]
 
     we_pads, no_pads, ea_pads, so_pads = define_io_placement()
-
-    # gpio_w = fp.available_cells[GPIO].width
-    # gpio_h = fp.available_cells[GPIO].height
 
     # Filter out GPIO pins
     for i, _ in enumerate([pad for pad in we_pads if pad == GPIO]):
@@ -81,7 +74,6 @@ def generate_core_floorplan(chip):
             pin, bit, width = pin_spec
             # Construct name based on side, pin name, and bit # in vector
             name = f'we_{pin}[{i * width + bit}]'
-            # Place pin!
             chip.set('constraint', 'pin', name, 'side', 1)
             chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
 
@@ -93,7 +85,6 @@ def generate_core_floorplan(chip):
             pin, bit, width = pin_spec
             # Construct name based on side, pin name, and bit # in vector
             name = f'no_{pin}[{i * width + bit}]'
-            # Place pin!
             chip.set('constraint', 'pin', name, 'side', 2)
             chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
 
@@ -103,7 +94,6 @@ def generate_core_floorplan(chip):
             pin, bit, width = pin_spec
             # Construct name based on side, pin name, and bit # in vector
             name = f'ea_{pin}[{i * width + bit}]'
-            # Place pin!
             chip.set('constraint', 'pin', name, 'side', 3)
             chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
 
@@ -113,16 +103,26 @@ def generate_core_floorplan(chip):
             pin, bit, width = pin_spec
             # Construct name based on side, pin name, and bit # in vector
             name = f'so_{pin}[{i * width + bit}]'
-            # Place pin!
             chip.set('constraint', 'pin', name, 'side', 4)
             chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
 
+    # Global connections
+    gc_path = os.path.join(os.path.dirname(__file__),
+                           'openroad',
+                           'global_connect.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'global_connect', gc_path)
+
     # Define power grid
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'pdn_config', os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen.tcl'))
+    pdngen_path = os.path.join(os.path.dirname(__file__),
+                               'openroad',
+                               'pdngen.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'pdn_config', pdngen_path)
+
 
 def configure_padring(chip):
-    ## Place pads ##
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'padring', os.path.join(os.path.dirname(__file__), 'openroad', 'padring.tcl'))
+    # Place pads
+    padring_file = os.path.join(os.path.dirname(__file__), 'openroad', 'padring.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'padring', padring_file)
 
     we_pads, no_pads, ea_pads, so_pads = define_io_placement()
     indices = {}
@@ -136,7 +136,7 @@ def configure_padring(chip):
         i = indices[pad_type]
         indices[pad_type] += 1
         if pad_type == GPIO:
-            pad_name = f'padring.we_pads\[0\].i0.padio\[{i}\].i0.gpio'
+            pad_name = f'padring.we_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'we_pad[{i}]'
         else:
             if pad_type == VDD:
@@ -147,17 +147,16 @@ def configure_padring(chip):
                 pin_name = 'vddio'
             elif pad_type == VSSIO:
                 pin_name = 'vssio'
-            pad_name = f'padring.we_pads\[0\].i0.pad{pin_name}\[0\].i0.io{pin_name}'
+            pad_name = f'padring.we_pads\\[0\\].i0.pad{pin_name}\\[0\\].i0.io{pin_name}'
 
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_west_name', pad_name)
-        chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_west_master', pad_type)
 
     indices[GPIO] = 0
     for pad_type in no_pads:
         i = indices[pad_type]
         indices[pad_type] += 1
         if pad_type == GPIO:
-            pad_name = f'padring.no_pads\[0\].i0.padio\[{i}\].i0.gpio'
+            pad_name = f'padring.no_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'no_pad[{i}]'
         else:
             if pad_type == VDD:
@@ -168,17 +167,16 @@ def configure_padring(chip):
                 pin_name = 'vddio'
             elif pad_type == VSSIO:
                 pin_name = 'vssio'
-            pad_name = f'padring.no_pads\[0\].i0.pad{pin_name}\[0\].i0.io{pin_name}'
+            pad_name = f'padring.no_pads\\[0\\].i0.pad{pin_name}\\[0\\].i0.io{pin_name}'
 
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_north_name', pad_name)
-        chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_north_master', pad_type)
 
     indices[GPIO] = 0
     for pad_type in ea_pads:
         i = indices[pad_type]
         indices[pad_type] += 1
         if pad_type == GPIO:
-            pad_name = f'padring.ea_pads\[0\].i0.padio\[{i}\].i0.gpio'
+            pad_name = f'padring.ea_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
             pin_name = f'ea_pad[{i}]'
         else:
             if pad_type == VDD:
@@ -189,17 +187,16 @@ def configure_padring(chip):
                 pin_name = 'vddio'
             elif pad_type == VSSIO:
                 pin_name = 'vssio'
-            pad_name = f'padring.ea_pads\[0\].i0.pad{pin_name}\[0\].i0.io{pin_name}'
+            pad_name = f'padring.ea_pads\\[0\\].i0.pad{pin_name}\\[0\\].i0.io{pin_name}'
 
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_east_name', pad_name)
-        chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_east_master', pad_type)
 
     indices[GPIO] = 0
     for pad_type in so_pads:
         i = indices[pad_type]
         indices[pad_type] += 1
         if pad_type == GPIO:
-            pad_name = f'padring.so_pads\[0\].i0.padio\[{i}\].i0.gpio'
+            pad_name = f'padring.so_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
         else:
             if pad_type == VDD:
                 pin_name = 'vdd'
@@ -209,13 +206,13 @@ def configure_padring(chip):
                 pin_name = 'vddio'
             elif pad_type == VSSIO:
                 pin_name = 'vssio'
-            pad_name = f'padring.so_pads\[0\].i0.pad{pin_name}\[0\].i0.io{pin_name}'
+            pad_name = f'padring.so_pads\\[0\\].i0.pad{pin_name}\\[0\\].i0.io{pin_name}'
 
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_south_name', pad_name)
-        chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_south_master', pad_type)
+
 
 def generate_top_floorplan(chip):
-    ## Create die area ##
+    # Create die area
     top_w = 2300
     top_h = 1800
 
@@ -225,12 +222,16 @@ def generate_top_floorplan(chip):
     chip.set('constraint', 'outline', [(0, 0), (top_w, top_h)])
     chip.set('constraint', 'corearea', [(margin, margin), (top_w - margin, top_h - margin)])
 
-    ## Place pads ##
+    # Place pads
     configure_padring(chip)
 
-    # Define power grid
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'pdn_config', os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen_top.tcl'))
+    # Global connections
+    gc_file = os.path.join(os.path.dirname(__file__), 'openroad', 'global_connect_top.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'global_connect', gc_file)
 
-    ## Place core ##
-    core_name = "core"
-    chip.set('constraint', 'component', core_name, 'placement', [top_w / 2, top_h / 2, 0])
+    # Define power grid
+    pdngen_file = os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen_top.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'pdn_config', pdngen_file)
+
+    # Place core
+    chip.set('constraint', 'component', 'core', 'placement', [top_w / 2, top_h / 2, 0])
