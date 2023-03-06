@@ -26,6 +26,14 @@ def configure_remote(chip):
                 chip.hash_files('library', library, 'output', fileset, filetype)
                 chip.set('library', library, 'output', fileset, filetype, True, field='copy')
 
+    for tool in chip.getkeys('tool'):
+        for task in chip.getkeys('tool', tool, 'task'):
+            for file_var in chip.getkeys('tool', tool, 'task', task, 'file'):
+                # Need to copy library files into build directory for remote run so the
+                # server can access them
+                chip.hash_files('tool', tool, 'task', task, 'file', file_var)
+                chip.set('tool', tool, 'task', task, 'file', file_var, True, field='copy')
+
 
 def add_sources_core(chip):
     chip.add('option', 'define', 'SYNTHESIS')
@@ -130,7 +138,7 @@ def build_fpga():
     run_build(chip)
 
 
-def configure_core_chip(remote=False):
+def configure_core_chip():
     chip = siliconcompiler.Chip('asic_core')
 
     setup_options(chip)
@@ -148,9 +156,6 @@ def configure_core_chip(remote=False):
         chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130sram')
     chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130sram')
 
-    if remote:
-        configure_remote(chip)
-
     add_sources_core(chip)
 
     chip.clock(r'we_din\[5\]', period=20)
@@ -167,7 +172,7 @@ def configure_core_chip(remote=False):
 
 
 def build_core(verify=True, remote=False, resume=False, floorplan=False):
-    chip = configure_core_chip(remote)
+    chip = configure_core_chip()
     chip.set('option', 'resume', resume)
 
     chip.set('tool', 'openroad', 'task', 'place', 'var', 'place_density', '0.40')
@@ -178,7 +183,7 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
 
     generate_core_floorplan(chip)
 
-    run_build(chip)
+    run_build(chip, remote)
 
     if verify:
         run_signoff(chip, 'dfm', 'export')
@@ -214,7 +219,7 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
     return chip
 
 
-def configure_top_chip(core_chip=None, resume=False, remote=False):
+def configure_top_chip(core_chip=None, resume=False):
     if not core_chip:
         if not os.path.exists(ASIC_CORE_CFG):
             print(f"'{ASIC_CORE_CFG}' has not been generated.", file=sys.stderr)
@@ -238,9 +243,6 @@ def configure_top_chip(core_chip=None, resume=False, remote=False):
 
     add_sources_top(chip)
 
-    if remote:
-        configure_remote(chip)
-
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
     for task in ('extspice', 'drc'):
@@ -261,20 +263,23 @@ def configure_top_chip(core_chip=None, resume=False, remote=False):
 
 
 def build_top(core_chip=None, verify=True, resume=False, remote=False, floorplan=False):
-    chip = configure_top_chip(core_chip, remote=remote, resume=resume)
+    chip = configure_top_chip(core_chip, resume=resume)
 
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
 
     generate_top_floorplan(chip)
 
-    run_build(chip)
+    run_build(chip, remote)
     if verify:
         run_signoff(chip, 'syn', 'export')
 
     return chip
 
 
-def run_build(chip):
+def run_build(chip, remote):
+    if remote:
+        configure_remote(chip)
+
     chip.run()
     chip.summary()
 
@@ -362,6 +367,7 @@ def main():
                    floorplan=options.floorplan)
     elif options.top_only:
         build_top(verify=verify,
+                  remote=options.remote,
                   resume=options.resume,
                   floorplan=options.floorplan)
     else:
