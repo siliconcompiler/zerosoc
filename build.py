@@ -19,6 +19,9 @@ def configure_remote(chip):
     chip.set('option', 'remote', True)
 
     for library in chip.getkeys('library'):
+        if library in ['sky130hd', 'sky130io']:
+            # No need to copy library
+            continue
         for fileset in chip.getkeys('library', library, 'output'):
             for filetype in chip.getkeys('library', library, 'output', fileset):
                 # Need to copy library files into build directory for remote run so the
