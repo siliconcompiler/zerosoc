@@ -23,21 +23,7 @@ def define_io_placement():
     return we_io, no_io, ea_io, so_io
 
 
-def generate_core_floorplan(chip):
-    # Set up die area
-    core_w = 1700
-    core_h = 1200
-    core_margin = 10
-    diearea = [(0, 0), (core_w, core_h)]
-    corearea = [(core_margin, core_margin), (core_w - core_margin, core_h - core_margin)]
-
-    chip.set('constraint', 'outline', diearea)
-    chip.set('constraint', 'corearea', corearea)
-
-    # Place RAM macro
-    instance_name = 'soc.ram.u_mem.gen_sky130.u_impl_sky130.gen32x512.mem'
-    chip.set('constraint', 'component', instance_name, 'placement', [core_w / 2, core_h / 2, 0])
-
+def generate_core_pins(chip):
     # Place pins
     pins = [
         # (name, offset from cell edge, # bit in vector, width of vector)
@@ -105,18 +91,6 @@ def generate_core_floorplan(chip):
             name = f'so_{pin}[{i * width + bit}]'
             chip.set('constraint', 'pin', name, 'side', 4)
             chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
-
-    # Global connections
-    gc_path = os.path.join(os.path.dirname(__file__),
-                           'openroad',
-                           'global_connect.tcl')
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_path)
-
-    # Define power grid
-    pdngen_path = os.path.join(os.path.dirname(__file__),
-                               'openroad',
-                               'pdngen.tcl')
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_path)
 
 
 def configure_padring(chip):
@@ -211,7 +185,46 @@ def configure_padring(chip):
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_south_name', pad_name)
 
 
-def generate_top_floorplan(chip):
+def generate_core_outline(chip):
+    # Set up die area
+    core_w = 1700
+    core_h = 1200
+    core_margin = 10
+    diearea = [(0, 0), (core_w, core_h)]
+    corearea = [(core_margin, core_margin), (core_w - core_margin, core_h - core_margin)]
+
+    chip.set('constraint', 'outline', diearea)
+    chip.set('constraint', 'corearea', corearea)
+
+
+def generate_core_placement(chip, flat=False):
+    # Place RAM macro
+    die_ll, die_ur = chip.get('constraint', 'outline')
+    instance_name = 'soc.ram.u_mem.gen_sky130.u_impl_sky130.gen32x512.mem'
+    if flat:
+        instance_name = 'core.' + instance_name
+    chip.set('constraint', 'component', instance_name, 'placement', [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2, 0])
+
+
+def generate_core_floorplan(chip):
+    generate_core_outline(chip)
+    generate_core_placement(chip)
+    generate_core_pins(chip)
+
+    # Global connections
+    gc_path = os.path.join(os.path.dirname(__file__),
+                           'openroad',
+                           'global_connect.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_path)
+
+    # Define power grid
+    pdngen_path = os.path.join(os.path.dirname(__file__),
+                               'openroad',
+                               'pdngen.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_path)
+
+
+def generate_top_outline(chip):
     # Create die area
     top_w = 2300
     top_h = 1800
@@ -222,7 +235,16 @@ def generate_top_floorplan(chip):
     chip.set('constraint', 'outline', [(0, 0), (top_w, top_h)])
     chip.set('constraint', 'corearea', [(margin, margin), (top_w - margin, top_h - margin)])
 
-    # Place pads
+
+def generate_top_placement(chip):
+    # Place core
+    die_ll, die_ur = chip.get('constraint', 'outline')
+    chip.set('constraint', 'component', 'core', 'placement', [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2, 0])
+
+
+def generate_top_floorplan(chip):
+    generate_top_outline(chip)
+    generate_top_placement(chip)
     configure_padring(chip)
 
     # Global connections
@@ -233,5 +255,17 @@ def generate_top_floorplan(chip):
     pdngen_file = os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen_top.tcl')
     chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_file)
 
-    # Place core
-    chip.set('constraint', 'component', 'core', 'placement', [top_w / 2, top_h / 2, 0])
+
+def generate_top_flat_floorplan(chip):
+    generate_top_outline(chip)
+    generate_core_placement(chip, flat=True)
+    configure_padring(chip)
+
+    # Global connections
+    gc_file = os.path.join(os.path.dirname(__file__), 'openroad', 'global_connect_flat.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_file)
+
+    # Define power grid
+    pdngen_file = os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen_flat.tcl')
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_file)
+

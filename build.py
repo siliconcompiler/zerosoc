@@ -10,7 +10,7 @@ import sys
 from siliconcompiler.libs import sky130io
 import libs.sky130sram
 
-from floorplan import generate_core_floorplan, generate_top_floorplan
+from floorplan import generate_core_floorplan, generate_top_floorplan, generate_top_flat_floorplan
 
 ASIC_CORE_CFG = 'asic_core.pkg.json'
 
@@ -84,9 +84,18 @@ def add_sources_core(chip):
     chip.input('hw/tl_dbg.sv')
 
 
+def add_sources_core_top(chip):
+    chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
+    chip.add('option', 'define', 'RAM_DEPTH=512')
+
+    chip.input('hw/asic_core.v')
+
+    chip.input('hw/prim/sky130/prim_sky130_ram_1p.v')
+    chip.input('hw/prim/sky130/prim_sky130_clock_gating.v')
+
+
 def add_sources_top(chip):
     chip.input('hw/asic_top.v')
-    chip.input('hw/asic_core.bb.v')
     chip.input('oh/padring/hdl/oh_padring.v')
     chip.input('oh/padring/hdl/oh_pads_domain.v')
     chip.input('oh/padring/hdl/oh_pads_corner.v')
@@ -163,13 +172,7 @@ def configure_core_chip():
 
     chip.clock(r'we_din\[5\]', period=20)
 
-    chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
-    chip.add('option', 'define', 'RAM_DEPTH=512')
-
-    chip.input('hw/asic_core.v')
-
-    chip.input('hw/prim/sky130/prim_sky130_ram_1p.v')
-    chip.input('hw/prim/sky130/prim_sky130_clock_gating.v')
+    add_sources_core_top(chip)
 
     return chip
 
@@ -222,6 +225,40 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
     return chip
 
 
+def configure_top_flat_chip(resume=False):
+    chip = siliconcompiler.Chip('asic_flat')
+    chip.set('option', 'entrypoint', 'asic_top')
+
+    setup_options(chip)
+    chip.set('option', 'resume', resume)
+
+    chip.set('option', 'frontend', 'systemverilog')
+    chip.load_target('skywater130_demo')
+    chip.set('option', 'flow', 'asicflow')
+
+    chip.use(sky130io)
+    chip.use(libs.sky130sram)
+    chip.set('asic', 'macrolib', ['sky130sram', 'sky130io'])
+
+    add_sources_core(chip)
+    add_sources_top(chip)
+
+    # Ignore cells in these libraries during DRC, they violate the rules but are
+    # foundry-validated
+    for task in ('extspice', 'drc'):
+        chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130io')
+    chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130io')
+
+    # OpenROAD settings
+    chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+
+    chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=20)
+
+    add_sources_core_top(chip)
+
+    return chip
+
+
 def configure_top_chip(core_chip=None, resume=False):
     if not core_chip:
         if not os.path.exists(ASIC_CORE_CFG):
@@ -261,6 +298,20 @@ def configure_top_chip(core_chip=None, resume=False):
     # OpenROAD settings
     chip.set('tool', 'openroad', 'task', 'place', 'var', 'dpo_enable', 'false')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+
+    return chip
+
+
+def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
+    chip = configure_top_flat_chip(resume=resume)
+
+    chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
+
+    generate_top_flat_floorplan(chip)
+
+    run_build(chip, remote)
+    if verify:
+        run_signoff(chip, 'syn', 'export')
 
     return chip
 
@@ -343,6 +394,10 @@ def main():
                         action='store_true',
                         default=False,
                         help='Only integrate ASIC core into padring. Assumes core already built.')
+    parser.add_argument('--top-flat',
+                        action='store_true',
+                        default=False,
+                        help='Build the entire ZeroSoC.')
     parser.add_argument('--floorplan',
                         action='store_true',
                         default=False,
@@ -373,6 +428,11 @@ def main():
                   remote=options.remote,
                   resume=options.resume,
                   floorplan=options.floorplan)
+    elif options.top_flat:
+        build_top_flat(verify=verify,
+                       remote=options.remote,
+                       resume=options.resume,
+                       floorplan=options.floorplan)
     else:
         core_chip = build_core(remote=options.remote,
                                verify=False,
