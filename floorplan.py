@@ -203,7 +203,8 @@ def generate_core_placement(chip, flat=False):
     instance_name = 'soc.ram.u_mem.gen_sky130.u_impl_sky130.gen32x512.mem'
     if flat:
         instance_name = 'core.' + instance_name
-    chip.set('constraint', 'component', instance_name, 'placement', [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2, 0])
+    location = [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2, 0]
+    chip.set('constraint', 'component', instance_name, 'placement', location)
 
 
 def generate_core_floorplan(chip):
@@ -239,7 +240,8 @@ def generate_top_outline(chip):
 def generate_top_placement(chip):
     # Place core
     die_ll, die_ur = chip.get('constraint', 'outline')
-    chip.set('constraint', 'component', 'core', 'placement', [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2, 0])
+    location = [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2, 0]
+    chip.set('constraint', 'component', 'core', 'placement', location)
 
 
 def generate_top_floorplan(chip):
@@ -268,4 +270,3 @@ def generate_top_flat_floorplan(chip):
     # Define power grid
     pdngen_file = os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen_flat.tcl')
     chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_file)
-

@@ -12,7 +12,7 @@ import libs.sky130sram
 
 from floorplan import generate_core_floorplan, generate_top_floorplan, generate_top_flat_floorplan
 
-ASIC_CORE_CFG = 'asic_core.pkg.json'
+ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
 
 
 def configure_remote(chip):
@@ -151,7 +151,8 @@ def build_fpga():
 
 
 def configure_core_chip():
-    chip = siliconcompiler.Chip('asic_core')
+    chip = siliconcompiler.Chip('zerosoc_core')
+    chip.set('option', 'entrypoint', 'asic_core')
 
     setup_options(chip)
 
@@ -226,7 +227,7 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
 
 
 def configure_top_flat_chip(resume=False):
-    chip = siliconcompiler.Chip('asic_flat')
+    chip = siliconcompiler.Chip('zerosoc')
     chip.set('option', 'entrypoint', 'asic_top')
 
     setup_options(chip)
@@ -264,10 +265,11 @@ def configure_top_chip(core_chip=None, resume=False):
         if not os.path.exists(ASIC_CORE_CFG):
             print(f"'{ASIC_CORE_CFG}' has not been generated.", file=sys.stderr)
             return
-        core_chip = siliconcompiler.Chip('asic_core')
+        core_chip = siliconcompiler.Chip('zerosoc_core')
         core_chip.read_manifest(ASIC_CORE_CFG)
 
-    chip = siliconcompiler.Chip('asic_top')
+    chip = siliconcompiler.Chip('zerosoc_top')
+    chip.set('option', 'entrypoint', 'asic_top')
 
     setup_options(chip)
     chip.set('option', 'resume', resume)
