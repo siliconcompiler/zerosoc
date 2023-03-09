@@ -1,7 +1,6 @@
 module asic_core (
     inout _vdd,
     inout _vss,
-    inout _vddio,
 
     input [8:0]  we_din,
     output [8:0]  we_dout,
@@ -93,11 +92,11 @@ module asic_core (
                 assign tie_lo_esd = we_tech_cfg[i*18 + 16];
                 assign tie_hi_esd = we_tech_cfg[i*18 + 17];
 
-                assign we_tech_cfg[i*18 + 0] = _vddio; // hld_h_n
-                assign we_tech_cfg[i*18 + 1] = _vddio; // enable_h
+                assign we_tech_cfg[i*18 + 0] = 1'b1; // hld_h_n
+                assign we_tech_cfg[i*18 + 1] = 1'b1; // enable_h
                 assign we_tech_cfg[i*18 + 2] = tie_lo_esd; // enable_inp_h
-                assign we_tech_cfg[i*18 + 3] = _vddio; // enable_vdda_h
-                assign we_tech_cfg[i*18 + 4] = _vddio; // enable_vswitch_h DIFF!!
+                assign we_tech_cfg[i*18 + 3] = 1'b1; // enable_vdda_h
+                assign we_tech_cfg[i*18 + 4] = 1'b1; // enable_vswitch_h DIFF!!
                 assign we_tech_cfg[i*18 + 5] = 1'b1; // enable_vddio
                 assign we_tech_cfg[i*18 + 6] = 1'b0; // ib_mode_sel
                 assign we_tech_cfg[i*18 + 7] = 1'b0; // vtrip_sel
@@ -116,11 +115,11 @@ module asic_core (
                 assign tie_lo_esd = no_tech_cfg[i*18 + 16];
                 assign tie_hi_esd = no_tech_cfg[i*18 + 17];
 
-                assign no_tech_cfg[i*18 + 0] = _vddio; // hld_h_n
-                assign no_tech_cfg[i*18 + 1] = _vddio; // enable_h
+                assign no_tech_cfg[i*18 + 0] = 1'b1; // hld_h_n
+                assign no_tech_cfg[i*18 + 1] = 1'b1; // enable_h
                 assign no_tech_cfg[i*18 + 2] = tie_lo_esd; // enable_inp_h
-                assign no_tech_cfg[i*18 + 3] = _vddio; // enable_vdda_h
-                assign no_tech_cfg[i*18 + 4] = _vddio; // enable_vswitch_h
+                assign no_tech_cfg[i*18 + 3] = 1'b1; // enable_vdda_h
+                assign no_tech_cfg[i*18 + 4] = 1'b1; // enable_vswitch_h
                 assign no_tech_cfg[i*18 + 5] = 1'b1; // enable_vddio
                 assign no_tech_cfg[i*18 + 6] = 1'b0; // ib_mode_sel
                 assign no_tech_cfg[i*18 + 7] = 1'b0; // vtrip_sel
@@ -139,11 +138,11 @@ module asic_core (
                 assign tie_lo_esd = ea_tech_cfg[i*18 + 16];
                 assign tie_hi_esd = ea_tech_cfg[i*18 + 17];
 
-                assign ea_tech_cfg[i*18 + 0] = _vddio; // hld_h_n
-                assign ea_tech_cfg[i*18 + 1] = _vddio; // enable_h
+                assign ea_tech_cfg[i*18 + 0] = 1'b1; // hld_h_n
+                assign ea_tech_cfg[i*18 + 1] = 1'b1; // enable_h
                 assign ea_tech_cfg[i*18 + 2] = tie_lo_esd; // enable_inp_h
-                assign ea_tech_cfg[i*18 + 3] = _vddio; // enable_vdda_h
-                assign ea_tech_cfg[i*18 + 4] = _vddio; // enable_vswitch_h
+                assign ea_tech_cfg[i*18 + 3] = 1'b1; // enable_vdda_h
+                assign ea_tech_cfg[i*18 + 4] = 1'b1; // enable_vswitch_h
                 assign ea_tech_cfg[i*18 + 5] = 1'b1; // enable_vddio
                 assign ea_tech_cfg[i*18 + 6] = 1'b0; // ib_mode_sel
                 assign ea_tech_cfg[i*18 + 7] = 1'b0; // vtrip_sel
@@ -162,11 +161,11 @@ module asic_core (
                 assign tie_lo_esd = ea_tech_cfg[i*18 + 16];
                 assign tie_hi_esd = ea_tech_cfg[i*18 + 17];
 
-                assign so_tech_cfg[i*18 + 0] = _vddio; // hld_h_n
-                assign so_tech_cfg[i*18 + 1] = _vddio; // enable_h
+                assign so_tech_cfg[i*18 + 0] = 1'b1; // hld_h_n
+                assign so_tech_cfg[i*18 + 1] = 1'b1; // enable_h
                 assign so_tech_cfg[i*18 + 2] = tie_lo_esd; // enable_inp_h
-                assign so_tech_cfg[i*18 + 3] = _vddio; // enable_vdda_h
-                assign so_tech_cfg[i*18 + 4] = _vddio; // enable_vswitch_h
+                assign so_tech_cfg[i*18 + 3] = 1'b1; // enable_vdda_h
+                assign so_tech_cfg[i*18 + 4] = 1'b1; // enable_vswitch_h
                 assign so_tech_cfg[i*18 + 5] = 1'b1; // enable_vddio
                 assign so_tech_cfg[i*18 + 6] = 1'b0; // ib_mode_sel
                 assign so_tech_cfg[i*18 + 7] = 1'b0; // vtrip_sel

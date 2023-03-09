@@ -1,13 +1,121 @@
 #!/usr/bin/env python3
 
-import argparse
-import copy
 import siliconcompiler
+
+import argparse
 import os
+import sys
 
-from sources import add_sources
+# Libraries
+from siliconcompiler.libs import sky130io
+import libs.sky130sram
 
-from floorplan import generate_core_floorplan, generate_top_floorplan
+from floorplan import generate_core_floorplan, generate_top_floorplan, generate_top_flat_floorplan
+
+ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
+
+
+def configure_remote(chip):
+    chip.set('option', 'remote', True)
+
+    for library in chip.getkeys('library'):
+        if library in ['sky130hd', 'sky130io']:
+            # No need to copy library
+            continue
+        for fileset in chip.getkeys('library', library, 'output'):
+            for filetype in chip.getkeys('library', library, 'output', fileset):
+                # Need to copy library files into build directory for remote run so the
+                # server can access them
+                chip.hash_files('library', library, 'output', fileset, filetype)
+                chip.set('library', library, 'output', fileset, filetype, True, field='copy')
+
+    for tool in chip.getkeys('tool'):
+        for task in chip.getkeys('tool', tool, 'task'):
+            for file_var in chip.getkeys('tool', tool, 'task', task, 'file'):
+                # Need to copy tool files into build directory for remote run so the
+                # server can access them
+                chip.hash_files('tool', tool, 'task', task, 'file', file_var)
+                chip.set('tool', tool, 'task', task, 'file', file_var, True, field='copy')
+
+
+def add_sources_core(chip):
+    chip.add('option', 'define', 'SYNTHESIS')
+
+    # Include dirs
+    chip.add('option', 'idir', 'opentitan/hw/ip/prim/rtl')
+    chip.add('option', 'idir', 'opentitan/hw/dv/sv/dv_utils')
+
+    # Add RTL of all modules we use to search path
+    chip.add('option', 'ydir', 'hw/prim')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/tlul/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/rv_core_ibex/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/vendor/lowrisc_ibex/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/uart/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/gpio/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/prim/rtl')
+    chip.add('option', 'ydir', 'opentitan/hw/ip/prim_generic/rtl')
+
+    # SV packages (need to be added explicitly)
+    chip.input('opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
+    chip.input('opentitan/hw/ip/prim/rtl/prim_secded_pkg.sv')
+    chip.input('opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
+    chip.input('opentitan/hw/ip/tlul/rtl/tlul_pkg.sv')
+    chip.input('hw/xbar_pkg.sv')
+    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_pkg.sv')
+    chip.input('opentitan/hw/ip/uart/rtl/uart_reg_pkg.sv')
+    chip.input('opentitan/hw/ip/gpio/rtl/gpio_reg_pkg.sv')
+    chip.input('hw/prim/prim_pkg.sv')
+    chip.input('opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_pkg.sv')
+    chip.input('opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_state_pkg.sv')
+    chip.input('opentitan/hw/ip/prim/rtl/prim_esc_pkg.sv')
+    chip.input('opentitan/hw/ip/prim/rtl/prim_ram_1p_pkg.sv')
+
+    # Hack to work around Yosys + Surelog issue. Even though this is found in
+    # one of our ydirs, we get different synthesis results if this isn't ordered
+    # earlier.
+    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv')
+
+    # TODO: we're overwriting the OpenTitan uart_core, so need to include this
+    # module explicitly
+    chip.input('hw/uart_core.sv')
+
+    chip.input('hw/zerosoc.sv')
+    chip.input('hw/xbar.sv')
+    chip.input('hw/tl_dbg.sv')
+
+
+def add_sources_core_asic(chip):
+    chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
+    chip.add('option', 'define', 'RAM_DEPTH=512')
+
+    chip.input('hw/asic_core.v')
+
+    chip.input('hw/prim/sky130/prim_sky130_ram_1p.v')
+    chip.input('hw/prim/sky130/prim_sky130_clock_gating.v')
+
+
+def add_sources_top(chip):
+    chip.input('hw/asic_top.v')
+    chip.input('oh/padring/hdl/oh_padring.v')
+    chip.input('oh/padring/hdl/oh_pads_domain.v')
+    chip.input('oh/padring/hdl/oh_pads_corner.v')
+
+    chip.input('asic/sky130/io/asic_iobuf.v')
+    chip.input('asic/sky130/io/asic_iovdd.v')
+    chip.input('asic/sky130/io/asic_iovddio.v')
+    chip.input('asic/sky130/io/asic_iovss.v')
+    chip.input('asic/sky130/io/asic_iovssio.v')
+    chip.input('asic/sky130/io/asic_iocorner.v')
+
+    chip.input('opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
+
+    # Dummy blackbox modules just to get synthesis to pass (these aren't
+    # actually instantiated)
+    chip.input('asic/sky130/io/asic_iopoc.v')
+    chip.input('asic/sky130/io/asic_iocut.v')
+
+    chip.input('asic/sky130/io/sky130_io.blackbox.v')
+
 
 def setup_options(chip):
     '''Helper to setup common options for each build.'''
@@ -22,6 +130,11 @@ def setup_options(chip):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     chip.add('option', 'define', f'MEM_ROOT={cur_dir}')
 
+    # Adding current file directory to ensure SC can find all the build files
+    # even when running from a different directory
+    chip.add('option', 'scpath', os.path.dirname(__file__))
+
+
 def build_fpga():
     chip = siliconcompiler.Chip('top_icebreaker')
     setup_options(chip)
@@ -30,155 +143,206 @@ def build_fpga():
     chip.set('fpga', 'partname', 'ice40up5k-sg48')
     chip.load_target('fpgaflow_demo')
 
-    add_sources(chip)
+    add_sources_core(chip)
 
-    chip.add('input', 'verilog', 'hw/top_icebreaker.v')
-    chip.add('input', 'verilog', 'hw/prim/ice40/prim_ice40_clock_gating.v')
-    chip.set('input', 'pcf', 'fpga/icebreaker.pcf')
+    chip.input('hw/top_icebreaker.v')
+    chip.input('hw/prim/ice40/prim_ice40_clock_gating.v')
+    chip.input('fpga/icebreaker.pcf')
 
     chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplIce40"')
 
     run_build(chip)
 
-def configure_core_chip(remote=False):
-    chip = siliconcompiler.Chip('asic_core')
+
+def configure_core_chip():
+    chip = siliconcompiler.Chip('zerosoc_core')
+    chip.set('option', 'entrypoint', 'asic_core')
 
     setup_options(chip)
 
     chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
 
-    chip.set('tool', 'openroad', 'var', 'place', '0', 'place_density', ['0.15'])
-    chip.set('tool', 'openroad', 'var', 'route', '0', 'grt_allow_congestion', ['true'])
+    chip.use(libs.sky130sram)
 
-    chip.set('asic', 'macrolib', ['sky130sram', 'sky130io'])
-    chip.load_lib('sky130sram')
-    chip.load_lib('sky130io')
+    chip.set('asic', 'macrolib', ['sky130sram'])
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
-    for step in ('extspice', 'drc'):
-        chip.set('tool', 'magic', 'var', step, '0', 'exclude', ['sky130sram', 'sky130io'])
-    chip.set('tool', 'netgen', 'var', 'lvs', '0', 'exclude', ['sky130sram', 'sky130io'])
+    for task in ('extspice', 'drc'):
+        chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130sram')
+    chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130sram')
 
-    # Need to copy library files into build directory for remote run so the
-    # server can access them
-    if remote:
-        stackup = chip.get('asic', 'stackup')
-        chip.set('library', 'sky130sram', 'model', 'timing', 'nldm', 'typical', True, field='copy')
-        chip.set('library', 'sky130sram', 'model', 'layout', 'lef', stackup, True, field='copy')
-        chip.set('library', 'sky130sram', 'model', 'layout', 'gds', stackup, True, field='copy')
+    add_sources_core(chip)
 
-        chip.set('option', 'remote', True)
+    chip.clock(r'we_din\[5\]', period=20)
 
-    add_sources(chip)
-
-    chip.clock('we_din\[5\]', period=20)
-
-    chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
-    chip.add('option', 'define', 'RAM_DEPTH=512')
-
-    chip.add('input', 'verilog', 'hw/asic_core.v')
-    chip.set('input', 'floorplan.def', 'asic_core.def')
-
-    chip.add('input', 'verilog', 'hw/prim/sky130/prim_sky130_ram_1p.v')
-    chip.add('input', 'verilog', 'asic/sky130/ram/sky130_sram_2kbyte_1rw1r_32x512_8.bb.v')
-
-    chip.add('input', 'verilog', 'hw/prim/sky130/prim_sky130_clock_gating.v')
+    add_sources_core_asic(chip)
 
     return chip
 
-def build_core(verify=True, remote=False):
-    chip = configure_core_chip(remote)
-    stackup = chip.get('asic', 'stackup')
+
+def build_core(verify=True, remote=False, resume=False, floorplan=False):
+    chip = configure_core_chip()
+    chip.set('option', 'resume', resume)
+
+    chip.set('tool', 'openroad', 'task', 'place', 'var', 'place_density', '0.40')
+    chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+    chip.set('tool', 'openroad', 'task', 'export', 'var', 'write_cdl', 'false')
+
+    chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
 
     generate_core_floorplan(chip)
-    chip.set('model', 'layout', 'lef', stackup, 'asic_core.lef')
 
-    # after generating floorplan, we don't need IO in macrolib anymore
-    chip.set('asic', 'macrolib', ['sky130sram'])
-
-    run_build(chip)
+    run_build(chip, remote)
 
     if verify:
         run_signoff(chip, 'dfm', 'export')
 
     # set up pointers to final outputs for integration
-    gds = chip.find_result('gds', step='export')
-    netlist = chip.find_result('vg', step='dfm')
+    # Set physical outputs
+    stackup = chip.get('option', 'stackup')
+    chip.set('output', stackup, 'gds', chip.find_result('gds', step='export', index='0'))
+    chip.set('output', stackup, 'lef', chip.find_result('lef', step='export', index='1'))
 
-    chip.set('model', 'layout', 'gds', stackup, gds)
-    chip.set('output', 'netlist', netlist)
-    chip.write_manifest('asic_core.pkg.json')
+    # Set output netlist
+    chip.set('output', 'netlist', 'verilog', chip.find_result('vg', step='export', index='1'))
+
+    # Set timing libraries
+    for scenario in chip.getkeys('constraint', 'timing'):
+        corner = chip.get('constraint', 'timing', scenario, 'libcorner')[0]
+        lib = chip.find_result(f'{corner}.lib', step='export', index='1')
+        chip.set('output', corner, 'nldm', lib)
+
+    # Set pex outputs
+    for scenario in chip.getkeys('constraint', 'timing'):
+        corner = chip.get('constraint', 'timing', scenario, 'pexcorner')
+        spef = chip.find_result(f'{corner}.spef', step='export', index='1')
+        chip.set('output', corner, 'spef', spef)
+
+    # Hash output files
+    for fileset in chip.getkeys('output'):
+        for filetype in chip.getkeys('output', fileset):
+            chip.hash_files('output', fileset, filetype)
+
+    chip.write_manifest(ASIC_CORE_CFG)
 
     return chip
 
-def configure_top_chip(core_chip):
-    chip = siliconcompiler.Chip('asic_top')
+
+def configure_top_flat_chip(resume=False):
+    chip = siliconcompiler.Chip('zerosoc')
+    chip.set('option', 'entrypoint', 'asic_top')
 
     setup_options(chip)
+    chip.set('option', 'resume', resume)
 
-    # TODO: we need a library function to handle this
-    chip.import_library(core_chip)
+    chip.set('option', 'frontend', 'systemverilog')
+    chip.load_target('skywater130_demo')
+    chip.set('option', 'flow', 'asicflow')
+
+    chip.use(sky130io)
+    chip.use(libs.sky130sram)
+    chip.set('asic', 'macrolib', ['sky130sram', 'sky130io'])
+
+    add_sources_core(chip)
+    add_sources_top(chip)
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
-    for step in ('extspice', 'drc',):
-        chip.set('tool', 'magic', 'var', step, '0', 'exclude', ['sky130sram', 'sky130io'])
-    chip.set('tool', 'netgen', 'var', 'lvs', '0', 'exclude', ['sky130sram', 'sky130io'])
+    for task in ('extspice', 'drc'):
+        chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130io')
+    chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130io')
 
-    chip.load_target('skywater130_demo')
-    chip.set('option', 'flow', 'asictopflow')
+    # OpenROAD settings
+    chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
 
-    chip.set('asic', 'macrolib', ['asic_core', 'sky130sram', 'sky130io'])
-    chip.load_lib('sky130sram')
-    chip.load_lib('sky130io')
+    chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=20)
 
-    chip.add('input', 'verilog', 'hw/asic_top.v')
-    chip.add('input', 'verilog', 'hw/asic_core.bb.v')
-    chip.add('input', 'verilog', 'oh/padring/hdl/oh_padring.v')
-    chip.add('input', 'verilog', 'oh/padring/hdl/oh_pads_domain.v')
-    chip.add('input', 'verilog', 'oh/padring/hdl/oh_pads_corner.v')
-
-    chip.add('input', 'verilog', 'asic/sky130/io/asic_iobuf.v')
-    chip.add('input', 'verilog', 'asic/sky130/io/asic_iovdd.v')
-    chip.add('input', 'verilog', 'asic/sky130/io/asic_iovddio.v')
-    chip.add('input', 'verilog', 'asic/sky130/io/asic_iovss.v')
-    chip.add('input', 'verilog', 'asic/sky130/io/asic_iovssio.v')
-    chip.add('input', 'verilog', 'asic/sky130/io/asic_iocorner.v')
-
-    # Dummy blackbox modules just to get synthesis to pass (these aren't
-    # acutally instantiated)
-    chip.add('input', 'verilog', 'asic/sky130/io/asic_iopoc.v')
-    chip.add('input', 'verilog', 'asic/sky130/io/asic_iocut.v')
-
-    chip.add('input', 'verilog', 'asic/sky130/io/sky130_io.blackbox.v')
-
-    chip.set('input', 'def', 'asic_top.def')
+    add_sources_core_asic(chip)
 
     return chip
 
-def build_top(core_chip, verify=True):
-    chip = configure_top_chip(core_chip)
-    generate_top_floorplan(chip)
-    run_build(chip)
+
+def configure_top_chip(core_chip=None, resume=False):
+    if not core_chip:
+        if not os.path.exists(ASIC_CORE_CFG):
+            print(f"'{ASIC_CORE_CFG}' has not been generated.", file=sys.stderr)
+            return
+        core_chip = siliconcompiler.Chip('zerosoc_core')
+        core_chip.read_manifest(ASIC_CORE_CFG)
+
+    chip = siliconcompiler.Chip('zerosoc_top')
+    chip.set('option', 'entrypoint', 'asic_top')
+
+    setup_options(chip)
+    chip.set('option', 'resume', resume)
+
+    chip.set('option', 'frontend', 'systemverilog')
+    chip.load_target('skywater130_demo')
+    chip.set('option', 'flow', 'asicflow')
+
+    chip.use(core_chip)
+    chip.use(sky130io)
+    chip.use(libs.sky130sram)
+    chip.set('asic', 'macrolib', [core_chip.design, 'sky130io'])
+
+    add_sources_top(chip)
+
+    # Ignore cells in these libraries during DRC, they violate the rules but are
+    # foundry-validated
+    for task in ('extspice', 'drc'):
+        chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130io')
+    chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130io')
+
+    for tool in core_chip.getkeys('tool'):
+        for task in core_chip.getkeys('tool', tool, 'task'):
+            if core_chip.valid('tool', tool, 'task', task, 'var', 'exclude'):
+                exclude = core_chip.get('tool', tool, 'task', task, 'var', 'exclude')
+                chip.set('tool', tool, 'task', task, 'var', 'exclude', exclude)
+
+    # OpenROAD settings
+    chip.set('tool', 'openroad', 'task', 'place', 'var', 'dpo_enable', 'false')
+    chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+
+    return chip
+
+
+def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
+    chip = configure_top_flat_chip(resume=resume)
+
+    chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
+
+    generate_top_flat_floorplan(chip)
+
+    run_build(chip, remote)
     if verify:
         run_signoff(chip, 'syn', 'export')
 
     return chip
 
-def build_floorplans():
-    core_chip = configure_core_chip()
-    generate_core_floorplan(core_chip)
-    stackup = core_chip.get('asic', 'stackup')
-    core_chip.set('model', 'layout', 'lef', stackup, 'asic_core.lef')
 
-    top_chip = configure_top_chip(core_chip)
-    generate_top_floorplan(top_chip)
+def build_top(core_chip=None, verify=True, resume=False, remote=False, floorplan=False):
+    chip = configure_top_chip(core_chip, resume=resume)
 
-def run_build(chip):
+    chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
+
+    generate_top_floorplan(chip)
+
+    run_build(chip, remote)
+    if verify:
+        run_signoff(chip, 'syn', 'export')
+
+    return chip
+
+
+def run_build(chip, remote):
+    if remote:
+        configure_remote(chip)
+
     chip.run()
     chip.summary()
+
 
 def run_signoff(chip, netlist_step, layout_step):
     gds_path = chip.find_result('gds', step=layout_step)
@@ -192,10 +356,11 @@ def run_signoff(chip, netlist_step, layout_step):
     if chip.get('option', 'remote'):
         chip.set('option', 'steplist', [])
 
-    chip.set('input', 'gds', gds_path)
-    chip.set('input', 'netlist', netlist_path)
+    chip.input(gds_path)
+    chip.input(netlist_path)
 
     run_build(chip)
+
 
 def test_zerosoc_build():
     chip = build_core(verify=True)
@@ -216,37 +381,75 @@ def test_zerosoc_build():
     assert chip.get('metric', 'lvs', '0', 'errors') == 0
     assert chip.get('metric', 'drc', '0', 'errors') == 0
 
+
 def test_fpga_build():
     build_fpga()
 
+
 def main():
     parser = argparse.ArgumentParser(description='Build ZeroSoC')
-    parser.add_argument('--fpga', action='store_true', default=False, help='Build FPGA bitstream.')
-    parser.add_argument('--core-only', action='store_true', default=False, help='Only build ASIC core GDS.')
-    parser.add_argument('--top-only', action='store_true', default=False, help='Only integrate ASIC core into padring. Assumes core already built.')
-    parser.add_argument('--floorplan-only', action='store_true', default=False, help='Only generate floorplans.')
-    parser.add_argument('--no-verify', action='store_true', default=False, help="Don't run DRC and LVS.")
-    parser.add_argument('--remote', action='store_true', default=False, help='Run on remote server. Requires SC remote credentials.')
+    # parser.add_argument('--fpga',
+    #                     action='store_true',
+    #                     default=False,
+    #                     help='Build FPGA bitstream.')
+    parser.add_argument('--core-only',
+                        action='store_true',
+                        default=False,
+                        help='Only build ASIC core GDS.')
+    parser.add_argument('--top-only',
+                        action='store_true',
+                        default=False,
+                        help='Only integrate ASIC core into padring. Assumes core already built.')
+    parser.add_argument('--top-flat',
+                        action='store_true',
+                        default=False,
+                        help='Build the entire ZeroSoC.')
+    parser.add_argument('--floorplan',
+                        action='store_true',
+                        default=False,
+                        help='Break after floorplanning.')
+    parser.add_argument('--verify',
+                        action='store_true',
+                        default=False,
+                        help="Run DRC and LVS.")
+    parser.add_argument('--remote',
+                        action='store_true',
+                        default=False,
+                        help='Run on remote server. Requires SC remote credentials.')
+    parser.add_argument('--resume',
+                        action='store_true',
+                        default=False,
+                        help='Resume previous run.')
     options = parser.parse_args()
 
-    verify = not options.no_verify
+    verify = options.verify
 
-    if options.remote and not options.core_only:
-        raise ValueError('--remote flag requires --core-only')
-
-    if options.fpga:
-        build_fpga()
-    elif options.floorplan_only:
-        build_floorplans()
-    elif options.core_only:
-        build_core(verify=verify, remote=options.remote)
+    if options.core_only:
+        build_core(remote=options.remote,
+                   verify=verify,
+                   resume=options.resume,
+                   floorplan=options.floorplan)
     elif options.top_only:
-        chip = siliconcompiler.Chip('asic_core')
-        chip.read_manifest('asic_core.pkg.json')
-        build_top(chip, verify=verify)
+        build_top(verify=verify,
+                  remote=options.remote,
+                  resume=options.resume,
+                  floorplan=options.floorplan)
+    elif options.top_flat:
+        build_top_flat(verify=verify,
+                       remote=options.remote,
+                       resume=options.resume,
+                       floorplan=options.floorplan)
     else:
-        core_chip = build_core(verify=False, remote=options.remote)
-        build_top(core_chip, verify=verify)
+        core_chip = build_core(remote=options.remote,
+                               verify=False,
+                               resume=options.resume,
+                               floorplan=options.floorplan)
+        build_top(core_chip=core_chip,
+                  remote=options.remote,
+                  verify=verify,
+                  resume=options.resume,
+                  floorplan=options.floorplan)
+
 
 if __name__ == '__main__':
     main()

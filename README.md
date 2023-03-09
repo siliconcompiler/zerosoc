@@ -40,20 +40,12 @@ Running `build.py --help` gives information on additional options:
 
 ```
 -h, --help        show this help message and exit
---fpga            Build FPGA bitstream.
 --core-only       Only build ASIC core GDS.
 --top-only        Only integrate ASIC core into padring. Assumes core already built.
---floorplan-only  Only generate floorplans.
---dump-flowgraph  Only dump diagram of flowgraphs.
---no-verify       Don't run DRC and LVS.
+--floorplan       Break in floorplanning steps
+--verify          Run DRC and LVS.
 --remote          Run on remote server. Requires SC remote credentials.
 ```
-
-## Floorplan tutorial
-
-ZeroSoC's floorplan is defined in [`floorplan.py`](floorplan.py) using
-SiliconCompiler's Python-based floorplanning API. You can find a step-by-step
-tutorial describing how to write this floorplan from scratch [here][tutorial].
 
 ## FPGA
 

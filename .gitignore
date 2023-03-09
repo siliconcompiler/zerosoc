@@ -3,6 +3,7 @@ zerosoc.vcd
 
 # SC build dir
 build/
+*.json
 
 # FPGA build outputs
 *.asc
@@ -20,4 +21,3 @@ __pycache__/
 
 # Stuff generated from tutorial template
 zerosoc.rst
-
