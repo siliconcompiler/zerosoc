@@ -32,7 +32,7 @@ def configure_remote(chip):
     for tool in chip.getkeys('tool'):
         for task in chip.getkeys('tool', tool, 'task'):
             for file_var in chip.getkeys('tool', tool, 'task', task, 'file'):
-                # Need to copy library files into build directory for remote run so the
+                # Need to copy tool files into build directory for remote run so the
                 # server can access them
                 chip.hash_files('tool', tool, 'task', task, 'file', file_var)
                 chip.set('tool', tool, 'task', task, 'file', file_var, True, field='copy')
@@ -84,7 +84,7 @@ def add_sources_core(chip):
     chip.input('hw/tl_dbg.sv')
 
 
-def add_sources_core_top(chip):
+def add_sources_core_asic(chip):
     chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
     chip.add('option', 'define', 'RAM_DEPTH=512')
 
@@ -110,7 +110,7 @@ def add_sources_top(chip):
     chip.input('opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
 
     # Dummy blackbox modules just to get synthesis to pass (these aren't
-    # acutally instantiated)
+    # actually instantiated)
     chip.input('asic/sky130/io/asic_iopoc.v')
     chip.input('asic/sky130/io/asic_iocut.v')
 
@@ -130,6 +130,8 @@ def setup_options(chip):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     chip.add('option', 'define', f'MEM_ROOT={cur_dir}')
 
+    # Adding current file directory to ensure SC can find all the build files
+    # even when running from a different directory
     chip.add('option', 'scpath', os.path.dirname(__file__))
 
 
@@ -175,7 +177,7 @@ def configure_core_chip():
 
     chip.clock(r'we_din\[5\]', period=20)
 
-    add_sources_core_top(chip)
+    add_sources_core_asic(chip)
 
     return chip
 
@@ -257,7 +259,7 @@ def configure_top_flat_chip(resume=False):
 
     chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=20)
 
-    add_sources_core_top(chip)
+    add_sources_core_asic(chip)
 
     return chip
 

@@ -54,7 +54,7 @@ def generate_core_pins(chip):
     we_pads, no_pads, ea_pads, so_pads = define_io_placement()
 
     # Filter out GPIO pins
-    for i, _ in enumerate([pad for pad in we_pads if pad == GPIO]):
+    for i in range(we_pads.count(GPIO)):
         order_offset = len(pins) * i
         for pin_order, pin_spec in enumerate(pins):
             pin, bit, width = pin_spec
@@ -65,7 +65,7 @@ def generate_core_pins(chip):
 
     # Repeat the same logic for each of the other 3 sides, with positions/axes
     # adjusted accordingly...
-    for i, _ in enumerate([pad for pad in no_pads if pad == GPIO]):
+    for i in range(we_pads.count(GPIO)):
         order_offset = len(pins) * i
         for pin_order, pin_spec in enumerate(pins):
             pin, bit, width = pin_spec
@@ -74,7 +74,7 @@ def generate_core_pins(chip):
             chip.set('constraint', 'pin', name, 'side', 2)
             chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
 
-    for i, _ in enumerate([pad for pad in ea_pads if pad == GPIO]):
+    for i in range(we_pads.count(GPIO)):
         order_offset = len(pins) * i
         for pin_order, pin_spec in enumerate(pins):
             pin, bit, width = pin_spec
@@ -83,7 +83,7 @@ def generate_core_pins(chip):
             chip.set('constraint', 'pin', name, 'side', 3)
             chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
 
-    for i, _ in enumerate([pad for pad in so_pads if pad == GPIO]):
+    for i in range(we_pads.count(GPIO)):
         order_offset = len(pins) * i
         for pin_order, pin_spec in enumerate(pins):
             pin, bit, width = pin_spec
@@ -110,7 +110,7 @@ def configure_padring(chip):
         i = indices[pad_type]
         indices[pad_type] += 1
         if pad_type == GPIO:
-            pad_name = f'padring.we_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
+            pad_name = fr'padring.we_pads\[0\].i0.padio\[{i}\].i0.gpio'
             pin_name = f'we_pad[{i}]'
         else:
             if pad_type == VDD:
@@ -121,7 +121,7 @@ def configure_padring(chip):
                 pin_name = 'vddio'
             elif pad_type == VSSIO:
                 pin_name = 'vssio'
-            pad_name = f'padring.we_pads\\[0\\].i0.pad{pin_name}\\[0\\].i0.io{pin_name}'
+            pad_name = fr'padring.we_pads\[0\].i0.pad{pin_name}\[0\].i0.io{pin_name}'
 
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_west_name', pad_name)
 
@@ -130,7 +130,7 @@ def configure_padring(chip):
         i = indices[pad_type]
         indices[pad_type] += 1
         if pad_type == GPIO:
-            pad_name = f'padring.no_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
+            pad_name = fr'padring.no_pads\[0\].i0.padio\[{i}\].i0.gpio'
             pin_name = f'no_pad[{i}]'
         else:
             if pad_type == VDD:
@@ -141,7 +141,7 @@ def configure_padring(chip):
                 pin_name = 'vddio'
             elif pad_type == VSSIO:
                 pin_name = 'vssio'
-            pad_name = f'padring.no_pads\\[0\\].i0.pad{pin_name}\\[0\\].i0.io{pin_name}'
+            pad_name = fr'padring.no_pads\[0\].i0.pad{pin_name}\[0\].i0.io{pin_name}'
 
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_north_name', pad_name)
 
@@ -150,7 +150,7 @@ def configure_padring(chip):
         i = indices[pad_type]
         indices[pad_type] += 1
         if pad_type == GPIO:
-            pad_name = f'padring.ea_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
+            pad_name = fr'padring.ea_pads\[0\].i0.padio\[{i}\].i0.gpio'
             pin_name = f'ea_pad[{i}]'
         else:
             if pad_type == VDD:
@@ -161,7 +161,7 @@ def configure_padring(chip):
                 pin_name = 'vddio'
             elif pad_type == VSSIO:
                 pin_name = 'vssio'
-            pad_name = f'padring.ea_pads\\[0\\].i0.pad{pin_name}\\[0\\].i0.io{pin_name}'
+            pad_name = fr'padring.ea_pads\[0\].i0.pad{pin_name}\[0\].i0.io{pin_name}'
 
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_east_name', pad_name)
 
@@ -170,7 +170,7 @@ def configure_padring(chip):
         i = indices[pad_type]
         indices[pad_type] += 1
         if pad_type == GPIO:
-            pad_name = f'padring.so_pads\\[0\\].i0.padio\\[{i}\\].i0.gpio'
+            pad_name = fr'padring.so_pads\[0\].i0.padio\[{i}\].i0.gpio'
         else:
             if pad_type == VDD:
                 pin_name = 'vdd'
@@ -180,7 +180,7 @@ def configure_padring(chip):
                 pin_name = 'vddio'
             elif pad_type == VSSIO:
                 pin_name = 'vssio'
-            pad_name = f'padring.so_pads\\[0\\].i0.pad{pin_name}\\[0\\].i0.io{pin_name}'
+            pad_name = fr'padring.so_pads\[0\].i0.pad{pin_name}\[0\].i0.io{pin_name}'
 
         chip.add('tool', 'openroad', 'task', 'floorplan', 'var', 'padring_south_name', pad_name)
 
