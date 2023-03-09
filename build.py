@@ -130,6 +130,8 @@ def setup_options(chip):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     chip.add('option', 'define', f'MEM_ROOT={cur_dir}')
 
+    chip.add('option', 'scpath', os.path.dirname(__file__))
+
 
 def build_fpga():
     chip = siliconcompiler.Chip('top_icebreaker')
