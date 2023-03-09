@@ -15,11 +15,3 @@ add_pdn_connect -grid {grid} -layers {met1 met4}
 add_pdn_connect -grid {grid} -layers {met2 met3}
 add_pdn_connect -grid {grid} -layers {met3 met4}
 add_pdn_connect -grid {grid} -layers {met4 met5}
-####################################
-# macro grids
-####################################
-####################################
-# grid for: core
-####################################
-define_pdn_grid -name {chip_core} -voltage_domains {CORE} -macro -cells "asic*" -halo "1.0 1.0 1.0 1.0"
-add_pdn_connect -grid {chip_core} -layers {met4 met5}

@@ -213,16 +213,18 @@ def generate_core_floorplan(chip):
     generate_core_pins(chip)
 
     # Global connections
-    gc_path = os.path.join(os.path.dirname(__file__),
-                           'openroad',
-                           'global_connect.tcl')
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_path)
+    for gc in ('global_connect_core.tcl',):
+        gc_path = os.path.join(os.path.dirname(__file__),
+                               'openroad',
+                               gc)
+        chip.add('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_path)
 
     # Define power grid
-    pdngen_path = os.path.join(os.path.dirname(__file__),
-                               'openroad',
-                               'pdngen.tcl')
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_path)
+    for grid in ('pdngen_core_only.tcl', 'pdngen_sram.tcl'):
+        pdngen_path = os.path.join(os.path.dirname(__file__),
+                                   'openroad',
+                                   grid)
+        chip.add('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_path)    
 
 
 def generate_top_outline(chip):
@@ -250,23 +252,26 @@ def generate_top_floorplan(chip):
     configure_padring(chip)
 
     # Global connections
-    gc_file = os.path.join(os.path.dirname(__file__), 'openroad', 'global_connect_top.tcl')
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_file)
+    for gc in ('global_connect_core_top.tcl', 'global_connect_io.tcl'):
+        gc_file = os.path.join(os.path.dirname(__file__), 'openroad', gc)
+        chip.add('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_file)
 
     # Define power grid
-    pdngen_file = os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen_top.tcl')
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_file)
+    for grid in ('pdngen_top.tcl', 'pdngen_core.tcl'):
+        pdngen_file = os.path.join(os.path.dirname(__file__), 'openroad', grid)
+        chip.add('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_file)
 
 
 def generate_top_flat_floorplan(chip):
     generate_top_outline(chip)
-    generate_core_placement(chip, flat=True)
     configure_padring(chip)
 
     # Global connections
-    gc_file = os.path.join(os.path.dirname(__file__), 'openroad', 'global_connect_flat.tcl')
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_file)
+    for gc in ('global_connect_core_top_flat.tcl', 'global_connect_io.tcl'):
+        gc_file = os.path.join(os.path.dirname(__file__), 'openroad', gc)
+        chip.add('tool', 'openroad', 'task', 'floorplan', 'file', 'global_connect', gc_file)
 
     # Define power grid
-    pdngen_file = os.path.join(os.path.dirname(__file__), 'openroad', 'pdngen_flat.tcl')
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_file)
+    for grid in ('pdngen_top.tcl', 'pdngen_sram.tcl'):
+        pdngen_file = os.path.join(os.path.dirname(__file__), 'openroad', grid)
+        chip.add('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_file)

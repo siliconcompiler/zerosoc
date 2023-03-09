@@ -281,7 +281,7 @@ def configure_top_chip(core_chip=None, resume=False):
     chip.use(core_chip)
     chip.use(sky130io)
     chip.use(libs.sky130sram)
-    chip.set('asic', 'macrolib', [core_chip.top(), 'sky130io'])
+    chip.set('asic', 'macrolib', [core_chip.design, 'sky130io'])
 
     add_sources_top(chip)
 
