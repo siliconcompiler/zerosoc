@@ -1,0 +1,106 @@
+on:
+  workflow_dispatch:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 8 * * *'
+
+name: 'CI'
+
+defaults:
+  run:
+    shell: bash
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  docker_image:
+    name: 'Get docker sc_tools image'
+    runs-on: ubuntu-latest
+
+    outputs:
+      sc_tools: ${{ steps.docker.outputs.sc_tools }}
+
+    steps:
+      - name: Checkout repository
+        run: |
+          git clone https://github.com/siliconcompiler/siliconcompiler
+
+      - name: Get image name
+        id: docker
+        run: |
+          pip install -r siliconcompiler/setup/docker/requirements.txt
+          sc_tools_name=$(python3 siliconcompiler/setup/docker/builder.py --tool tools --registry ${{ env.REGISTRY }})
+          echo "sc_tools=${sc_tools_name}" >> $GITHUB_OUTPUT
+
+  flat:
+    name: 'flat'
+    needs: docker_image
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.docker_image.outputs.sc_tools }}
+      credentials:
+        username: ${{ secrets.PACKAGES_ACTOR }}
+        password: ${{ secrets.PACKAGES_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: apt install python3-venv
+      - name: Run test
+        run: |
+          git clone https://github.com/siliconcompiler/siliconcompiler /siliconcompiler
+          python3 -m venv ./clean_env --clear
+          source ./clean_env/bin/activate
+          echo $VIRTUAL_ENV
+          pip3 install -r python-requirements.txt
+          ./build.py --top-flat
+        env:
+          SCPATH: /siliconcompiler/siliconcompiler
+
+      - name: Upload image artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: flat
+          path: build/zerosoc/job0/zerosoc.png
+          retention-days: 5
+
+  hierarchical:
+    name: 'hierarchical'
+    needs: docker_image
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    container:
+      image: ${{ needs.docker_image.outputs.sc_tools }}
+      credentials:
+        username: ${{ secrets.PACKAGES_ACTOR }}
+        password: ${{ secrets.PACKAGES_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          submodules: true
+      - run: apt install python3-venv
+      - name: Run test
+        run: |
+          git clone https://github.com/siliconcompiler/siliconcompiler /siliconcompiler
+          python3 -m venv ./clean_env --clear
+          source ./clean_env/bin/activate
+          echo $VIRTUAL_ENV
+          pip3 install -r python-requirements.txt
+          ./build.py --core-only
+          ./build.py --top-only
+        env:
+          SCPATH: /siliconcompiler/siliconcompiler
+
+      - name: Upload image artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: hierarchical
+          path: |
+            build/zerosoc_core/job0/zerosoc_core.png
+            build/zerosoc_top/job0/zerosoc_top.png
+          retention-days: 5
