@@ -1,3 +1,5 @@
+[![CI](https://github.com/siliconcompiler/zerosoc/actions/workflows/ci.yml/badge.svg)](https://github.com/siliconcompiler/zerosoc/actions/workflows/ci.yml)
+
 # ZeroSoC
 
 ZeroSoC is a RISC-V SoC designed to demonstrate the capabilities of
