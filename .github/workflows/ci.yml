@@ -57,6 +57,7 @@ jobs:
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
+          pip3 install -e /siliconcompiler
           ./build.py --top-flat
         env:
           SCPATH: /siliconcompiler/siliconcompiler
@@ -91,6 +92,7 @@ jobs:
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
+          pip3 install -e /siliconcompiler
           ./build.py --core-only
           ./build.py --top-only
         env:
