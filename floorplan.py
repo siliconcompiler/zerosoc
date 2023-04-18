@@ -207,9 +207,9 @@ def generate_core_placement(chip, flat=False):
     chip.set('constraint', 'component', instance_name, 'placement', location)
 
 
-def generate_core_floorplan(chip):
+def generate_core_floorplan(chip, flat=False):
     generate_core_outline(chip)
-    generate_core_placement(chip)
+    #generate_core_placement(chip, flat=flat)
     generate_core_pins(chip)
 
     # Global connections

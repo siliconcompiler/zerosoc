@@ -201,6 +201,8 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
     chip = configure_core_chip()
     chip.set('option', 'resume', resume)
 
+    chip.set('tool', 'yosys', 'task', 'syn_asic', 'var', 'flatten', 'False')
+
     chip.set('tool', 'openroad', 'task', 'place', 'var', 'place_density', '0.40')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
     chip.set('tool', 'openroad', 'task', 'export', 'var', 'write_cdl', 'false')
