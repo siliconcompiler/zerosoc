@@ -5,7 +5,7 @@ on:
   schedule:
     - cron: '0 8 * * *'
 
-name: 'CI'
+name: 'CI / Latest SC'
 
 defaults:
   run:
@@ -30,8 +30,6 @@ jobs:
       - name: Get image name
         id: docker
         run: |
-          pip install siliconcompiler
-          git -C siliconcompiler checkout v$(sc -version)
           pip install -r siliconcompiler/setup/docker/requirements.txt
           sc_tools_name=$(python3 siliconcompiler/setup/docker/builder.py --tool tools --registry ${{ env.REGISTRY }})
           echo "sc_tools=${sc_tools_name}" >> $GITHUB_OUTPUT
@@ -59,7 +57,7 @@ jobs:
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
-          git -C /siliconcompiler checkout v$(sc -version)
+          pip3 install -e /siliconcompiler
           ./build.py --top-flat
         env:
           SCPATH: /siliconcompiler/siliconcompiler
@@ -94,7 +92,7 @@ jobs:
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
-          git -C /siliconcompiler checkout v$(sc -version)
+          pip3 install -e /siliconcompiler
           ./build.py --core-only
           ./build.py --top-only
         env:
