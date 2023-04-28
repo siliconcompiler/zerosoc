@@ -37,7 +37,7 @@ jobs:
   flat:
     name: 'flat'
     needs: docker_image
-    timeout-minutes: 60
+    timeout-minutes: 120
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.docker_image.outputs.sc_tools }}
@@ -72,7 +72,7 @@ jobs:
   hierarchical:
     name: 'hierarchical'
     needs: docker_image
-    timeout-minutes: 60
+    timeout-minutes: 120
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.docker_image.outputs.sc_tools }}
