@@ -13,6 +13,7 @@ import libs.sky130sram
 from floorplan import generate_core_floorplan, generate_top_floorplan, generate_top_flat_floorplan
 
 ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
+CORE_CLK = 45
 
 
 def configure_remote(chip):
@@ -190,7 +191,7 @@ def configure_core_chip():
 
     add_sources_core(chip)
 
-    chip.clock(r'we_din\[5\]', period=20)
+    chip.clock(r'we_din\[5\]', period=CORE_CLK)
 
     add_sources_core_asic(chip)
 
@@ -272,7 +273,7 @@ def configure_top_flat_chip(resume=False):
     # OpenROAD settings
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
 
-    chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=20)
+    chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=CORE_CLK)
 
     add_sources_core_asic(chip)
 
@@ -317,7 +318,6 @@ def configure_top_chip(core_chip=None, resume=False):
                 chip.set('tool', tool, 'task', task, 'var', 'exclude', exclude)
 
     # OpenROAD settings
-    chip.set('tool', 'openroad', 'task', 'place', 'var', 'dpo_enable', 'false')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
 
     return chip
