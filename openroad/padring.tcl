@@ -1,10 +1,9 @@
 # Create false IO sites, since sky130 does not have PAD sites available
-make_fake_io_site -name IO_HSITE -width 1 -height 200
-make_fake_io_site -name IO_VSITE -width 1 -height 200
+make_fake_io_site -name IO_SITE -width 1 -height 200
 make_fake_io_site -name IO_CSITE -width 200 -height 204
 
 # Create IO Rows
-make_io_sites -horizontal_site IO_HSITE -vertical_site IO_VSITE -corner_site IO_CSITE -offset 10 -rotation R180
+make_io_sites -horizontal_site IO_SITE -vertical_site IO_SITE -corner_site IO_CSITE -offset 10 -rotation R180
 
 # Place pads
 proc place_padring_edge { row dim edge } {
