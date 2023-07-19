@@ -10,6 +10,8 @@ import sys
 from siliconcompiler.libs import sky130io
 import libs.sky130sram
 
+from siliconcompiler.tools.openroad import openroad
+
 from floorplan import generate_core_floorplan, generate_top_floorplan, generate_top_flat_floorplan
 
 ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
@@ -272,6 +274,9 @@ def configure_top_flat_chip(resume=False):
 
     # OpenROAD settings
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+    for task in chip._get_tool_tasks(openroad):
+        chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'padring.*')
+        chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
     chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=CORE_CLK)
 
@@ -319,6 +324,10 @@ def configure_top_chip(core_chip=None, resume=False):
 
     # OpenROAD settings
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+
+    for task in chip._get_tool_tasks(openroad):
+        chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'padring.*')
+        chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
     return chip
 
