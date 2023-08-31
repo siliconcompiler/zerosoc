@@ -191,6 +191,8 @@ def configure_core_chip():
         chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130sram')
     chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130sram')
 
+    chip.set('tool', 'openroad', 'task', 'export', 'var', 'ord_abstract_lef_bloat_layers', 'false')
+
     add_sources_core(chip)
 
     chip.clock(r'we_din\[5\]', period=CORE_CLK)
