@@ -16,7 +16,7 @@ env:
 
 jobs:
   docker_image:
-    uses: siliconcompiler/siliconcompiler/.github/workflows/docker_image.yml@reuse-docker-image
+    uses: siliconcompiler/siliconcompiler/.github/workflows/docker_image.yml@main
     with:
       tool: 'tools'
 
