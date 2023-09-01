@@ -16,23 +16,9 @@ env:
 
 jobs:
   docker_image:
-    name: 'Get docker sc_tools image'
-    runs-on: ubuntu-latest
-
-    outputs:
-      sc_tools: ${{ steps.docker.outputs.sc_tools }}
-
-    steps:
-      - name: Checkout repository
-        run: |
-          git clone https://github.com/siliconcompiler/siliconcompiler
-
-      - name: Get image name
-        id: docker
-        run: |
-          pip install -r siliconcompiler/setup/docker/requirements.txt
-          sc_tools_name=$(python3 siliconcompiler/setup/docker/builder.py --tool tools --registry ${{ env.REGISTRY }})
-          echo "sc_tools=${sc_tools_name}" >> $GITHUB_OUTPUT
+    uses: siliconcompiler/siliconcompiler/.github/workflows/docker_image.yml@main
+    with:
+      tool: 'tools'
 
   flat:
     name: 'flat'
@@ -40,7 +26,7 @@ jobs:
     timeout-minutes: 180
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.docker_image.outputs.sc_tools }}
+      image: ${{ needs.docker_image.outputs.sc_tool }}
       credentials:
         username: ${{ secrets.PACKAGES_ACTOR }}
         password: ${{ secrets.PACKAGES_TOKEN }}
@@ -75,7 +61,7 @@ jobs:
     timeout-minutes: 180
     runs-on: ubuntu-latest
     container:
-      image: ${{ needs.docker_image.outputs.sc_tools }}
+      image: ${{ needs.docker_image.outputs.sc_tool }}
       credentials:
         username: ${{ secrets.PACKAGES_ACTOR }}
         password: ${{ secrets.PACKAGES_TOKEN }}
