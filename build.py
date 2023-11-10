@@ -18,6 +18,20 @@ ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
 CORE_CLK = 45
 
 
+def define_packages(chip):
+    chip.register_package_source(
+        name='opentitan',
+        path='git+https://github.com/lowRISC/opentitan.git',
+        ref='8b9fe4bf2db8ccfac0b26600decf07cf41867e07')
+    chip.register_package_source(
+        name='oh',
+        path='git+https://github.com/aolofsson/oh.git',
+        ref='23b26c4a938d4885a2a340967ae9f63c3c7a3527')
+    chip.register_package_source(
+        name='zerosoc',
+        path=os.path.abspath(os.path.dirname(__file__)))
+
+
 def configure_remote(chip):
     chip.set('option', 'remote', True)
 
@@ -45,87 +59,87 @@ def add_sources_core(chip):
     chip.add('option', 'define', 'SYNTHESIS')
 
     # Include dirs
-    chip.add('option', 'idir', 'opentitan/hw/ip/prim/rtl')
-    chip.add('option', 'idir', 'opentitan/hw/dv/sv/dv_utils')
+    chip.add('option', 'idir', 'hw/ip/prim/rtl', package='opentitan')
+    chip.add('option', 'idir', 'hw/dv/sv/dv_utils', package='opentitan')
 
     # Add RTL of all modules we use to search path
-    chip.add('option', 'ydir', 'hw/prim')
-    chip.add('option', 'ydir', 'opentitan/hw/ip/tlul/rtl')
-    chip.add('option', 'ydir', 'opentitan/hw/ip/rv_core_ibex/rtl')
-    chip.add('option', 'ydir', 'opentitan/hw/ip/uart/rtl')
-    chip.add('option', 'ydir', 'opentitan/hw/ip/gpio/rtl')
-    chip.add('option', 'ydir', 'opentitan/hw/ip/prim/rtl')
-    chip.add('option', 'ydir', 'opentitan/hw/ip/prim_generic/rtl')
+    chip.add('option', 'ydir', 'hw/prim', package='zerosoc')
+    chip.add('option', 'ydir', 'hw/ip/tlul/rtl', package='opentitan')
+    chip.add('option', 'ydir', 'hw/ip/rv_core_ibex/rtl', package='opentitan')
+    chip.add('option', 'ydir', 'hw/ip/uart/rtl', package='opentitan')
+    chip.add('option', 'ydir', 'hw/ip/gpio/rtl', package='opentitan')
+    chip.add('option', 'ydir', 'hw/ip/prim/rtl', package='opentitan')
+    chip.add('option', 'ydir', 'hw/ip/prim_generic/rtl', package='opentitan')
 
     # SV packages (need to be added explicitly)
-    chip.input('opentitan/hw/ip/prim/rtl/prim_util_pkg.sv')
-    chip.input('opentitan/hw/ip/prim/rtl/prim_secded_pkg.sv')
-    chip.input('opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
-    chip.input('opentitan/hw/ip/tlul/rtl/tlul_pkg.sv')
-    chip.input('hw/xbar_pkg.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_top.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_core.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_cs_registers.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_register_file_latch.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_wb_stage.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_load_store_unit.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_ex_block.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_id_stage.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_if_stage.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_prefetch_buffer.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_fetch_fifo.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_csr.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_counter.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_controller.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_decoder.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_alu.sv')
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_pkg.sv')
-    chip.input('opentitan/hw/ip/uart/rtl/uart_reg_pkg.sv')
-    chip.input('opentitan/hw/ip/gpio/rtl/gpio_reg_pkg.sv')
-    chip.input('hw/prim/prim_pkg.sv')
-    chip.input('opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_pkg.sv')
-    chip.input('opentitan/hw/ip/lc_ctrl/rtl/lc_ctrl_state_pkg.sv')
-    chip.input('opentitan/hw/ip/prim/rtl/prim_esc_pkg.sv')
-    chip.input('opentitan/hw/ip/prim/rtl/prim_ram_1p_pkg.sv')
+    chip.input('hw/ip/prim/rtl/prim_util_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_secded_pkg.sv', package='opentitan')
+    chip.input('hw/top_earlgrey/rtl/top_pkg.sv', package='opentitan')
+    chip.input('hw/ip/tlul/rtl/tlul_pkg.sv', package='opentitan')
+    chip.input('hw/xbar_pkg.sv', package='zerosoc')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_top.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_core.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_cs_registers.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_register_file_latch.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_wb_stage.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_load_store_unit.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_ex_block.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_id_stage.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_if_stage.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_prefetch_buffer.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_fetch_fifo.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_csr.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_counter.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_controller.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_decoder.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_alu.sv', package='opentitan')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_pkg.sv', package='opentitan')
+    chip.input('hw/ip/uart/rtl/uart_reg_pkg.sv', package='opentitan')
+    chip.input('hw/ip/gpio/rtl/gpio_reg_pkg.sv', package='opentitan')
+    chip.input('hw/prim/prim_pkg.sv', package='zerosoc')
+    chip.input('hw/ip/lc_ctrl/rtl/lc_ctrl_pkg.sv', package='opentitan')
+    chip.input('hw/ip/lc_ctrl/rtl/lc_ctrl_state_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_esc_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_ram_1p_pkg.sv', package='opentitan')
 
     # Hack to work around Yosys + Surelog issue. Even though this is found in
     # one of our ydirs, we get different synthesis results if this isn't ordered
     # earlier.
-    chip.input('opentitan/hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv')
+    chip.input('hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv', package='opentitan')
 
     # TODO: we're overwriting the OpenTitan uart_core, so need to include this
     # module explicitly
-    chip.input('hw/uart_core.sv')
+    chip.input('hw/uart_core.sv', package='zerosoc')
 
-    chip.input('hw/zerosoc.sv')
-    chip.input('hw/xbar.sv')
-    chip.input('hw/tl_dbg.sv')
+    chip.input('hw/zerosoc.sv', package='zerosoc')
+    chip.input('hw/xbar.sv', package='zerosoc')
+    chip.input('hw/tl_dbg.sv', package='zerosoc')
 
 
 def add_sources_core_asic(chip):
     chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplSky130"')
     chip.add('option', 'define', 'RAM_DEPTH=512')
 
-    chip.input('hw/asic_core.v')
+    chip.input('hw/asic_core.v', package='zerosoc')
 
-    chip.input('hw/prim/sky130/prim_sky130_ram_1p.v')
-    chip.input('hw/prim/sky130/prim_sky130_clock_gating.v')
+    chip.input('hw/prim/sky130/prim_sky130_ram_1p.v', package='zerosoc')
+    chip.input('hw/prim/sky130/prim_sky130_clock_gating.v', package='zerosoc')
 
 
 def add_sources_top(chip):
-    chip.input('hw/asic_top.v')
-    chip.input('oh/padring/hdl/oh_padring.v')
-    chip.input('oh/padring/hdl/oh_pads_domain.v')
-    chip.input('oh/padring/hdl/oh_pads_corner.v')
+    chip.input('hw/asic_top.v', package='zerosoc')
+    chip.input('padring/hdl/oh_padring.v', package='oh')
+    chip.input('padring/hdl/oh_pads_domain.v', package='oh')
+    chip.input('padring/hdl/oh_pads_corner.v', package='oh')
 
-    chip.input('asic/sky130/io/asic_iobuf.v')
-    chip.input('asic/sky130/io/asic_iovdd.v')
-    chip.input('asic/sky130/io/asic_iovddio.v')
-    chip.input('asic/sky130/io/asic_iovss.v')
-    chip.input('asic/sky130/io/asic_iovssio.v')
-    chip.input('asic/sky130/io/asic_iocorner.v')
+    chip.input('asic/sky130/io/asic_iobuf.v', package='zerosoc')
+    chip.input('asic/sky130/io/asic_iovdd.v', package='zerosoc')
+    chip.input('asic/sky130/io/asic_iovddio.v', package='zerosoc')
+    chip.input('asic/sky130/io/asic_iovss.v', package='zerosoc')
+    chip.input('asic/sky130/io/asic_iovssio.v', package='zerosoc')
+    chip.input('asic/sky130/io/asic_iocorner.v', package='zerosoc')
 
-    chip.input('opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
+    chip.input('hw/top_earlgrey/rtl/top_pkg.sv', package='opentitan')
 
 
 def setup_options(chip):
@@ -141,13 +155,10 @@ def setup_options(chip):
     cur_dir = os.path.dirname(os.path.realpath(__file__))
     chip.add('option', 'define', f'MEM_ROOT={cur_dir}')
 
-    # Adding current file directory to ensure SC can find all the build files
-    # even when running from a different directory
-    chip.add('option', 'scpath', os.path.dirname(__file__))
-
 
 def build_fpga():
     chip = siliconcompiler.Chip('top_icebreaker')
+    define_packages(chip)
     setup_options(chip)
 
     chip.set('frontend', 'systemverilog')
@@ -156,9 +167,9 @@ def build_fpga():
 
     add_sources_core(chip)
 
-    chip.input('hw/top_icebreaker.v')
-    chip.input('hw/prim/ice40/prim_ice40_clock_gating.v')
-    chip.input('fpga/icebreaker.pcf')
+    chip.input('hw/top_icebreaker.v', package='zerosoc')
+    chip.input('hw/prim/ice40/prim_ice40_clock_gating.v', package='zerosoc')
+    chip.input('fpga/icebreaker.pcf', package='zerosoc')
 
     chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplIce40"')
 
@@ -167,6 +178,7 @@ def build_fpga():
 
 def configure_core_chip():
     chip = siliconcompiler.Chip('zerosoc_core')
+    define_packages(chip)
     chip.set('option', 'entrypoint', 'asic_core')
 
     setup_options(chip)
@@ -245,6 +257,7 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
 
 def configure_top_flat_chip(resume=False):
     chip = siliconcompiler.Chip('zerosoc')
+    define_packages(chip)
     chip.set('option', 'entrypoint', 'asic_top')
 
     setup_options(chip)
@@ -289,6 +302,7 @@ def configure_top_chip(core_chip=None, resume=False):
         core_chip.read_manifest(ASIC_CORE_CFG)
 
     chip = siliconcompiler.Chip('zerosoc_top')
+    define_packages(chip)
     chip.set('option', 'entrypoint', 'asic_top')
 
     setup_options(chip)

@@ -1,7 +1,0 @@
-[submodule "hw/opentitan"]
-	path = opentitan
-	url = https://github.com/lowRISC/opentitan.git
-[submodule "oh"]
-    path = oh
-	url = https://github.com/aolofsson/oh.git
-	branch = master

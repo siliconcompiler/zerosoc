@@ -39,12 +39,10 @@ jobs:
       - run: apt install python3-venv
       - name: Run test
         run: |
-          git clone https://github.com/siliconcompiler/siliconcompiler /siliconcompiler
           python3 -m venv ./clean_env --clear
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
-          git -C /siliconcompiler checkout v$(sc -version)
           ./build.py --top-flat
         env:
           SCPATH: /siliconcompiler/siliconcompiler
@@ -74,12 +72,10 @@ jobs:
       - run: apt install python3-venv
       - name: Run test
         run: |
-          git clone https://github.com/siliconcompiler/siliconcompiler /siliconcompiler
           python3 -m venv ./clean_env --clear
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
-          git -C /siliconcompiler checkout v$(sc -version)
           ./build.py --core-only
           ./build.py --top-only
         env:

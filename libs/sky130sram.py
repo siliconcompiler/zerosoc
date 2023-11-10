@@ -8,8 +8,6 @@ def setup(chip):
     stackup = '5M1LI'
     version = 'v0_0_2'
 
-    lib.set('package', 'version', version)
-
     lib.set('option', 'pdk', 'skywater130')
     lib.set('option', 'stackup', stackup)
 
