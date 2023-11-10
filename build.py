@@ -127,13 +127,6 @@ def add_sources_top(chip):
 
     chip.input('opentitan/hw/top_earlgrey/rtl/top_pkg.sv')
 
-    # Dummy blackbox modules just to get synthesis to pass (these aren't
-    # actually instantiated)
-    chip.input('asic/sky130/io/asic_iopoc.v')
-    chip.input('asic/sky130/io/asic_iocut.v')
-
-    chip.input('asic/sky130/io/sky130_io.blackbox.v')
-
 
 def setup_options(chip):
     '''Helper to setup common options for each build.'''
