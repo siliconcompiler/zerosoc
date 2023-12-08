@@ -11,8 +11,6 @@ FILL_CELLS = ['sky130_ef_io__com_bus_slice_1um',
               'sky130_ef_io__com_bus_slice_10um',
               'sky130_ef_io__com_bus_slice_20um']
 
-RAM = 'sky130_sram_2kbyte_1rw1r_32x512_8'
-
 
 def define_io_placement():
     we_io = [GPIO] * 5 + [VDD, VSS, VDDIO, VSSIO] + [GPIO] * 4
@@ -197,19 +195,8 @@ def generate_core_outline(chip):
     chip.set('constraint', 'corearea', corearea)
 
 
-def generate_core_placement(chip, flat=False):
-    # Place RAM macro
-    die_ll, die_ur = chip.get('constraint', 'outline')
-    instance_name = 'soc.ram.u_mem.gen_sky130.u_impl_sky130.gen32x512.mem'
-    if flat:
-        instance_name = 'core.' + instance_name
-    location = [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2, 0]
-    chip.set('constraint', 'component', instance_name, 'placement', location)
-
-
 def generate_core_floorplan(chip):
     generate_core_outline(chip)
-    generate_core_placement(chip)
     generate_core_pins(chip)
 
     # Global connections
@@ -224,7 +211,7 @@ def generate_core_floorplan(chip):
         pdngen_path = os.path.join(os.path.dirname(__file__),
                                    'openroad',
                                    grid)
-        chip.add('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_path)    
+        chip.add('tool', 'openroad', 'task', 'floorplan', 'file', 'pdn_config', pdngen_path)
 
 
 def generate_top_outline(chip):

@@ -7,8 +7,7 @@ import os
 import sys
 
 # Libraries
-from siliconcompiler.libs import sky130io
-import libs.sky130sram
+from lambdapdk.sky130.libs import sky130sram, sky130io
 
 from siliconcompiler.tools.openroad import openroad
 
@@ -186,15 +185,15 @@ def configure_core_chip():
     chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
 
-    chip.use(libs.sky130sram)
+    chip.use(sky130sram)
 
-    chip.set('asic', 'macrolib', ['sky130sram'])
+    chip.set('asic', 'macrolib', ['sky130_sram_1rw1r_64x256_8'])
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
     for task in ('extspice', 'drc'):
-        chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130sram')
-    chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130sram')
+        chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130_sram_1rw1r_64x256_8')
+    chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130_sram_1rw1r_64x256_8')
 
     chip.set('tool', 'openroad', 'task', 'export', 'var', 'ord_abstract_lef_bloat_layers', 'false')
 
@@ -207,23 +206,20 @@ def configure_core_chip():
     return chip
 
 
-def build_core(verify=True, remote=False, resume=False, floorplan=False):
+def setup_core():
     chip = configure_core_chip()
-    chip.set('option', 'resume', resume)
 
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'rtlmp_enable', 'true')
     chip.set('tool', 'openroad', 'task', 'place', 'var', 'place_density', '0.40')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
     chip.set('tool', 'openroad', 'task', 'export', 'var', 'write_cdl', 'false')
 
-    chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
-
     generate_core_floorplan(chip)
 
-    run_build(chip, remote)
+    return chip
 
-    if verify:
-        run_signoff(chip, 'dfm', 'export')
 
+def setup_core_module(chip):
     # set up pointers to final outputs for integration
     # Set physical outputs
     stackup = chip.get('option', 'stackup')
@@ -252,24 +248,36 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
 
     chip.write_manifest(ASIC_CORE_CFG)
 
+
+def build_core(verify=True, remote=False, resume=False, floorplan=False):
+    chip = setup_core()
+    chip.set('option', 'resume', resume)
+    chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
+
+    run_build(chip, remote)
+
+    if verify:
+        run_signoff(chip, 'dfm', 'export')
+
+    setup_core_module(chip)
+
     return chip
 
 
-def configure_top_flat_chip(resume=False):
+def configure_top_flat_chip():
     chip = siliconcompiler.Chip('zerosoc')
     define_packages(chip)
     chip.set('option', 'entrypoint', 'asic_top')
 
     setup_options(chip)
-    chip.set('option', 'resume', resume)
 
     chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
     chip.set('option', 'flow', 'asicflow')
 
     chip.use(sky130io)
-    chip.use(libs.sky130sram)
-    chip.set('asic', 'macrolib', ['sky130sram', 'sky130io'])
+    chip.use(sky130sram)
+    chip.set('asic', 'macrolib', ['sky130_sram_1rw1r_64x256_8', 'sky130io'])
 
     add_sources_core(chip)
     add_sources_top(chip)
@@ -281,6 +289,7 @@ def configure_top_flat_chip(resume=False):
     chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130io')
 
     # OpenROAD settings
+    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'rtlmp_enable', 'true')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
     for task in chip._get_tool_tasks(openroad):
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'padring.*')
@@ -314,7 +323,7 @@ def configure_top_chip(core_chip=None, resume=False):
 
     chip.use(core_chip)
     chip.use(sky130io)
-    chip.use(libs.sky130sram)
+    chip.use(sky130sram)
     chip.set('asic', 'macrolib', [core_chip.design, 'sky130io'])
 
     add_sources_top(chip)
@@ -341,12 +350,18 @@ def configure_top_chip(core_chip=None, resume=False):
     return chip
 
 
+def setup_top_flat():
+    chip = configure_top_flat_chip()
+    generate_top_flat_floorplan(chip)
+
+    return chip
+
+
 def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
-    chip = configure_top_flat_chip(resume=resume)
+    chip = setup_top_flat()
+    chip.set('option', 'resume', resume)
 
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
-
-    generate_top_flat_floorplan(chip)
 
     run_build(chip, remote)
     if verify:

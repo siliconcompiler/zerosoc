@@ -2,3 +2,4 @@ bin2coe
 hjson
 mako
 siliconcompiler >= 0.17.0
+lambdapdk
