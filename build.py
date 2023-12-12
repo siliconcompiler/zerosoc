@@ -147,7 +147,7 @@ def setup_options(chip):
 
     # Prevent us from erroring out on lint warnings during import
     chip.set('option', 'relax', True)
-    chip.set('option', 'quiet', True)
+    chip.set('option', 'quiet', False)
 
     # hack to work around fact that $readmemh now runs in context of build
     # directory and can't load .mem files using relative paths
