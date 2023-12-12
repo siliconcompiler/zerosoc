@@ -21,29 +21,14 @@ import prim_ram_1p_pkg::*;
   input ram_1p_cfg_t       cfg_i
 );
 
-wire [3:0] wmask;
-
-assign wmask[0] = &wmask_i[7:0];
-assign wmask[1] = &wmask_i[15:8];
-assign wmask[2] = &wmask_i[23:16];
-assign wmask[3] = &wmask_i[31:24];
-
-generate
-  if (Width == 32 && Depth == 512) begin : gen32x512
-    sky130_sram_2kbyte_1rw1r_32x512_8 mem(
-      .clk0(clk_i),
-      .csb0(~req_i),
-      .web0(~write_i),
-      .wmask0(wmask),
-      .addr0(addr_i),
-      .din0(wdata_i),
-      .dout0(rdata_o),
-      .clk1(1'b0),
-      .csb1(1'b0)
-    );
-  end else begin
-    // error!
-  end
-endgenerate
+la_spram #(.DW(Width), .AW(Aw)) mem(
+  .clk(clk_i),
+  .ce(req_i),
+  .we(write_i),
+  .wmask(wmask_i),
+  .addr(addr_i),
+  .din(wdata_i),
+  .dout(rdata_o)
+);
 
 endmodule
