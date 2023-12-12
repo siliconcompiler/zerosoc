@@ -14,7 +14,6 @@ from siliconcompiler.tools.openroad import openroad
 from floorplan import generate_core_floorplan, generate_top_floorplan, generate_top_flat_floorplan
 
 ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
-CORE_CLK = 45
 
 
 def define_packages(chip):
@@ -199,7 +198,7 @@ def configure_core_chip():
 
     add_sources_core(chip)
 
-    chip.clock(r'we_din\[5\]', period=CORE_CLK)
+    chip.clock(r'we_din\[5\]', period=66)
 
     add_sources_core_asic(chip)
 
@@ -295,7 +294,7 @@ def configure_top_flat_chip():
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'padring.*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
-    chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=CORE_CLK)
+    chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=57)
 
     add_sources_core_asic(chip)
 
