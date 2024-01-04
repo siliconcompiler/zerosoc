@@ -3,3 +3,4 @@ hjson
 mako
 siliconcompiler >= 0.17.0
 lambdapdk
+lambdalib >= 0.1.2

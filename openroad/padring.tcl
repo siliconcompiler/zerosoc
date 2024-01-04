@@ -15,7 +15,8 @@ proc place_padring_edge { row dim edge } {
     set pad_length [llength [dict get $sc_cfg tool $sc_tool task $sc_task {var} padring_${edge}_name]]
     set pad_interval [expr $span / ($pad_length + 1)]
     for { set i 0 } { $i < $pad_length } { incr i } {
-        set pad_name   [lindex [dict get $sc_cfg tool $sc_tool task $sc_task {var} padring_${edge}_name] $i]
+        set pad_cell [get_cells {*}[lindex [dict get $sc_cfg tool $sc_tool task $sc_task {var} padring_${edge}_name] $i]]
+        set pad_name [[sta::sta_to_db_inst $pad_cell] getName]
         puts "Placing IO pad: $pad_name"
         place_pad \
             -row $row \
@@ -43,5 +44,5 @@ place_io_fill -row IO_EAST {*}$iofill
 connect_by_abutment
 
 # Add bond pads
-place_bondpad -bond sky130_ef_io__bare_pad padring.*_pads\[0\].i0.*.gpio -offset "12.5 115"
-place_bondpad -bond sky130_ef_io__bare_pad padring.*_pads\[0\].i0.*.io* -offset "8 95"
+place_bondpad -bond sky130_ef_io__bare_pad padring.*.i0.gpio -offset "12.5 115"
+place_bondpad -bond sky130_ef_io__bare_pad padring.*.i0.io* -offset "8 95"
