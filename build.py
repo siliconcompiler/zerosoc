@@ -8,6 +8,7 @@ import sys
 
 # Libraries
 from lambdapdk.sky130.libs import sky130sram, sky130io
+from lambdalib import lambdalib
 
 from siliconcompiler.tools.openroad import openroad
 
@@ -21,10 +22,6 @@ def define_packages(chip):
         name='opentitan',
         path='git+https://github.com/lowRISC/opentitan.git',
         ref='8b9fe4bf2db8ccfac0b26600decf07cf41867e07')
-    chip.register_package_source(
-        name='oh',
-        path='git+https://github.com/aolofsson/oh.git',
-        ref='23b26c4a938d4885a2a340967ae9f63c3c7a3527')
     chip.register_package_source(
         name='zerosoc',
         path=os.path.abspath(os.path.dirname(__file__)))
@@ -70,6 +67,11 @@ def add_sources_core(chip):
     chip.add('option', 'ydir', 'hw/ip/prim_generic/rtl', package='opentitan')
 
     # SV packages (need to be added explicitly)
+    chip.input('hw/ip/prim/rtl/prim_alert_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_otp_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_pad_wrapper_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_ram_2p_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_rom_pkg.sv', package='opentitan')
     chip.input('hw/ip/prim/rtl/prim_util_pkg.sv', package='opentitan')
     chip.input('hw/ip/prim/rtl/prim_secded_pkg.sv', package='opentitan')
     chip.input('hw/top_earlgrey/rtl/top_pkg.sv', package='opentitan')
@@ -126,18 +128,25 @@ def add_sources_core_asic(chip):
 
 def add_sources_top(chip):
     chip.input('hw/asic_top.v', package='zerosoc')
-    chip.input('padring/hdl/oh_padring.v', package='oh')
-    chip.input('padring/hdl/oh_pads_domain.v', package='oh')
-    chip.input('padring/hdl/oh_pads_corner.v', package='oh')
-
-    chip.input('asic/sky130/io/asic_iobuf.v', package='zerosoc')
-    chip.input('asic/sky130/io/asic_iovdd.v', package='zerosoc')
-    chip.input('asic/sky130/io/asic_iovddio.v', package='zerosoc')
-    chip.input('asic/sky130/io/asic_iovss.v', package='zerosoc')
-    chip.input('asic/sky130/io/asic_iovssio.v', package='zerosoc')
-    chip.input('asic/sky130/io/asic_iocorner.v', package='zerosoc')
 
     chip.input('hw/top_earlgrey/rtl/top_pkg.sv', package='opentitan')
+
+    chip.input('hw/ip/gpio/rtl/gpio_reg_pkg.sv', package='opentitan')
+    chip.input('hw/ip/uart/rtl/uart_reg_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_alert_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_esc_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_otp_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_pad_wrapper_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_ram_1p_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_ram_2p_pkg.sv', package='opentitan')
+    chip.input('hw/ip/prim/rtl/prim_rom_pkg.sv', package='opentitan')
+    chip.input('hw/ip/tlul/rtl/tlul_pkg.sv', package='opentitan')
+
+    chip.add('option', 'idir', 'hw', package='zerosoc')
+
+    chip.use(lambdalib)
+    chip.add('option', 'ydir', 'lambdalib/padring/rtl', package='lambdalib')
+    chip.add('option', 'idir', 'lambdalib/padring/rtl', package='lambdalib')
 
 
 def setup_options(chip):
@@ -277,6 +286,7 @@ def configure_top_flat_chip():
     chip.use(sky130io)
     chip.use(sky130sram)
     chip.set('asic', 'macrolib', ['sky130_sram_1rw1r_64x256_8', 'sky130io'])
+    chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130io/lambda', package='lambdapdk')
 
     add_sources_core(chip)
     add_sources_top(chip)
@@ -294,7 +304,7 @@ def configure_top_flat_chip():
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'padring.*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
-    chip.clock(r'padring.we_pads\[0\].i0.padio\[5\].i0.gpio/IN', period=57)
+    chip.clock(r'padring.iwest.ipadcell\[3\].ila_iobidir.i0.gpio/IN', period=60)
 
     add_sources_core_asic(chip)
 
@@ -324,6 +334,7 @@ def configure_top_chip(core_chip=None, resume=False):
     chip.use(sky130io)
     chip.use(sky130sram)
     chip.set('asic', 'macrolib', [core_chip.design, 'sky130io'])
+    chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130io/lambda', package='lambdapdk')
 
     add_sources_top(chip)
 
