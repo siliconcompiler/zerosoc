@@ -32,7 +32,7 @@ jobs:
         password: ${{ secrets.PACKAGES_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - run: apt install python3-venv
@@ -49,7 +49,7 @@ jobs:
           SCPATH: /siliconcompiler/siliconcompiler
 
       - name: Upload image artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: flat
           path: build/zerosoc/job0/zerosoc.png
@@ -67,7 +67,7 @@ jobs:
         password: ${{ secrets.PACKAGES_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           submodules: true
       - run: apt install python3-venv
@@ -85,7 +85,7 @@ jobs:
           SCPATH: /siliconcompiler/siliconcompiler
 
       - name: Upload image artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: hierarchical
           path: |
