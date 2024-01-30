@@ -311,7 +311,7 @@ def configure_top_flat_chip():
     return chip
 
 
-def configure_top_chip(core_chip=None, resume=False):
+def configure_top_chip(core_chip=None):
     if not core_chip:
         if not os.path.exists(ASIC_CORE_CFG):
             print(f"'{ASIC_CORE_CFG}' has not been generated.", file=sys.stderr)
@@ -324,7 +324,6 @@ def configure_top_chip(core_chip=None, resume=False):
     chip.set('option', 'entrypoint', 'asic_top')
 
     setup_options(chip)
-    chip.set('option', 'resume', resume)
 
     chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
@@ -367,6 +366,13 @@ def setup_top_flat():
     return chip
 
 
+def setup_top_hier(core_chip):
+    chip = configure_top_chip(core_chip)
+    generate_top_floorplan(chip)
+
+    return chip
+
+
 def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
     chip = setup_top_flat()
     chip.set('option', 'resume', resume)
@@ -381,11 +387,10 @@ def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
 
 
 def build_top(core_chip=None, verify=True, resume=False, remote=False, floorplan=False):
-    chip = configure_top_chip(core_chip, resume=resume)
+    chip = setup_top_hier(core_chip)
 
+    chip.set('option', 'resume', resume)
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
-
-    generate_top_floorplan(chip)
 
     run_build(chip, remote)
     if verify:
