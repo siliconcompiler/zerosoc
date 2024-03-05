@@ -8,7 +8,7 @@ import sys
 
 # Libraries
 from lambdapdk.sky130.libs import sky130sram, sky130io
-from lambdalib import lambdalib
+import lambdalib
 
 from siliconcompiler.tools.openroad import openroad
 
@@ -194,6 +194,7 @@ def configure_core_chip():
     chip.load_target('skywater130_demo')
 
     chip.use(sky130sram)
+    chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130sram/lambda', package='lambdapdk')
 
     chip.set('asic', 'macrolib', ['sky130_sram_1rw1r_64x256_8'])
 
@@ -286,6 +287,7 @@ def configure_top_flat_chip():
     chip.use(sky130io)
     chip.use(sky130sram)
     chip.set('asic', 'macrolib', ['sky130_sram_1rw1r_64x256_8', 'sky130io'])
+    chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130sram/lambda', package='lambdapdk')
     chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130io/lambda', package='lambdapdk')
 
     add_sources_core(chip)
@@ -332,8 +334,8 @@ def configure_top_chip(core_chip=None):
     chip.use(core_chip)
     chip.use(sky130io)
     chip.use(sky130sram)
-    chip.set('asic', 'macrolib', [core_chip.design, 'sky130io'])
     chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130io/lambda', package='lambdapdk')
+    chip.set('asic', 'macrolib', [core_chip.design, 'sky130io'])
 
     add_sources_top(chip)
 
