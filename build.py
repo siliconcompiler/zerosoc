@@ -303,7 +303,7 @@ def configure_top_flat_chip():
     chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'rtlmp_enable', 'true')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
     for task in chip._get_tool_tasks(openroad):
-        chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'padring.*')
+        chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
     chip.clock(r'padring.iwest.ipadcell\[3\].ila_iobidir.i0.gpio/IN', period=60)
@@ -355,7 +355,7 @@ def configure_top_chip(core_chip=None):
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
 
     for task in chip._get_tool_tasks(openroad):
-        chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'padring.*')
+        chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
     return chip
