@@ -49,26 +49,29 @@ def generate_core_pins(chip):
     we_pads, no_pads, ea_pads, so_pads = define_io_placement()
 
     # Filter out GPIO pins
-    for i in range(we_pads.count(GPIO)):
+    ea_pins = len(pins) * ea_pads.count(GPIO)
+    for i in range(ea_pads.count(GPIO)):
         order_offset = len(pins) * i
         for pin_order, pin_spec in enumerate(pins):
             pin, bit, width = pin_spec
             # Construct name based on side, pin name, and bit # in vector
             name = f'we_{pin}[{i * width + bit}]'
             chip.set('constraint', 'pin', name, 'side', 1)
-            chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
+            chip.set('constraint', 'pin', name, 'order', ea_pins - (order_offset + pin_order))
 
     # Repeat the same logic for each of the other 3 sides, with positions/axes
     # adjusted accordingly...
-    for i in range(we_pads.count(GPIO)):
+    no_pins = len(pins) * no_pads.count(GPIO)
+    for i in range(no_pads.count(GPIO)):
         order_offset = len(pins) * i
         for pin_order, pin_spec in enumerate(pins):
             pin, bit, width = pin_spec
             # Construct name based on side, pin name, and bit # in vector
             name = f'no_{pin}[{i * width + bit}]'
             chip.set('constraint', 'pin', name, 'side', 2)
-            chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
+            chip.set('constraint', 'pin', name, 'order', no_pins - (order_offset + pin_order))
 
+    we_pins = len(pins) * we_pads.count(GPIO)
     for i in range(we_pads.count(GPIO)):
         order_offset = len(pins) * i
         for pin_order, pin_spec in enumerate(pins):
@@ -76,16 +79,17 @@ def generate_core_pins(chip):
             # Construct name based on side, pin name, and bit # in vector
             name = f'ea_{pin}[{i * width + bit}]'
             chip.set('constraint', 'pin', name, 'side', 3)
-            chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
+            chip.set('constraint', 'pin', name, 'order', we_pins - (order_offset + pin_order))
 
-    for i in range(we_pads.count(GPIO)):
+    so_pins = len(pins) * so_pads.count(GPIO)
+    for i in range(so_pads.count(GPIO)):
         order_offset = len(pins) * i
         for pin_order, pin_spec in enumerate(pins):
             pin, bit, width = pin_spec
             # Construct name based on side, pin name, and bit # in vector
             name = f'so_{pin}[{i * width + bit}]'
             chip.set('constraint', 'pin', name, 'side', 4)
-            chip.set('constraint', 'pin', name, 'order', order_offset + pin_order)
+            chip.set('constraint', 'pin', name, 'order', so_pins - (order_offset + pin_order))
 
 
 def __configure_padring_side(chip, side_pads, side_name):
