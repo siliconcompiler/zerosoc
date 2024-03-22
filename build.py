@@ -354,6 +354,12 @@ def configure_top_chip(core_chip=None):
     # OpenROAD settings
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
 
+    for met, adj in (('met2', 0.2),
+                     ('met3', 0.1),
+                     ('met4', 0.1),
+                     ('met5', 0.1)):
+        chip.set('pdk', 'skywater130', 'var', 'openroad', f'{met}_adjustment', '5M1LI', str(adj))
+
     for task in chip._get_tool_tasks(openroad):
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
