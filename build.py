@@ -232,22 +232,22 @@ def setup_core_module(chip):
     # set up pointers to final outputs for integration
     # Set physical outputs
     stackup = chip.get('option', 'stackup')
-    chip.set('output', stackup, 'gds', chip.find_result('gds', step='export', index='0'))
-    chip.set('output', stackup, 'lef', chip.find_result('lef', step='export', index='1'))
+    chip.set('output', stackup, 'gds', chip.find_result('gds', step='write_gds'))
+    chip.set('output', stackup, 'lef', chip.find_result('lef', step='write_data'))
 
     # Set output netlist
-    chip.set('output', 'netlist', 'verilog', chip.find_result('vg', step='export', index='1'))
+    chip.set('output', 'netlist', 'verilog', chip.find_result('vg', step='write_data'))
 
     # Set timing libraries
     for scenario in chip.getkeys('constraint', 'timing'):
         corner = chip.get('constraint', 'timing', scenario, 'libcorner')[0]
-        lib = chip.find_result(f'{corner}.lib', step='export', index='1')
+        lib = chip.find_result(f'{corner}.lib', step='write_data')
         chip.set('output', corner, 'nldm', lib)
 
     # Set pex outputs
     for scenario in chip.getkeys('constraint', 'timing'):
         corner = chip.get('constraint', 'timing', scenario, 'pexcorner')
-        spef = chip.find_result(f'{corner}.spef', step='export', index='1')
+        spef = chip.find_result(f'{corner}.spef', step='write_data')
         chip.set('output', corner, 'spef', spef)
 
     # Hash output files

@@ -19,7 +19,6 @@ jobs:
     uses: siliconcompiler/siliconcompiler/.github/workflows/docker_image.yml@main
     with:
       tool: 'tools'
-      sc_version: 'latest'
 
   flat:
     name: 'flat'
@@ -28,14 +27,15 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.docker_image.outputs.sc_tool }}
-      credentials:
-        username: ${{ secrets.PACKAGES_ACTOR }}
-        password: ${{ secrets.PACKAGES_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
         with:
-          submodules: true
+          repository: siliconcompiler/siliconcompiler
+          path: /siliconcompiler
+
       - run: apt install python3-venv
       - name: Run test
         run: |
@@ -43,16 +43,14 @@ jobs:
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
+          pip3 install /siliconcompiler
           ./build.py --top-flat
-        env:
-          SCPATH: /siliconcompiler/siliconcompiler
 
       - name: Upload image artifacts
         uses: actions/upload-artifact@v4
         with:
           name: flat
           path: build/zerosoc/job0/zerosoc.png
-          retention-days: 5
 
   hierarchical:
     name: 'hierarchical'
@@ -61,25 +59,26 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ${{ needs.docker_image.outputs.sc_tool }}
-      credentials:
-        username: ${{ secrets.PACKAGES_ACTOR }}
-        password: ${{ secrets.PACKAGES_TOKEN }}
 
     steps:
       - uses: actions/checkout@v4
+
+      - uses: actions/checkout@v4
         with:
-          submodules: true
+          repository: siliconcompiler/siliconcompiler
+          path: /siliconcompiler
+
       - run: apt install python3-venv
+
       - name: Run test
         run: |
           python3 -m venv ./clean_env --clear
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
+          pip3 install /siliconcompiler
           ./build.py --core-only
           ./build.py --top-only
-        env:
-          SCPATH: /siliconcompiler/siliconcompiler
 
       - name: Upload image artifacts
         uses: actions/upload-artifact@v4
@@ -88,4 +87,3 @@ jobs:
           path: |
             build/zerosoc_core/job0/zerosoc_core.png
             build/zerosoc_top/job0/zerosoc_top.png
-          retention-days: 5
