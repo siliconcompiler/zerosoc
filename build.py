@@ -11,6 +11,7 @@ from lambdapdk.sky130.libs import sky130sram, sky130io
 import lambdalib
 
 from siliconcompiler.tools.openroad import openroad
+from siliconcompiler.tools._common import get_tool_tasks
 
 from floorplan import generate_core_floorplan, generate_top_floorplan, generate_top_flat_floorplan
 
@@ -18,11 +19,11 @@ ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
 
 
 def define_packages(chip):
-    chip.register_package_source(
+    chip.register_source(
         name='opentitan',
         path='git+https://github.com/lowRISC/opentitan.git',
         ref='8b9fe4bf2db8ccfac0b26600decf07cf41867e07')
-    chip.register_package_source(
+    chip.register_source(
         name='zerosoc',
         path=os.path.abspath(os.path.dirname(__file__)))
 
@@ -302,7 +303,7 @@ def configure_top_flat_chip():
     # OpenROAD settings
     chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'rtlmp_enable', 'true')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
-    for task in chip._get_tool_tasks(openroad):
+    for task in get_tool_tasks(chip, openroad):
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
@@ -360,7 +361,7 @@ def configure_top_chip(core_chip=None):
                      ('met5', 0.1)):
         chip.set('pdk', 'skywater130', 'var', 'openroad', f'{met}_adjustment', '5M1LI', str(adj))
 
-    for task in chip._get_tool_tasks(openroad):
+    for task in get_tool_tasks(chip, openroad):
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
