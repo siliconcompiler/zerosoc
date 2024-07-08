@@ -260,7 +260,7 @@ def setup_core_module(chip):
 
 def build_core(verify=True, remote=False, resume=False, floorplan=False):
     chip = setup_core()
-    chip.set('option', 'resume', resume)
+    chip.set('option', 'clean', not resume)
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
 
     run_build(chip, remote)
@@ -383,7 +383,7 @@ def setup_top_hier(core_chip):
 
 def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
     chip = setup_top_flat()
-    chip.set('option', 'resume', resume)
+    chip.set('option', 'clean', not resume)
 
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
 
@@ -397,7 +397,7 @@ def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
 def build_top(core_chip=None, verify=True, resume=False, remote=False, floorplan=False):
     chip = setup_top_hier(core_chip)
 
-    chip.set('option', 'resume', resume)
+    chip.set('option', 'clean', not resume)
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
 
     run_build(chip, remote)
