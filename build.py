@@ -155,7 +155,6 @@ def setup_options(chip):
     chip.set('option', 'loglevel', 'INFO')
 
     # Prevent us from erroring out on lint warnings during import
-    chip.set('option', 'relax', True)
     chip.set('option', 'quiet', False)
 
     # hack to work around fact that $readmemh now runs in context of build
