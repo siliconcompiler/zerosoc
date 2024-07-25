@@ -146,8 +146,7 @@ def add_sources_top(chip):
     chip.add('option', 'idir', 'hw', package='zerosoc')
 
     chip.use(lambdalib)
-    chip.add('option', 'ydir', 'lambdalib/padring/rtl', package='lambdalib')
-    chip.add('option', 'idir', 'lambdalib/padring/rtl', package='lambdalib')
+    chip.add('option', 'library', 'lambdalib_padring')
 
 
 def setup_options(chip):
@@ -168,7 +167,6 @@ def build_fpga():
     define_packages(chip)
     setup_options(chip)
 
-    chip.set('frontend', 'systemverilog')
     chip.set('fpga', 'partname', 'ice40up5k-sg48')
     chip.load_target('fpgaflow_demo')
 
@@ -190,11 +188,10 @@ def configure_core_chip():
 
     setup_options(chip)
 
-    chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
 
     chip.use(sky130sram)
-    chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130sram/lambda', package='lambdapdk')
+    chip.add('option', 'library', 'lambdalib_sky130sram')
 
     chip.set('asic', 'macrolib', ['sky130_sram_1rw1r_64x256_8'])
 
@@ -280,15 +277,14 @@ def configure_top_flat_chip():
 
     setup_options(chip)
 
-    chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
     chip.set('option', 'flow', 'asicflow')
 
     chip.use(sky130io)
     chip.use(sky130sram)
     chip.set('asic', 'macrolib', ['sky130_sram_1rw1r_64x256_8', 'sky130io'])
-    chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130sram/lambda', package='lambdapdk')
-    chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130io/lambda', package='lambdapdk')
+    chip.add('option', 'library', 'lambdalib_sky130sram')
+    chip.add('option', 'library', 'lambdalib_sky130io')
 
     add_sources_core(chip)
     add_sources_top(chip)
@@ -327,15 +323,15 @@ def configure_top_chip(core_chip=None):
 
     setup_options(chip)
 
-    chip.set('option', 'frontend', 'systemverilog')
     chip.load_target('skywater130_demo')
     chip.set('option', 'flow', 'asicflow')
 
     chip.use(core_chip)
     chip.use(sky130io)
     chip.use(sky130sram)
-    chip.add('option', 'ydir', 'lambdapdk/sky130/libs/sky130io/lambda', package='lambdapdk')
     chip.set('asic', 'macrolib', [core_chip.design, 'sky130io'])
+    chip.add('option', 'library', 'lambdalib_sky130sram')
+    chip.add('option', 'library', 'lambdalib_sky130io')
 
     add_sources_top(chip)
 
