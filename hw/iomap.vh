@@ -15,22 +15,22 @@ localparam [7:0] PIN_IO8     = 8'h08;
 localparam [7:0] PIN_NONE     = 8'hFF;
 
 //##################################################
-// CELLMAP = {SECTION#,PIN#,CELLTYPE}
+// CELLMAP = {PROP[7:0],SECTION[7:0],CELL[7:0],COMP[7:0],PIN[7:0]}
 //##################################################
 
 `include "la_iopadring.vh"
 
 localparam CELLMAP = { // GPIO SECTION
-                       {8'h0,PIN_NONE,LA_VSS},
-                       {8'h0,PIN_NONE,LA_VDD},
-                       {8'h0,PIN_NONE,LA_VDDIO},
-                       {8'h0,PIN_NONE,LA_VSSIO},
-                       {8'h0,PIN_IO0,LA_BIDIR},
-                       {8'h0,PIN_IO1,LA_BIDIR},
-                       {8'h0,PIN_IO2,LA_BIDIR},
-                       {8'h0,PIN_IO3,LA_BIDIR},
-                       {8'h0,PIN_IO4,LA_BIDIR},
-                       {8'h0,PIN_IO5,LA_BIDIR},
-                       {8'h0,PIN_IO6,LA_BIDIR},
-                       {8'h0,PIN_IO7,LA_BIDIR},
-                       {8'h0,PIN_IO8,LA_BIDIR}};
+                       {8'h0, 8'h0, LA_VSS,   8'h0, PIN_NONE},
+                       {8'h0, 8'h0, LA_VDD,   8'h0, PIN_NONE},
+                       {8'h0, 8'h0, LA_VDDIO, 8'h0, PIN_NONE},
+                       {8'h0, 8'h0, LA_VSSIO, 8'h0, PIN_NONE},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO0},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO1},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO2},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO3},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO4},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO5},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO6},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO7},
+                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO8}};
