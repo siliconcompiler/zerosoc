@@ -151,7 +151,6 @@ def add_sources_top(chip):
 
 def setup_options(chip):
     '''Helper to setup common options for each build.'''
-    chip.set('option', 'loglevel', 'INFO')
 
     # Prevent us from erroring out on lint warnings during import
     chip.set('option', 'quiet', False)
