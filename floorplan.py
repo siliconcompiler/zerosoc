@@ -93,15 +93,15 @@ def generate_core_pins(chip):
 
 
 def __configure_padring_side(chip, side_pads, side_name):
-    pad_name_prefix = f'padring.i{side_name}.ipadcell'
+    pad_name_prefix = f'padring.i{side_name}.ipad'
     pad_name_suffix = '.i0.'
 
     pad_name_map = {
-        GPIO: ('ila_iobidir', 'gpio'),
-        VDD: ('ila_iovdd', 'iovdd'),
-        VDDIO: ('ila_iovddio', 'iovddio'),
-        VSS: ('ila_iovss', 'iovss'),
-        VSSIO: ('ila_iovssio', 'iovssio')
+        GPIO: ('gbidir', 'gpio'),
+        VDD: ('gvdd', 'iovdd'),
+        VDDIO: ('gvddio', 'iovddio'),
+        VSS: ('gvss', 'iovss'),
+        VSSIO: ('gvssio', 'iovssio')
     }
 
     for i, pad_type in enumerate(side_pads):

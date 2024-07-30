@@ -107,10 +107,14 @@ module asic_top (
                 .we_vddio       (vddio),
                 /*AUTOINST*/
                 // Outputs
-                .no_z           (no_din),
-                .ea_z           (ea_din),
-                .so_z           (so_din),
-                .we_z           (we_din),
+                .no_zp          (no_din),
+                .no_zn          (),
+                .ea_zp          (ea_din),
+                .ea_zn          (),
+                .so_zp          (so_din),
+                .so_zn          (),
+                .we_zp          (we_din),
+                .we_zn          (),
                 // Inouts
                 .vss            (vss),
                 .no_vdd         (vdd),

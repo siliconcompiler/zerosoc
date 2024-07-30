@@ -301,7 +301,7 @@ def configure_top_flat_chip():
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
-    chip.clock(r'padring.iwest.ipadcell\[3\].ila_iobidir.i0.gpio/IN', period=60)
+    chip.clock(r'padring.iwest.ipad\[3\].gbidir.i0.gpio/IN', period=60)
 
     add_sources_core_asic(chip)
 
