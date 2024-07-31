@@ -8,7 +8,7 @@ import sys
 
 # Libraries
 from lambdapdk.sky130.libs import sky130sram, sky130io
-import lambdalib
+from lambdalib import padring
 
 from siliconcompiler.tools.openroad import openroad
 from siliconcompiler.tools._common import get_tool_tasks
@@ -145,8 +145,7 @@ def add_sources_top(chip):
 
     chip.add('option', 'idir', 'hw', package='zerosoc')
 
-    chip.use(lambdalib)
-    chip.add('option', 'library', 'lambdalib_padring')
+    chip.use(padring)
 
 
 def setup_options(chip):
@@ -279,14 +278,14 @@ def configure_top_flat_chip():
     chip.load_target('skywater130_demo')
     chip.set('option', 'flow', 'asicflow')
 
+    add_sources_top(chip)
+    add_sources_core(chip)
+
     chip.use(sky130io)
     chip.use(sky130sram)
     chip.set('asic', 'macrolib', ['sky130_sram_1rw1r_64x256_8', 'sky130io'])
     chip.add('option', 'library', 'lambdalib_sky130sram')
-    chip.add('option', 'library', 'lambdalib_sky130io')
-
-    add_sources_core(chip)
-    add_sources_top(chip)
+    chip.swap_library('lambdalib_iolib', 'lambdalib_sky130io')
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
@@ -325,14 +324,14 @@ def configure_top_chip(core_chip=None):
     chip.load_target('skywater130_demo')
     chip.set('option', 'flow', 'asicflow')
 
+    add_sources_top(chip)
+
     chip.use(core_chip)
     chip.use(sky130io)
     chip.use(sky130sram)
     chip.set('asic', 'macrolib', [core_chip.design, 'sky130io'])
     chip.add('option', 'library', 'lambdalib_sky130sram')
-    chip.add('option', 'library', 'lambdalib_sky130io')
-
-    add_sources_top(chip)
+    chip.swap_library('lambdalib_iolib', 'lambdalib_sky130io')
 
     # Ignore cells in these libraries during DRC, they violate the rules but are
     # foundry-validated
