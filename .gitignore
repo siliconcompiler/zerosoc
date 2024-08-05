@@ -4,6 +4,7 @@ zerosoc.vcd
 # SC build dir
 build/
 *.json
+.venv/
 
 # FPGA build outputs
 *.asc

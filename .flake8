@@ -1,4 +1,4 @@
 [flake8]
-extend-exclude = opentitan,oh
+extend-exclude = opentitan,oh,.venv
 max-complexity = 10
 max-line-length = 100
