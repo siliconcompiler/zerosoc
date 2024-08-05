@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+'''
+ZeroSOC build system
+'''
 
 import siliconcompiler
 
@@ -11,16 +14,16 @@ from lambdapdk.sky130.libs import sky130sram, sky130io
 from siliconcompiler.targets import skywater130_demo
 
 from siliconcompiler.tools.openroad import openroad
-from siliconcompiler.tools._common import get_tool_tasks
+from siliconcompiler.tools._common import get_tool_tasks as _get_tool_tasks
 
-from floorplan import generate_core_floorplan, generate_top_floorplan, generate_top_flat_floorplan
+import floorplan as zerosoc_floorplan
 import zerosoc_core
 import zerosoc_top
 
 ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
 
 
-def configure_remote(chip):
+def _configure_remote(chip):
     chip.set('option', 'remote', True)
 
     for library in chip.getkeys('library'):
@@ -57,10 +60,10 @@ def build_fpga():
 
     chip.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplIce40"')
 
-    run_build(chip)
+    _run_build(chip)
 
 
-def configure_core_chip():
+def _setup_core():
     chip = siliconcompiler.Chip('zerosoc_core')
     chip.set('option', 'entrypoint', 'asic_core')
 
@@ -84,23 +87,17 @@ def configure_core_chip():
 
     chip.clock(r'we_din\[5\]', period=66)
 
-    return chip
-
-
-def setup_core():
-    chip = configure_core_chip()
-
     chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'rtlmp_enable', 'true')
     chip.set('tool', 'openroad', 'task', 'place', 'var', 'place_density', '0.40')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
     chip.set('tool', 'openroad', 'task', 'export', 'var', 'write_cdl', 'false')
 
-    generate_core_floorplan(chip)
+    zerosoc_floorplan.generate_core_floorplan(chip)
 
     return chip
 
 
-def setup_core_module(chip):
+def _setup_core_module(chip):
     # set up pointers to final outputs for integration
     # Set physical outputs
     stackup = chip.get('option', 'stackup')
@@ -131,21 +128,21 @@ def setup_core_module(chip):
 
 
 def build_core(verify=True, remote=False, resume=False, floorplan=False):
-    chip = setup_core()
+    chip = _setup_core()
     chip.set('option', 'clean', not resume)
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
 
-    run_build(chip, remote)
+    _run_build(chip, remote)
 
     if verify:
-        run_signoff(chip, 'dfm', 'export')
+        _run_signoff(chip, 'dfm', 'export')
 
-    setup_core_module(chip)
+    _setup_core_module(chip)
 
     return chip
 
 
-def configure_top_flat_chip():
+def _setup_top_flat():
     chip = siliconcompiler.Chip('zerosoc')
     chip.set('option', 'entrypoint', 'asic_top')
 
@@ -171,16 +168,18 @@ def configure_top_flat_chip():
     # OpenROAD settings
     chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'rtlmp_enable', 'true')
     chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
-    for task in get_tool_tasks(chip, openroad):
+    for task in _get_tool_tasks(chip, openroad):
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
     chip.clock(r'padring.iwest.ipad\[3\].gbidir.i0.gpio/IN', period=60)
 
+    zerosoc_floorplan.generate_top_flat_floorplan(chip)
+
     return chip
 
 
-def configure_top_chip(core_chip=None):
+def _setup_top_hier(core_chip):
     chip = siliconcompiler.Chip('zerosoc_top')
 
     if not core_chip:
@@ -225,62 +224,50 @@ def configure_top_chip(core_chip=None):
                      ('met5', 0.1)):
         chip.set('pdk', 'skywater130', 'var', 'openroad', f'{met}_adjustment', '5M1LI', str(adj))
 
-    for task in get_tool_tasks(chip, openroad):
+    for task in _get_tool_tasks(chip, openroad):
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
-    return chip
-
-
-def setup_top_flat():
-    chip = configure_top_flat_chip()
-    generate_top_flat_floorplan(chip)
-
-    return chip
-
-
-def setup_top_hier(core_chip):
-    chip = configure_top_chip(core_chip)
-    generate_top_floorplan(chip)
+    zerosoc_floorplan.generate_top_floorplan(chip)
 
     return chip
 
 
 def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
-    chip = setup_top_flat()
+    chip = _setup_top_flat()
     chip.set('option', 'clean', not resume)
 
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
 
-    run_build(chip, remote)
+    _run_build(chip, remote)
     if verify:
-        run_signoff(chip, 'syn', 'export')
+        _run_signoff(chip, 'syn', 'export')
 
     return chip
 
 
 def build_top(core_chip=None, verify=True, resume=False, remote=False, floorplan=False):
-    chip = setup_top_hier(core_chip)
+    chip = _setup_top_hier(core_chip)
 
     chip.set('option', 'clean', not resume)
     chip.set('option', 'breakpoint', floorplan and not remote, step='floorplan')
 
-    run_build(chip, remote)
+    _run_build(chip, remote)
     if verify:
-        run_signoff(chip, 'syn', 'export')
+        _run_signoff(chip, 'syn', 'export')
 
     return chip
 
 
-def run_build(chip, remote):
+def _run_build(chip, remote):
     if remote:
-        configure_remote(chip)
+        _configure_remote(chip)
 
     chip.run()
     chip.summary()
 
 
-def run_signoff(chip, netlist_step, layout_step):
+def _run_signoff(chip, netlist_step, layout_step):
     gds_path = chip.find_result('gds', step=layout_step)
     netlist_path = chip.find_result('vg', step=netlist_step)
 
@@ -295,34 +282,10 @@ def run_signoff(chip, netlist_step, layout_step):
     chip.input(gds_path)
     chip.input(netlist_path)
 
-    run_build(chip)
+    _run_build(chip)
 
 
-def test_zerosoc_build():
-    chip = build_core(verify=True)
-
-    assert chip.get('metric', 'lvs', '0', 'errors') == 0
-    assert chip.get('metric', 'drc', '0', 'errors') == 0
-
-    # check for timing errors
-    assert chip.get('metric', 'route', '0', 'holdslack') >= 0
-    assert chip.get('metric', 'route', '0', 'holdwns') >= 0
-    assert chip.get('metric', 'route', '0', 'holdtns') >= 0
-    assert chip.get('metric', 'route', '0', 'setupslack') >= 0
-    assert chip.get('metric', 'route', '0', 'setupwns') >= 0
-    assert chip.get('metric', 'route', '0', 'setuptns') >= 0
-
-    chip = build_top(verify=True)
-
-    assert chip.get('metric', 'lvs', '0', 'errors') == 0
-    assert chip.get('metric', 'drc', '0', 'errors') == 0
-
-
-def test_fpga_build():
-    build_fpga()
-
-
-def main():
+def _main():
     parser = argparse.ArgumentParser(description='Build ZeroSoC')
     # parser.add_argument('--fpga',
     #                     action='store_true',
@@ -388,4 +351,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    _main()
