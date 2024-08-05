@@ -43,7 +43,7 @@ jobs:
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
           pip3 install ./siliconcompiler
-          ./build.py --top-flat
+          ./make.py --top-flat
 
       - name: Upload image artifacts
         uses: actions/upload-artifact@v4
@@ -76,8 +76,8 @@ jobs:
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
           pip3 install ./siliconcompiler
-          ./build.py --core-only
-          ./build.py --top-only
+          ./make.py --core-only
+          ./make.py --top-only
 
       - name: Upload image artifacts
         uses: actions/upload-artifact@v4
