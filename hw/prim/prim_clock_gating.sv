@@ -27,10 +27,10 @@ module prim_clock_gating
 );
   parameter prim_pkg::impl_e Impl = `PRIM_DEFAULT_IMPL;
 
-  if (Impl == prim_pkg::ImplSky130) begin : gen_sky130
-      prim_sky130_clock_gating #(
+  if (Impl == prim_pkg::ImplLambdalib) begin : gen_lambdalib
+      prim_lambdalib_clock_gating #(
         .NoFpgaGate(NoFpgaGate)
-      ) u_impl_sky130 (
+      ) u_impl_lambdalib (
         .*
       );
   end else if (Impl == prim_pkg::ImplIce40) begin : gen_ice40

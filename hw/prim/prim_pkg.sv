@@ -13,7 +13,7 @@ package prim_pkg;
     ImplGeneric,
     ImplXilinx,
     ImplFreePdk45,
-    ImplSky130,
+    ImplLambdalib,
     ImplIce40
   } impl_e;
 endpackage : prim_pkg

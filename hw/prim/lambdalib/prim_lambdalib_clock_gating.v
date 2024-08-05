@@ -1,4 +1,4 @@
-module prim_sky130_clock_gating #(
+module prim_lambdalib_clock_gating #(
   parameter bit NoFpgaGate = 1'b0
 ) (
   input        clk_i,
