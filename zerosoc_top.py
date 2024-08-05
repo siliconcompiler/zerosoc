@@ -1,7 +1,7 @@
 import os
 from siliconcompiler import Library
 from lambdalib import padring
-import core
+import zerosoc_core
 
 
 def setup(chip):
@@ -11,6 +11,6 @@ def setup(chip):
     lib.add('option', 'idir', 'hw')
 
     lib.use(padring)
-    lib.use(core)
+    lib.use(zerosoc_core)
 
     return lib
