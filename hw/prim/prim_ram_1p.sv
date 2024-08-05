@@ -37,13 +37,13 @@ import prim_ram_1p_pkg::*;
 );
   parameter prim_pkg::impl_e Impl = `PRIM_DEFAULT_IMPL;
 
-  if (Impl == prim_pkg::ImplSky130) begin : gen_sky130
-    prim_sky130_ram_1p #(
+  if (Impl == prim_pkg::ImplLambdalib) begin : gen_lambdalib
+    prim_lambdalib_ram_1p #(
       .DataBitsPerMask(DataBitsPerMask),
       .Depth(Depth),
       .MemInitFile(MemInitFile),
       .Width(Width)
-    ) u_impl_sky130 (
+    ) u_impl_lambdalib (
       .*
     );
   end else begin : gen_generic

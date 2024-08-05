@@ -1,4 +1,4 @@
-module prim_sky130_ram_1p
+module prim_lambdalib_ram_1p
 import prim_ram_1p_pkg::*;
 #(
 
