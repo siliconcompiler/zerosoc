@@ -1,6 +1,6 @@
 bin2coe
 hjson
 mako
-siliconcompiler >= 0.24.0
+siliconcompiler >= 0.26.2
 lambdapdk >= 0.1.26
 lambdalib >= 0.2.7
