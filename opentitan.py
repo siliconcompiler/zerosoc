@@ -1,8 +1,8 @@
 from siliconcompiler import Library
 
 
-def setup(chip):
-    lib = Library(chip, "opentitan", package='opentitan', auto_enable=True)
+def setup():
+    lib = Library("opentitan", package='opentitan', auto_enable=True)
     lib.register_source(
         name='opentitan',
         path='git+https://github.com/lowRISC/opentitan.git',
