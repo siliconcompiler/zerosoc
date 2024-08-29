@@ -11,7 +11,7 @@ import sys
 
 # Libraries
 from lambdapdk.sky130.libs import sky130sram, sky130io
-from siliconcompiler.targets import skywater130_demo
+from siliconcompiler.targets import skywater130_demo, fpgaflow_demo
 
 from siliconcompiler.tools.openroad import openroad
 from siliconcompiler.tools._common import get_tool_tasks as _get_tool_tasks
@@ -50,7 +50,7 @@ def build_fpga():
     chip = siliconcompiler.Chip('top_icebreaker')
 
     chip.set('fpga', 'partname', 'ice40up5k-sg48')
-    chip.load_target('fpgaflow_demo')
+    chip.use(fpgaflow_demo, partname='ice40up5k-sg48')
 
     chip.use(zerosoc_core)
 
@@ -67,7 +67,7 @@ def _setup_core():
     chip = siliconcompiler.Chip('zerosoc_core')
     chip.set('option', 'entrypoint', 'asic_core')
 
-    chip.load_target(skywater130_demo)
+    chip.use(skywater130_demo)
 
     chip.add('option', 'define', 'SYNTHESIS')
     chip.use(zerosoc_core)
@@ -146,7 +146,7 @@ def _setup_top_flat():
     chip = siliconcompiler.Chip('zerosoc')
     chip.set('option', 'entrypoint', 'asic_top')
 
-    chip.load_target(skywater130_demo)
+    chip.use(skywater130_demo)
     chip.set('option', 'flow', 'asicflow')
 
     chip.add('option', 'define', 'SYNTHESIS')
@@ -193,7 +193,7 @@ def _setup_top_hier(core_chip):
     chip = siliconcompiler.Chip('zerosoc_top')
     chip.set('option', 'entrypoint', 'asic_top')
 
-    chip.load_target(skywater130_demo)
+    chip.use(skywater130_demo)
     chip.set('option', 'flow', 'asicflow')
 
     chip.use(core_chip)
