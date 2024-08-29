@@ -186,9 +186,9 @@ def _setup_top_hier(core_chip):
         if not os.path.exists(ASIC_CORE_CFG):
             print(f"'{ASIC_CORE_CFG}' has not been generated.", file=sys.stderr)
             return
-        core_chip = siliconcompiler.Library(chip, 'zerosoc_core')
+        core_chip = siliconcompiler.Library('zerosoc_core')
         core_chip.read_manifest(ASIC_CORE_CFG)
-        core_chip.set('design', 'asic_zerosoc_core')
+    core_chip.set('design', 'asic_zerosoc_core')
 
     chip = siliconcompiler.Chip('zerosoc_top')
     chip.set('option', 'entrypoint', 'asic_top')
