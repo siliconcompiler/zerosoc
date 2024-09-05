@@ -170,7 +170,7 @@ def generate_top_outline(chip):
 def generate_top_placement(chip):
     # Place core
     die_ll, die_ur = chip.get('constraint', 'outline')
-    location = [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2, 0]
+    location = [(die_ur[0] - die_ll[0]) / 2, (die_ur[1] - die_ll[1]) / 2]
     chip.set('constraint', 'component', 'core', 'placement', location)
 
 
