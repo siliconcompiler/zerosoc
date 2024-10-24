@@ -135,7 +135,7 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
     _run_build(chip, remote)
 
     if verify:
-        _run_signoff(chip, 'dfm', 'export')
+        _run_signoff(chip, 'write_data', 'write_gds', remote)
 
     _setup_core_module(chip)
 
@@ -241,7 +241,7 @@ def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
 
     _run_build(chip, remote)
     if verify:
-        _run_signoff(chip, 'syn', 'export')
+        _run_signoff(chip, 'write_data', 'write_gds', remote)
 
     return chip
 
@@ -254,7 +254,7 @@ def build_top(core_chip=None, verify=True, resume=False, remote=False, floorplan
 
     _run_build(chip, remote)
     if verify:
-        _run_signoff(chip, 'syn', 'export')
+        _run_signoff(chip, 'write_data', 'write_gds', remote)
 
     return chip
 
@@ -267,7 +267,7 @@ def _run_build(chip, remote):
     chip.summary()
 
 
-def _run_signoff(chip, netlist_step, layout_step):
+def _run_signoff(chip, netlist_step, layout_step, remote):
     gds_path = chip.find_result('gds', step=layout_step)
     netlist_path = chip.find_result('vg', step=netlist_step)
 
@@ -282,7 +282,7 @@ def _run_signoff(chip, netlist_step, layout_step):
     chip.input(gds_path)
     chip.input(netlist_path)
 
-    _run_build(chip)
+    _run_build(chip, remote)
 
 
 def _main():
