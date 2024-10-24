@@ -13,7 +13,7 @@ import sys
 from lambdapdk.sky130.libs import sky130sram, sky130io
 from siliconcompiler.targets import skywater130_demo, fpgaflow_demo
 
-from siliconcompiler.tools.openroad import openroad
+from siliconcompiler.tools import openroad
 from siliconcompiler.tools._common import get_tool_tasks as _get_tool_tasks
 
 import floorplan as zerosoc_floorplan
@@ -87,10 +87,10 @@ def _setup_core():
 
     chip.clock(r'we_din\[5\]', period=66)
 
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'rtlmp_enable', 'true')
-    chip.set('tool', 'openroad', 'task', 'place', 'var', 'place_density', '0.40')
-    chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
-    chip.set('tool', 'openroad', 'task', 'export', 'var', 'write_cdl', 'false')
+    chip.set('tool', 'openroad', 'task', 'macro_placement', 'var', 'rtlmp_enable', 'true')
+    chip.set('tool', 'openroad', 'task', 'write_data', 'var', 'write_cdl', 'false')
+    chip.set('option', 'var', 'openroad_place_density', '0.40')
+    chip.set('option', 'var', 'openroad_grt_macro_extension', '0')
 
     zerosoc_floorplan.generate_core_floorplan(chip)
 
@@ -166,8 +166,8 @@ def _setup_top_flat():
     chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130io')
 
     # OpenROAD settings
-    chip.set('tool', 'openroad', 'task', 'floorplan', 'var', 'rtlmp_enable', 'true')
-    chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+    chip.set('tool', 'openroad', 'task', 'macro_placement', 'var', 'rtlmp_enable', 'true')
+    chip.set('option', 'var', 'openroad_grt_macro_extension', '0')
     for task in _get_tool_tasks(chip, openroad):
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
@@ -216,7 +216,7 @@ def _setup_top_hier(core_chip):
                 chip.set('tool', tool, 'task', task, 'var', 'exclude', exclude)
 
     # OpenROAD settings
-    chip.set('tool', 'openroad', 'task', 'route', 'var', 'grt_macro_extension', '0')
+    chip.set('option', 'var', 'openroad_grt_macro_extension', 0)
 
     for met, adj in (('met2', 0.2),
                      ('met3', 0.1),
