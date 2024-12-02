@@ -83,12 +83,13 @@ def _setup_core():
         chip.add('tool', 'magic', 'task', task, 'var', 'exclude', 'sky130_sram_1rw1r_64x256_8')
     chip.add('tool', 'netgen', 'task', 'lvs', 'var', 'exclude', 'sky130_sram_1rw1r_64x256_8')
 
-    chip.set('tool', 'openroad', 'task', 'export', 'var', 'ord_abstract_lef_bloat_layers', 'false')
+    chip.set('tool', 'openroad', 'task', 'write_data', 'var',
+             'ord_abstract_lef_bloat_layers', False)
 
     chip.clock(r'we_din\[5\]', period=66)
 
     chip.set('tool', 'openroad', 'task', 'macro_placement', 'var', 'rtlmp_enable', 'true')
-    chip.set('tool', 'openroad', 'task', 'write.views', 'var', 'write_cdl', 'false')
+    chip.set('tool', 'openroad', 'task', 'write_data', 'var', 'write_cdl', 'false')
     chip.set('option', 'var', 'openroad_place_density', '0.40')
     chip.set('option', 'var', 'openroad_grt_macro_extension', '0')
 
