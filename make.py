@@ -88,7 +88,7 @@ def _setup_core():
     chip.clock(r'we_din\[5\]', period=66)
 
     chip.set('tool', 'openroad', 'task', 'macro_placement', 'var', 'rtlmp_enable', 'true')
-    chip.set('tool', 'openroad', 'task', 'write_data', 'var', 'write_cdl', 'false')
+    chip.set('tool', 'openroad', 'task', 'write.views', 'var', 'write_cdl', 'false')
     chip.set('option', 'var', 'openroad_place_density', '0.40')
     chip.set('option', 'var', 'openroad_grt_macro_extension', '0')
 
@@ -101,22 +101,22 @@ def _setup_core_module(chip):
     # set up pointers to final outputs for integration
     # Set physical outputs
     stackup = chip.get('option', 'stackup')
-    chip.set('output', stackup, 'gds', chip.find_result('gds', step='write_gds'))
-    chip.set('output', stackup, 'lef', chip.find_result('lef', step='write_data'))
+    chip.set('output', stackup, 'gds', chip.find_result('gds', step='write.gds'))
+    chip.set('output', stackup, 'lef', chip.find_result('lef', step='write.views'))
 
     # Set output netlist
-    chip.set('output', 'netlist', 'verilog', chip.find_result('vg', step='write_data'))
+    chip.set('output', 'netlist', 'verilog', chip.find_result('vg', step='write.views'))
 
     # Set timing libraries
     for scenario in chip.getkeys('constraint', 'timing'):
         corner = chip.get('constraint', 'timing', scenario, 'libcorner')[0]
-        lib = chip.find_result(f'{corner}.lib', step='write_data')
+        lib = chip.find_result(f'{corner}.lib', step='write.views')
         chip.set('output', corner, 'nldm', lib)
 
     # Set pex outputs
     for scenario in chip.getkeys('constraint', 'timing'):
         corner = chip.get('constraint', 'timing', scenario, 'pexcorner')
-        spef = chip.find_result(f'{corner}.spef', step='write_data')
+        spef = chip.find_result(f'{corner}.spef', step='write.views')
         chip.set('output', corner, 'spef', spef)
 
     # Hash output files
@@ -135,7 +135,7 @@ def build_core(verify=True, remote=False, resume=False, floorplan=False):
     _run_build(chip, remote)
 
     if verify:
-        _run_signoff(chip, 'write_data', 'write_gds', remote)
+        _run_signoff(chip, 'write.views', 'write.gds', remote)
 
     _setup_core_module(chip)
 
@@ -241,7 +241,7 @@ def build_top_flat(verify=True, resume=False, remote=False, floorplan=False):
 
     _run_build(chip, remote)
     if verify:
-        _run_signoff(chip, 'write_data', 'write_gds', remote)
+        _run_signoff(chip, 'write.views', 'write.gds', remote)
 
     return chip
 
@@ -254,7 +254,7 @@ def build_top(core_chip=None, verify=True, resume=False, remote=False, floorplan
 
     _run_build(chip, remote)
     if verify:
-        _run_signoff(chip, 'write_data', 'write_gds', remote)
+        _run_signoff(chip, 'write.views', 'write.gds', remote)
 
     return chip
 
