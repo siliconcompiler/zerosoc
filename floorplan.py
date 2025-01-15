@@ -22,29 +22,31 @@ def generate_core_pins(chip):
     # Place pins
     pins = [
         # (name, offset from cell edge, # bit in vector, width of vector)
-        ('din', 0, 1),  # in
-        ('dout', 0, 1),  # out
-        ('ie', 0, 1),  # inp_dis
-        ('oen', 0, 1),  # oe_n
-        ('tech_cfg', 0, 18),  # hld_h_n
-        ('tech_cfg', 1, 18),  # enable_h
-        ('tech_cfg', 2, 18),  # enable_inp_h
-        ('tech_cfg', 3, 18),  # enable_vdda_h
-        ('tech_cfg', 4, 18),  # enable_vswitch_h
-        ('tech_cfg', 5, 18),  # enable_vddio
-        ('tech_cfg', 6, 18),  # ib_mode_sel
-        ('tech_cfg', 7, 18),  # vtrip_sel
-        ('tech_cfg', 8, 18),  # slow
-        ('tech_cfg', 9, 18),  # hld_ovr
-        ('tech_cfg', 10, 18),  # analog_en
-        ('tech_cfg', 11, 18),  # analog_sel
-        ('tech_cfg', 12, 18),  # analog_pol
-        ('tech_cfg', 13, 18),  # dm[0]
-        ('tech_cfg', 14, 18),  # dm[1]
-        ('tech_cfg', 15, 18),  # dm[2]
         ('tech_cfg', 16, 18),  # tie_lo_esd
         ('tech_cfg', 17, 18),  # tie_hi_esd
+
+        ('din', 0, 1),  # in
+        ('tech_cfg', 5, 18),  # enable_vddio
+        ('tech_cfg', 8, 18),  # slow
+        ('tech_cfg', 14, 18),  # dm[1]
+        ('tech_cfg', 10, 18),  # analog_en
+        ('tech_cfg', 13, 18),  # dm[0]
+        ('tech_cfg', 12, 18),  # analog_pol
+        ('ie', 0, 1),  # inp_dis
+        ('tech_cfg', 2, 18),  # enable_inp_h
+        ('tech_cfg', 1, 18),  # enable_h
+        ('tech_cfg', 0, 18),  # hld_h_n
+        ('tech_cfg', 11, 18),  # analog_sel
+        ('tech_cfg', 15, 18),  # dm[2]
+        ('tech_cfg', 9, 18),  # hld_ovr
+        ('dout', 0, 1),  # out
+        ('tech_cfg', 4, 18),  # enable_vswitch_h
+        ('tech_cfg', 3, 18),  # enable_vdda_h
+        ('tech_cfg', 7, 18),  # vtrip_sel
+        ('tech_cfg', 6, 18),  # ib_mode_sel
+        ('oen', 0, 1),  # oe_n
     ]
+    pins = list(reversed(pins))
 
     we_pads, no_pads, ea_pads, so_pads = define_io_placement()
 
