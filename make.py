@@ -173,6 +173,7 @@ def _setup_top_flat():
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
 
+    chip.set('tool', 'yosys', 'task', 'syn_asic', 'var', 'hierarchy_separator', '.')
     chip.clock(r'padring.iwest.ipad\[3\].gbidir.i0.gpio/IN', period=60)
 
     zerosoc_floorplan.generate_top_flat_floorplan(chip)
