@@ -229,6 +229,7 @@ def _setup_top_hier(core_chip):
     for task in _get_tool_tasks(chip, openroad):
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'ioring*')
         chip.add('tool', 'openroad', 'task', task, 'var', 'psm_skip_nets', 'v*io')
+    chip.set('tool', 'yosys', 'task', 'syn_asic', 'var', 'hierarchy_separator', '.')
 
     zerosoc_floorplan.generate_top_floorplan(chip)
 
