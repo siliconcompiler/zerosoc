@@ -1,4 +1,5 @@
 import os
+import shlex
 from siliconcompiler import Library
 from siliconcompiler.package import path as sc_path
 import opentitan
@@ -31,8 +32,8 @@ def setup():
 
     # hack to work around fact that $readmemh now runs in context of build
     # directory and can't load .mem files using relative paths
-    lib.add('option', 'define', f'MEM_ROOT={sc_path(lib, "zerosoc")}')
-    lib.add('option', 'define', 'PRIM_DEFAULT_IMPL="prim_pkg::ImplLambdalib"')
+    lib.add('option', 'define', f'MEM_ROOT={shlex.quote(sc_path(lib, "zerosoc"))}')
+    lib.add('option', 'define', 'PRIM_DEFAULT_IMPL=prim_pkg::ImplLambdalib')
     lib.add('option', 'define', 'RAM_DEPTH=512')
 
     lib.use(opentitan)
