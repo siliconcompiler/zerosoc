@@ -512,12 +512,4 @@ def _main():
 
 
 if __name__ == '__main__':
-    project = Project(ZeroSOC())
-    project.add_fileset("rtl.top")
-    project.set_flow(lintflow.LintFlow())
-
-    assert project.check_filepaths()
-    project.run()
-
-
-    # _main()
+    _main()
