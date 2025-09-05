@@ -29,6 +29,8 @@ ASIC_CORE_CFG = 'zerosoc_core.pkg.json'
 from siliconcompiler.flows.asicflow import SV2VASICFlow
 from siliconcompiler.tools.openroad.init_floorplan import InitFloorplanTask
 from siliconcompiler.tools.openroad._apr import OpenROADPSMParameter
+from siliconcompiler.tools.openroad._apr import APRTask
+from siliconcompiler.tools.openroad.power_grid import PowerGridTask
 
 
 
@@ -171,7 +173,15 @@ class ZeroSOC(DesignSchema):
             self.add_depfileset(Padring(), "rtl")
 
         with self.active_dataroot("zerosoc"), self.active_fileset("padring.sky130"):
-            self.add_file("openroad/padring.tcl", filetype="tcl")
+            self.add_file("openroad/padring.tcl")
+
+        with self.active_dataroot("zerosoc"), self.active_fileset("globalconns.flattop"):
+            self.add_file("openroad/global_connect_core_top_flat.tcl")
+            self.add_file("openroad/global_connect_io.tcl")
+
+        with self.active_dataroot("zerosoc"), self.active_fileset("pdn.flattop"):
+            self.add_file("openroad/pdngen_top.tcl")
+            self.add_file("openroad/pdngen_sram.tcl")
 
         with self.active_dataroot("zerosoc"), self.active_fileset("sdc.top.sky130"):
             self.add_file("hw/asic_top.sdc")
@@ -376,6 +386,11 @@ def build_top_flat(resume=True, remote=False, floorplan=False):
     init_fp: InitFloorplanTask = project.get_task(filter=InitFloorplanTask)
     init_fp.add_openroad_padringfileset("padring.sky130")
 
+    for task in project.get_task(filter=APRTask):
+        task.add_openroad_globalconnectfileset("zerosoc", "globalconns.flattop")
+
+    project.get_task(filter=PowerGridTask).add_openroad_powergridfileset("zerosoc", "pdn.flattop")
+
     for task in project.get_task(filter=OpenROADPSMParameter):
         task.add("var", "psm_skip_nets", 'ioring*')
         task.add("var", "psm_skip_nets", 'v*io')
@@ -389,10 +404,6 @@ def build_top_flat(resume=True, remote=False, floorplan=False):
 
     project.run()
     project.summary()
-
-    _run_build(chip, remote)
-    if verify:
-        _run_signoff(chip, 'write.views', 'write.gds', remote)
 
     return project
 
@@ -485,8 +496,7 @@ def _main():
                   resume=not options.clean,
                   floorplan=options.floorplan)
     elif options.top_flat:
-        build_top_flat(verify=verify,
-                       remote=options.remote,
+        build_top_flat(remote=options.remote,
                        resume=not options.clean,
                        floorplan=options.floorplan)
     else:
