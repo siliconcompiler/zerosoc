@@ -70,28 +70,28 @@ module asic_top (
 `include "iomap.vh"
     wire [7:0] ioring;
 
-   la_iopadring #(.RINGW(8),
-                  .CFGW(18),
-                  //north
-                  .NO_NPINS(9),
-                  .NO_NCELLS(13),
-                  .NO_NSECTIONS(1),
-                  .NO_CELLMAP(CELLMAP),
-                  //east
-                  .EA_NPINS(9),
-                  .EA_NCELLS(13),
-                  .EA_NSECTIONS(1),
-                  .EA_CELLMAP(CELLMAP),
-                  //south
-                  .SO_NPINS(9),
-                  .SO_NCELLS(13),
-                  .SO_NSECTIONS(1),
-                  .SO_CELLMAP(CELLMAP),
-                  //west
-                  .WE_NPINS(9),
-                  .WE_NCELLS(13),
-                  .WE_NSECTIONS(1),
-                  .WE_CELLMAP(CELLMAP))
+   la_padring #(.RINGW(8),
+                .CFGW(18),
+                //north
+                .NO_NPINS(9),
+                .NO_NCELLS(13),
+                .NO_NSECTIONS(1),
+                .NO_CELLMAP(CELLMAP),
+                //east
+                .EA_NPINS(9),
+                .EA_NCELLS(13),
+                .EA_NSECTIONS(1),
+                .EA_CELLMAP(CELLMAP),
+                //south
+                .SO_NPINS(9),
+                .SO_NCELLS(13),
+                .SO_NSECTIONS(1),
+                .SO_CELLMAP(CELLMAP),
+                //west
+                .WE_NPINS(9),
+                .WE_NCELLS(13),
+                .WE_NSECTIONS(1),
+                .WE_CELLMAP(CELLMAP))
    padring(// Inouts
                 .no_pad         (no_pad),
                 .ea_pad         (ea_pad),

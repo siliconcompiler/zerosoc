@@ -18,7 +18,7 @@ localparam [7:0] PIN_NONE     = 8'hFF;
 // CELLMAP = {PROP[7:0],SECTION[7:0],CELL[7:0],COMP[7:0],PIN[7:0]}
 //##################################################
 
-`include "la_iopadring.vh"
+`include "la_padring.vh"
 
 localparam CELLMAP = { // GPIO SECTION
                        {8'h0, 8'h0, LA_VSS,   8'h0, PIN_NONE},
