@@ -3,7 +3,7 @@
 ZeroSOC build system
 '''
 
-from siliconcompiler import DesignSchema, Project, ASICProject
+from siliconcompiler import Design, Project, ASICProject
 from siliconcompiler.flows import lintflow
 from lambdalib.ramlib import Spram
 from lambdalib.padring import Padring
@@ -34,7 +34,7 @@ from siliconcompiler.tools.openroad.power_grid import PowerGridTask
 
 
 
-class OpenTITAN(DesignSchema):
+class OpenTITAN(Design):
     def __init__(self):
         super().__init__("opentitan")
 
@@ -132,7 +132,7 @@ class OpenTITAN(DesignSchema):
             self.add_file('hw/vendor/lowrisc_ibex/rtl/ibex_compressed_decoder.sv')
 
 
-class ZeroSOC(DesignSchema):
+class ZeroSOC(Design):
     def __init__(self):
         super().__init__("zerosoc")
 
