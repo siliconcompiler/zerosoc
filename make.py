@@ -3,8 +3,8 @@
 ZeroSOC build system
 '''
 
-from siliconcompiler import Design, Project, ASICProject
-from siliconcompiler.flows import lintflow
+from siliconcompiler import Design, ASICProject
+from siliconcompiler.tools import get_task
 from lambdalib.ramlib import Spram
 from lambdalib.padring import Padring
 
@@ -383,15 +383,15 @@ def build_top_flat(resume=True, remote=False, floorplan=False):
     project.load_target(skywater130_demo.setup)
     project.set_flow(SV2VASICFlow())
 
-    init_fp: InitFloorplanTask = project.get_task(filter=InitFloorplanTask)
+    init_fp: InitFloorplanTask = get_task(project, filter=InitFloorplanTask)
     init_fp.add_openroad_padringfileset("padring.sky130")
 
-    for task in project.get_task(filter=APRTask):
+    for task in get_task(project, filter=APRTask):
         task.add_openroad_globalconnectfileset("zerosoc", "globalconns.flattop")
 
-    project.get_task(filter=PowerGridTask).add_openroad_powergridfileset("zerosoc", "pdn.flattop")
+    get_task(project, filter=PowerGridTask).add_openroad_powergridfileset("zerosoc", "pdn.flattop")
 
-    for task in project.get_task(filter=OpenROADPSMParameter):
+    for task in get_task(project, filter=OpenROADPSMParameter):
         task.add("var", "psm_skip_nets", 'ioring*')
         task.add("var", "psm_skip_nets", 'v*io')
 
