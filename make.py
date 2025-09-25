@@ -380,7 +380,7 @@ def build_top_flat(resume=True, remote=False, floorplan=False):
     project.add_fileset("rtl.top")
     project.add_fileset("sdc.top.sky130")
 
-    project.load_target(skywater130_demo.setup)
+    skywater130_demo.setup(project)
     project.set_flow(SV2VASICFlow())
 
     init_fp: InitFloorplanTask = get_task(project, filter=InitFloorplanTask)
