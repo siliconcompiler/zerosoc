@@ -3,7 +3,7 @@
 ZeroSOC build system
 '''
 
-from siliconcompiler import Design, ASICProject
+from siliconcompiler import Design, ASIC
 from siliconcompiler.tools import get_task
 from lambdalib.ramlib import Spram
 from lambdalib.padring import Padring
@@ -376,7 +376,7 @@ def _setup_top_hier(core_chip):
 
 
 def build_top_flat(resume=True, remote=False, floorplan=False):
-    project = ASICProject(ZeroSOC())
+    project = ASIC(ZeroSOC())
     project.add_fileset("rtl.top")
     project.add_fileset("sdc.top.sky130")
 
