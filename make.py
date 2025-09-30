@@ -395,7 +395,7 @@ def build_top_flat(resume=True, remote=False, floorplan=False):
         task.add("var", "psm_skip_nets", 'ioring*')
         task.add("var", "psm_skip_nets", 'v*io')
 
-    project.get_areaconstraints().set_diearea_rectangle(1700, 2300, coremargin=230)
+    project.constraint.area.set_diearea_rectangle(1700, 2300, coremargin=230)
     # chip = _setup_top_flat()
 
     project.set('option', 'clean', not resume)
