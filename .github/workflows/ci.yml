@@ -46,7 +46,7 @@ jobs:
           ./make.py --top-flat
 
       - name: Upload image artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: flat
           path: build/zerosoc/job0/zerosoc.png
@@ -81,7 +81,7 @@ jobs:
           ./make.py --top-only
 
       - name: Upload image artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hierarchical
           path: |
