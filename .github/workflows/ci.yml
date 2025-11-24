@@ -28,9 +28,9 @@ jobs:
       image: ${{ needs.docker_image.outputs.sc_tool }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: siliconcompiler/siliconcompiler
           path: siliconcompiler
@@ -46,7 +46,7 @@ jobs:
           ./make.py --top-flat
 
       - name: Upload image artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: flat
           path: build/zerosoc/job0/zerosoc.png
@@ -61,9 +61,9 @@ jobs:
       image: ${{ needs.docker_image.outputs.sc_tool }}
 
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
 
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
         with:
           repository: siliconcompiler/siliconcompiler
           path: siliconcompiler
@@ -81,7 +81,7 @@ jobs:
           ./make.py --top-only
 
       - name: Upload image artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v5
         with:
           name: hierarchical
           path: |
