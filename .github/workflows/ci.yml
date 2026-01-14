@@ -43,47 +43,10 @@ jobs:
           echo $VIRTUAL_ENV
           pip3 install -r python-requirements.txt
           pip3 install ./siliconcompiler
-          ./make.py --top-flat
+          ./make.py
 
       - name: Upload image artifacts
         uses: actions/upload-artifact@v6
         with:
           name: flat
           path: build/zerosoc/job0/zerosoc.png
-
-  hierarchical:
-    name: 'hierarchical'
-    if: false
-    needs: docker_image
-    timeout-minutes: 180
-    runs-on: ubuntu-latest
-    container:
-      image: ${{ needs.docker_image.outputs.sc_tool }}
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: actions/checkout@v6
-        with:
-          repository: siliconcompiler/siliconcompiler
-          path: siliconcompiler
-
-      - run: apt install python3-venv
-
-      - name: Run test
-        run: |
-          python3 -m venv ./clean_env --clear
-          source ./clean_env/bin/activate
-          echo $VIRTUAL_ENV
-          pip3 install -r python-requirements.txt
-          pip3 install ./siliconcompiler
-          ./make.py --core-only
-          ./make.py --top-only
-
-      - name: Upload image artifacts
-        uses: actions/upload-artifact@v6
-        with:
-          name: hierarchical
-          path: |
-            build/zerosoc_core/job0/zerosoc_core.png
-            build/zerosoc_top/job0/zerosoc_top.png

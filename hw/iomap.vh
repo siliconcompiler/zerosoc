@@ -2,35 +2,35 @@
 // PIN ORDER (PER SIDE)
 //##################################################
 
-localparam [7:0] PIN_IO0     = 8'h00;
-localparam [7:0] PIN_IO1     = 8'h01;
-localparam [7:0] PIN_IO2     = 8'h02;
-localparam [7:0] PIN_IO3     = 8'h03;
-localparam [7:0] PIN_IO4     = 8'h04;
-localparam [7:0] PIN_IO5     = 8'h05;
-localparam [7:0] PIN_IO6     = 8'h06;
-localparam [7:0] PIN_IO7     = 8'h07;
-localparam [7:0] PIN_IO8     = 8'h08;
+localparam [15:0] PIN_IO0     = 16'h0000;
+localparam [15:0] PIN_IO1     = 16'h0001;
+localparam [15:0] PIN_IO2     = 16'h0002;
+localparam [15:0] PIN_IO3     = 16'h0003;
+localparam [15:0] PIN_IO4     = 16'h0004;
+localparam [15:0] PIN_IO5     = 16'h0005;
+localparam [15:0] PIN_IO6     = 16'h0006;
+localparam [15:0] PIN_IO7     = 16'h0007;
+localparam [15:0] PIN_IO8     = 16'h0008;
 
-localparam [7:0] PIN_NONE     = 8'hFF;
+localparam [15:0] PIN_NONE     = 16'h00FF;
 
 //##################################################
-// CELLMAP = {PROP[7:0],SECTION[7:0],CELL[7:0],COMP[7:0],PIN[7:0]}
+// CELLMAP = {PROP[15:0],SECTION[15:0],CELL[15:0],COMP[15:0],PIN[15:0]}
 //##################################################
 
 `include "la_padring.vh"
 
 localparam CELLMAP = { // GPIO SECTION
-                       {8'h0, 8'h0, LA_VSS,   8'h0, PIN_NONE},
-                       {8'h0, 8'h0, LA_VDD,   8'h0, PIN_NONE},
-                       {8'h0, 8'h0, LA_VDDIO, 8'h0, PIN_NONE},
-                       {8'h0, 8'h0, LA_VSSIO, 8'h0, PIN_NONE},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO0},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO1},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO2},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO3},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO4},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO5},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO6},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO7},
-                       {8'h0, 8'h0, LA_BIDIR, 8'h0, PIN_IO8}};
+                       {16'h0000, 16'h0000, LA_VSS,   16'h0000, PIN_NONE},
+                       {16'h0000, 16'h0000, LA_VDD,   16'h0000, PIN_NONE},
+                       {16'h0000, 16'h0000, LA_VDDIO, 16'h0000, PIN_NONE},
+                       {16'h0000, 16'h0000, LA_VSSIO, 16'h0000, PIN_NONE},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO0},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO1},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO2},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO3},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO4},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO5},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO6},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO7},
+                       {16'h0000, 16'h0000, LA_BIDIR, 16'h0000, PIN_IO8}};
