@@ -34,10 +34,12 @@ jobs:
         with:
           repository: siliconcompiler/siliconcompiler
           path: siliconcompiler
+          fetch-depth: 0
 
       - run: apt install python3-venv
       - name: Run test
         run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
           python3 -m venv ./clean_env --clear
           source ./clean_env/bin/activate
           echo $VIRTUAL_ENV
