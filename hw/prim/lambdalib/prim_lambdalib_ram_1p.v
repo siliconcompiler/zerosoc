@@ -28,7 +28,10 @@ la_spram #(.DW(Width), .AW(Aw)) mem(
   .wmask(wmask_i),
   .addr(addr_i),
   .din(wdata_i),
-  .dout(rdata_o)
+  .dout(rdata_o),
+  .selctrl(1'b0),
+  .ctrl('b0),
+  .status()
 );
 
 endmodule
